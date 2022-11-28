@@ -1,0 +1,27 @@
+# permissions for end users to view annoes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: anno-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: annotation-operator
+    app.kubernetes.io/part-of: annotation-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: anno-viewer-role
+rules:
+- apiGroups:
+  - annov1.cloud.example.com
+  resources:
+  - annoes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - annov1.cloud.example.com
+  resources:
+  - annoes/status
+  verbs:
+  - get

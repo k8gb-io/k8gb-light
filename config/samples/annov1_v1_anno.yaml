@@ -1,0 +1,12 @@
+apiVersion: annov1.cloud.example.com/v1
+kind: Anno
+metadata:
+  labels:
+    app.kubernetes.io/name: anno
+    app.kubernetes.io/instance: anno-sample
+    app.kubernetes.io/part-of: annotation-operator
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: annotation-operator
+  name: anno-sample
+spec:
+  # TODO(user): Add fields here

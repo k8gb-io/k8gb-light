@@ -1,0 +1,31 @@
+# permissions for end users to edit annoes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: anno-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: annotation-operator
+    app.kubernetes.io/part-of: annotation-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: anno-editor-role
+rules:
+- apiGroups:
+  - annov1.cloud.example.com
+  resources:
+  - annoes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - annov1.cloud.example.com
+  resources:
+  - annoes/status
+  verbs:
+  - get

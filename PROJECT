@@ -1,0 +1,16 @@
+domain: cloud.example.com
+layout:
+- go.kubebuilder.io/v3
+projectName: annotation-operator
+repo: cloud.example.com/annotation-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: cloud.example.com
+  group: annov1
+  kind: Anno
+  path: cloud.example.com/annotation-operator/api/v1
+  version: v1
+version: "3"
