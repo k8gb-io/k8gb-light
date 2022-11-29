@@ -53,6 +53,7 @@ func (r *AnnoReconciler) updateStatus(rs *rs.ReconciliationState, ep *externaldn
 
 	m.UpdateEndpointStatus(ep)
 
+	rs.Ingress.Annotations["k8gb.io/status"] = rs.Status.String()
 	err = r.Update(context.TODO(), rs.Ingress)
 	return err
 }
