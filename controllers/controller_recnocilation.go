@@ -18,27 +18,18 @@ package controllers
 
 import (
 	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"cloud.example.com/annotation-operator/controllers/logging"
+	"cloud.example.com/annotation-operator/controllers/providers/dns"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	"cloud.example.com/annotation-operator/controllers/rs"
 	"context"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
-	externaldns "sigs.k8s.io/external-dns/endpoint"
-
-	"cloud.example.com/annotation-operator/controllers/logging"
-	"cloud.example.com/annotation-operator/controllers/providers/dns"
 	"go.opentelemetry.io/otel/trace"
 
 	"cloud.example.com/annotation-operator/controllers/utils"
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // AnnoReconciler reconciles a Anno object
@@ -119,36 +110,4 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// with external Gslb status
 	m.IncrementReconciliation(state)
 	return result.Requeue()
-}
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
-
-	ingressHandler := handler.EnqueueRequestsFromMapFunc(
-		func(a client.Object) []reconcile.Request {
-			// thanks to watcher, the reconciliation is executed immediatelly at the moment when ingress changed
-			// skip
-			return nil
-		})
-
-	endpointHandler := handler.EnqueueRequestsFromMapFunc(
-		func(a client.Object) []reconcile.Request {
-			var ingress = &netv1.Ingress{}
-			c := mgr.GetClient()
-			err := c.Get(context.TODO(), client.ObjectKey{
-				Namespace: a.GetNamespace(),
-				Name:      a.GetName(),
-			}, ingress)
-			if err == nil {
-				return nil
-			}
-			return []reconcile.Request{{types.NamespacedName{Namespace: ingress.Namespace, Name: ingress.Name}}}
-		})
-
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&netv1.Ingress{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
-		Watches(&source.Kind{Type: &netv1.Ingress{}}, ingressHandler).
-		Owns(&externaldns.DNSEndpoint{}).
-		Watches(&source.Kind{Type: &corev1.Endpoints{}}, endpointHandler).
-		Complete(r)
 }
