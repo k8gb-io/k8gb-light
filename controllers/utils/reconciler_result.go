@@ -36,7 +36,7 @@ func NewReconcileResultHandler(reconcileAfter int) *ReconcileResultHandler {
 
 // Stop stops reconciliation loop
 func (r *ReconcileResultHandler) Stop() (ctrl.Result, error) {
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: false}, nil
 }
 
 // RequeueError requeue loop immediately

@@ -18,6 +18,7 @@ const (
 	AnnotationDnsTTLSeconds              = "k8gb.io/dns-ttl-seconds"
 	AnnotationSplitBrainThresholdSeconds = "k8gb.io/splitbrain-threshold-seconds"
 	AnnotationWeightJSON                 = "k8gb.io/weights"
+	AnnotationStatus                     = "k8gb.io/status"
 )
 
 type Spec struct {
@@ -157,5 +158,5 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 }
 
 func (rs *ReconciliationState) SetStatus(status string) {
-	rs.Ingress.Annotations["k8gb.io/status"] = status
+	rs.Ingress.Annotations[AnnotationStatus] = status
 }

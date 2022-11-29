@@ -42,6 +42,9 @@ func (i *IngressMapper) Get(selector types.NamespacedName) (rs *ReconciliationSt
 		return nil, result, err
 	}
 	rs, err = NewReconciliationState(ing)
+	if err != nil {
+		result = MapperResultError
+	}
 	return rs, result, err
 }
 

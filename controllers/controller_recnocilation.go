@@ -27,7 +27,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"cloud.example.com/annotation-operator/controllers/utils"
-	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -54,20 +53,20 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return result.Requeue()
 	}
 
-	log.Info().
-		Str("EdgeDNSZone", r.Config.DNSZone).
-		Msg("* Starting Reconciliation")
-
-	ing := &netv1.Ingress{}
-	err := r.Get(ctx, req.NamespacedName, ing)
-	if err != nil {
-		log.Err(err).Msg("Ingress load error")
-		return result.Requeue()
+	state, rr, err := r.IngressMapper.Get(req.NamespacedName)
+	if rr == rs.MapperResultCreate {
+		log.Info().
+			Str("Namespace", req.NamespacedName.Namespace).
+			Str("Ingress", req.NamespacedName.Name).
+			Msg("Ingress not found. Stop...")
+		return result.Stop()
 	}
-
-	state, err := rs.NewReconciliationState(ing)
-	if err != nil {
-		log.Err(err).Msg("Invalid ingress")
+	if rr == rs.MapperResultError {
+		m.IncrementError(state)
+		log.Err(err).
+			Str("Namespace", req.NamespacedName.Namespace).
+			Str("Ingress", req.NamespacedName.Name).
+			Msg("reading Ingress error")
 		return result.Requeue()
 	}
 
@@ -75,6 +74,10 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		log.Info().Str("annotation", rs.AnnotationStrategy).Msg("No annotation found")
 		return result.Requeue()
 	}
+
+	log.Info().
+		Str("EdgeDNSZone", r.Config.DNSZone).
+		Msg("* Starting Reconciliation")
 
 	// == external-dns dnsendpoints CRs ==
 	dnsEndpoint, err := r.gslbDNSEndpoint(state)
