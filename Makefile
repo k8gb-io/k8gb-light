@@ -7,8 +7,6 @@ deploy-ing:
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb2
 
 
-
-
 MAKEIN=make -C .
 KEY?=gslb
 watch:

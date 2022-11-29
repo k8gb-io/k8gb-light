@@ -26,24 +26,31 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			return nil
 		})
 
-	endpointHandler := handler.EnqueueRequestsFromMapFunc(
+	serviceEndpointHandler := handler.EnqueueRequestsFromMapFunc(
 		func(a client.Object) []reconcile.Request {
-			var ingress = &netv1.Ingress{}
+			ingList := &netv1.IngressList{}
 			c := mgr.GetClient()
-			err := c.Get(context.TODO(), client.ObjectKey{
-				Namespace: a.GetNamespace(),
-				Name:      a.GetName(),
-			}, ingress)
-			if err == nil {
+			err := c.List(context.TODO(), ingList, client.InNamespace(a.GetNamespace()))
+			if err != nil {
+				log.Info().Msg("Can't fetch ingress objects")
 				return nil
 			}
-			return []reconcile.Request{{types.NamespacedName{Namespace: ingress.Namespace, Name: ingress.Name}}}
+			for _, ing := range ingList.Items {
+				for _, rule := range ing.Spec.Rules {
+					for _, path := range rule.HTTP.Paths {
+						if path.Backend.Service != nil && path.Backend.Service.Name == a.GetName() {
+							return []reconcile.Request{{types.NamespacedName{Namespace: a.GetNamespace(), Name: ing.Name}}}
+						}
+					}
+				}
+			}
+			return nil
 		})
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&netv1.Ingress{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
-		Watches(&source.Kind{Type: &netv1.Ingress{}}, ingressHandler).
 		Owns(&externaldns.DNSEndpoint{}).
-		Watches(&source.Kind{Type: &corev1.Endpoints{}}, endpointHandler).
+		Watches(&source.Kind{Type: &netv1.Ingress{}}, ingressHandler).
+		Watches(&source.Kind{Type: &corev1.Endpoints{}}, serviceEndpointHandler).
 		Complete(r)
 }
