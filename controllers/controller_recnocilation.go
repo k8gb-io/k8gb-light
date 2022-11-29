@@ -36,11 +36,12 @@ import (
 // AnnoReconciler reconciles a Anno object
 type AnnoReconciler struct {
 	client.Client
-	Scheme      *runtime.Scheme
-	Config      *depresolver.Config
-	DepResolver depresolver.GslbResolver
-	DNSProvider dns.Provider
-	Tracer      trace.Tracer
+	Scheme        *runtime.Scheme
+	Config        *depresolver.Config
+	DepResolver   depresolver.GslbResolver
+	DNSProvider   dns.Provider
+	Tracer        trace.Tracer
+	IngressMapper *rs.IngressMapper
 }
 
 var log = logging.Logger()

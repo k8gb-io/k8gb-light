@@ -1,9 +1,10 @@
 package rs
 
 import (
-	"cloud.example.com/annotation-operator/controllers/status"
 	"fmt"
 	"strconv"
+
+	"cloud.example.com/annotation-operator/controllers/status"
 
 	"k8s.io/apimachinery/pkg/types"
 
@@ -51,6 +52,7 @@ func (s Status) String() string {
 	return string(b)
 }
 
+// ReconciliationState wraps information about ingress. Ensures that Ingress entity can't be nil
 type ReconciliationState struct {
 	Ingress        *netv1.Ingress
 	Spec           Spec
@@ -152,4 +154,8 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 		}
 	}
 	return result, nil
+}
+
+func (rs *ReconciliationState) SetStatus(status string) {
+	rs.Ingress.Annotations["k8gb.io/status"] = status
 }

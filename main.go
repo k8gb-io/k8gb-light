@@ -20,6 +20,8 @@ import (
 	"context"
 	"os"
 
+	"cloud.example.com/annotation-operator/controllers/rs"
+
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -108,10 +110,11 @@ func run() error {
 	}
 
 	reconciler := &controllers.AnnoReconciler{
-		Config:      config,
-		Client:      mgr.GetClient(),
-		DepResolver: resolver,
-		Scheme:      mgr.GetScheme(),
+		Config:        config,
+		Client:        mgr.GetClient(),
+		DepResolver:   resolver,
+		Scheme:        mgr.GetScheme(),
+		IngressMapper: rs.NewIngressMapper(mgr.GetClient()),
 	}
 
 	log.Info().Msg("Starting metrics")

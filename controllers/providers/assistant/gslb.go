@@ -291,7 +291,7 @@ func (r *Gslb) GetExternalTargets(host string, extClusterNsNames map[string]stri
 		if err != nil {
 			return
 		}
-		log.Info().
+		log.Debug().
 			Str("nameserver", cluster).
 			Interface("edgeDNSServers", r.edgeDNSServers).
 			Interface("glueARecord", glueA.Answer).

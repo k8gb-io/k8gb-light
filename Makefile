@@ -13,7 +13,7 @@ watch:
 	@watch -n 1 $(MAKEIN) generation
 
 generation:
-	@echo "🟢 DNSEndpoint generation"  `kubectl get dnsendpoint $(KEY) -ojsonpath={.metadata.generation}`
-	@echo "🟡 Ingress generation" `kubectl get ingress $(KEY) -ojsonpath={.metadata.generation}`
+	@echo "DNSEndpoint generation"  `kubectl get dnsendpoint $(KEY) -ojsonpath={.metadata.generation}`
+	@echo "Ingress generation" `kubectl get ingress $(KEY) -ojsonpath={.metadata.generation}`
 	@echo
 	@kubectl get dnsendpoint $(KEY) -oyaml | grep "  endpoints:" -A 23
