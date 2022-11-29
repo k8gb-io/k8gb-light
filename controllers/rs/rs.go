@@ -1,10 +1,9 @@
 package rs
 
 import (
+	"cloud.example.com/annotation-operator/controllers/status"
 	"fmt"
 	"strconv"
-
-	"cloud.example.com/annotation-operator/controllers/status"
 
 	"k8s.io/apimachinery/pkg/types"
 
@@ -13,11 +12,11 @@ import (
 )
 
 const (
-	PrimaryGeoTagAnnotation              = "k8gb.io/primary-geotag"
-	StrategyAnnotation                   = "k8gb.io/strategy"
-	DnsTTLSecondsAnnotation              = "k8gb.io/dns-ttl-seconds"
-	SplitBrainThresholdSecondsAnnotation = "k8gb.io/splitbrain-threshold-seconds"
-	WeightAnnotationJSON                 = "k8gb.io/weights"
+	AnnotationPrimaryGeoTag              = "k8gb.io/primary-geotag"
+	AnnotationStrategy                   = "k8gb.io/strategy"
+	AnnotationDnsTTLSeconds              = "k8gb.io/dns-ttl-seconds"
+	AnnotationSplitBrainThresholdSeconds = "k8gb.io/splitbrain-threshold-seconds"
+	AnnotationWeightJSON                 = "k8gb.io/weights"
 )
 
 type Spec struct {
@@ -78,7 +77,7 @@ func NewReconciliationState(ingress *netv1.Ingress) (m *ReconciliationState, err
 
 func (rs *ReconciliationState) HasStrategy() bool {
 	annotations := rs.Ingress.GetAnnotations()
-	_, found := annotations[StrategyAnnotation]
+	_, found := annotations[AnnotationStrategy]
 	return found
 }
 
@@ -89,19 +88,19 @@ func (rs *ReconciliationState) asAnnotation(s Spec) (annotations map[string]stri
 	}
 	annotations = make(map[string]string, 0)
 	if s.DNSTtlSeconds != predefinedStrategy.DNSTtlSeconds {
-		annotations[DnsTTLSecondsAnnotation] = strconv.Itoa(s.DNSTtlSeconds)
+		annotations[AnnotationDnsTTLSeconds] = strconv.Itoa(s.DNSTtlSeconds)
 	}
 	if s.SplitBrainThresholdSeconds != predefinedStrategy.SplitBrainThresholdSeconds {
-		annotations[SplitBrainThresholdSecondsAnnotation] = strconv.Itoa(s.SplitBrainThresholdSeconds)
+		annotations[AnnotationSplitBrainThresholdSeconds] = strconv.Itoa(s.SplitBrainThresholdSeconds)
 	}
-	annotations[PrimaryGeoTagAnnotation] = s.PrimaryGeoTag
-	annotations[StrategyAnnotation] = s.Type
+	annotations[AnnotationPrimaryGeoTag] = s.PrimaryGeoTag
+	annotations[AnnotationStrategy] = s.Type
 
 	weights, err := json.Marshal(s.Weights)
 	if err != nil {
 		return annotations, fmt.Errorf("reading weights %v", err)
 	}
-	annotations[WeightAnnotationJSON] = string(weights)
+	annotations[AnnotationWeightJSON] = string(weights)
 	return annotations, err
 }
 
@@ -121,24 +120,24 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 		Weights:                    nil,
 	}
 
-	if value, found := annotations[StrategyAnnotation]; found {
+	if value, found := annotations[AnnotationStrategy]; found {
 		result.Type = value
 	}
-	if value, found := annotations[PrimaryGeoTagAnnotation]; found {
+	if value, found := annotations[AnnotationPrimaryGeoTag]; found {
 		result.PrimaryGeoTag = value
 	}
-	if value, found := annotations[SplitBrainThresholdSecondsAnnotation]; found {
-		if result.SplitBrainThresholdSeconds, err = toInt(SplitBrainThresholdSecondsAnnotation, value); err != nil {
+	if value, found := annotations[AnnotationSplitBrainThresholdSeconds]; found {
+		if result.SplitBrainThresholdSeconds, err = toInt(AnnotationSplitBrainThresholdSeconds, value); err != nil {
 			return result, err
 		}
 	}
-	if value, found := annotations[DnsTTLSecondsAnnotation]; found {
-		if result.DNSTtlSeconds, err = toInt(DnsTTLSecondsAnnotation, value); err != nil {
+	if value, found := annotations[AnnotationDnsTTLSeconds]; found {
+		if result.DNSTtlSeconds, err = toInt(AnnotationDnsTTLSeconds, value); err != nil {
 			return result, err
 		}
 	}
 
-	if value, found := annotations[WeightAnnotationJSON]; found {
+	if value, found := annotations[AnnotationWeightJSON]; found {
 		w := make(map[string]int, 0)
 		err = json.Unmarshal([]byte(value), &w)
 		if err != nil {
@@ -149,7 +148,7 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 
 	if result.Type == FailoverStrategy {
 		if len(result.PrimaryGeoTag) == 0 {
-			return result, fmt.Errorf("%s strategy requires annotation %s", FailoverStrategy, PrimaryGeoTagAnnotation)
+			return result, fmt.Errorf("%s strategy requires annotation %s", FailoverStrategy, AnnotationPrimaryGeoTag)
 		}
 	}
 	return result, nil

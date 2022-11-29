@@ -17,12 +17,13 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
+
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"
 	"cloud.example.com/annotation-operator/controllers/providers/dns"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	"cloud.example.com/annotation-operator/controllers/rs"
-	"context"
 	"go.opentelemetry.io/otel/trace"
 
 	"cloud.example.com/annotation-operator/controllers/utils"
@@ -70,7 +71,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if !state.HasStrategy() {
-		log.Info().Str("annotation", rs.StrategyAnnotation).Msg("No annotation found")
+		log.Info().Str("annotation", rs.AnnotationStrategy).Msg("No annotation found")
 		return result.Requeue()
 	}
 

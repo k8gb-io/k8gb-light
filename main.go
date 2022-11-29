@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"os"
+
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 
 	"k8s.io/apimachinery/pkg/runtime"
