@@ -18,8 +18,12 @@ package main
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/runtime"
 	"os"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	sch "sigs.k8s.io/controller-runtime/pkg/scheme"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"
@@ -95,12 +99,12 @@ func run() error {
 
 	// Add external-dns DNSEndpoints resource
 	// https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#adding-3rd-party-resources-to-your-operator
-	//schemeBuilder := &scheme.Builder{GroupVersion: schema.GroupVersion{Group: "externaldns.k8s.io", Version: "v1alpha1"}}
-	//schemeBuilder.Register(&externaldns.DNSEndpoint{}, &externaldns.DNSEndpointList{})
-	//if err := schemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
-	//	log.Err(err).Msg("Unable to register ExternalDNS resource schemas")
-	//	return err
-	//}
+	schemeBuilder := &sch.Builder{GroupVersion: schema.GroupVersion{Group: "externaldns.k8s.io", Version: "v1alpha1"}}
+	schemeBuilder.Register(&externaldns.DNSEndpoint{}, &externaldns.DNSEndpointList{})
+	if err = schemeBuilder.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Err(err).Msg("Unable to register ExternalDNS resource schemas")
+		return err
+	}
 
 	reconciler := &controllers.AnnoReconciler{
 		Config:      config,

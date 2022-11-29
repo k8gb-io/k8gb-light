@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"cloud.example.com/annotation-operator/controllers/status"
+
 	"k8s.io/apimachinery/pkg/types"
 
 	netv1 "k8s.io/api/networking/v1"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"k8s.io/apimachinery/pkg/util/json"
 )
 
@@ -32,16 +32,43 @@ func (s *Spec) String() string {
 	return fmt.Sprintf("strategy: %s, geo: %s", s.Type, s.PrimaryGeoTag)
 }
 
+// Status defines the observed state of Gslb
+type Status struct {
+	// Associated Service status
+	ServiceHealth map[string]status.HealthStatus `json:"serviceHealth"`
+	// Current Healthy DNS record structure
+	HealthyRecords map[string][]string `json:"healthyRecords"`
+	// Cluster Geo Tag
+	GeoTag string `json:"geoTag"`
+	// Comma-separated list of hosts. Duplicating the value from range .spec.ingress.rules[*].host for printer column
+	Hosts string `json:"hosts,omitempty"`
+}
+
+func (s Status) String() string {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return fmt.Sprintf("{%v}", err)
+	}
+	return string(b)
+}
+
 type ReconciliationState struct {
 	Ingress        *netv1.Ingress
 	Spec           Spec
 	NamespacedName types.NamespacedName
+	Status         Status
 }
 
 func NewReconciliationState(ingress *netv1.Ingress) (m *ReconciliationState, err error) {
 	m = new(ReconciliationState)
 	if ingress == nil {
 		return m, fmt.Errorf("nil *ingress")
+	}
+	m.Status = Status{
+		ServiceHealth:  map[string]status.HealthStatus{},
+		HealthyRecords: map[string][]string{},
+		GeoTag:         "",
+		Hosts:          "",
 	}
 	m.Ingress = ingress
 	m.Spec, err = m.asSpec(ingress.GetAnnotations())
@@ -120,14 +147,10 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 		result.Weights = w
 	}
 
-	if result.Type == depresolver.FailoverStrategy {
+	if result.Type == FailoverStrategy {
 		if len(result.PrimaryGeoTag) == 0 {
-			return result, fmt.Errorf("%s strategy requires annotation %s", depresolver.FailoverStrategy, PrimaryGeoTagAnnotation)
+			return result, fmt.Errorf("%s strategy requires annotation %s", FailoverStrategy, PrimaryGeoTagAnnotation)
 		}
 	}
 	return result, nil
-}
-
-func (rs *ReconciliationState) Save() error {
-	rs.
 }

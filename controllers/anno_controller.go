@@ -56,27 +56,68 @@ var log = logging.Logger()
 var m = metrics.Metrics()
 
 func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log.Info().Msg("Reconciliation started")
-
 	result := utils.NewReconcileResultHandler(30)
+	if req.NamespacedName.Name == "" || req.NamespacedName.Namespace == "" {
+		return result.Requeue()
+	}
+
+	log.Info().
+		Str("EdgeDNSZone", r.Config.DNSZone).
+		Msg("* Starting Reconciliation")
 
 	ing := &netv1.Ingress{}
 	err := r.Get(ctx, req.NamespacedName, ing)
 	if err != nil {
 		log.Err(err).Msg("Ingress load error")
+		return result.Requeue()
 	}
 
-	m, err := rs.NewReconciliationState(ing)
+	state, err := rs.NewReconciliationState(ing)
 	if err != nil {
 		log.Err(err).Msg("Invalid ingress")
 		return result.Requeue()
 	}
 
-	if !m.HasStrategy() {
-		log.Info().Msg("No annotation found")
+	if !state.HasStrategy() {
+		log.Info().Str("annotation", rs.StrategyAnnotation).Msg("No annotation found")
 		return result.Requeue()
 	}
 
+	// == external-dns dnsendpoints CRs ==
+	dnsEndpoint, err := r.gslbDNSEndpoint(state)
+	if err != nil {
+		m.IncrementError(state)
+		return result.RequeueError(err)
+	}
+
+	_, s := r.Tracer.Start(ctx, "SaveDNSEndpoint")
+	err = r.DNSProvider.SaveDNSEndpoint(state, dnsEndpoint)
+	if err != nil {
+		m.IncrementError(state)
+		return result.RequeueError(err)
+	}
+	s.End()
+
+	// == handle delegated zone in Edge DNS
+	_, szd := r.Tracer.Start(ctx, "CreateZoneDelegationForExternalDNS")
+	err = r.DNSProvider.CreateZoneDelegationForExternalDNS(state)
+	if err != nil {
+		log.Err(err).Msg("Unable to create zone delegation")
+		m.IncrementError(state)
+		return result.Requeue()
+	}
+	szd.End()
+
+	// == Status =
+	err = r.updateStatus(state, dnsEndpoint)
+	if err != nil {
+		m.IncrementError(state)
+		return result.RequeueError(err)
+	}
+	// == Finish ==========
+	// Everything went fine, requeue after some time to catch up
+	// with external Gslb status
+	m.IncrementReconciliation(state)
 	return result.Requeue()
 }
 

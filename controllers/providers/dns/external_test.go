@@ -1,4 +1,5 @@
 package dns
+
 //
 ///*
 //Copyright 2022 The k8gb Contributors.
