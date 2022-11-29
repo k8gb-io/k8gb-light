@@ -17,13 +17,13 @@ limitations under the License.
 package controllers
 
 import (
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"
 	"cloud.example.com/annotation-operator/controllers/providers/dns"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-	"cloud.example.com/annotation-operator/controllers/rs"
 	"go.opentelemetry.io/otel/trace"
 
 	"cloud.example.com/annotation-operator/controllers/utils"
@@ -40,7 +40,7 @@ type AnnoReconciler struct {
 	DepResolver   depresolver.GslbResolver
 	DNSProvider   dns.Provider
 	Tracer        trace.Tracer
-	IngressMapper *rs.IngressMapper
+	IngressMapper *reconciliation.IngressMapper
 }
 
 var log = logging.Logger()
@@ -53,16 +53,16 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return result.Requeue()
 	}
 
-	state, rr, err := r.IngressMapper.Get(req.NamespacedName)
-	if rr == rs.MapperResultCreate {
+	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
+	if rr == reconciliation.MapperResultCreate {
 		log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("Ingress not found. Stop...")
 		return result.Stop()
 	}
-	if rr == rs.MapperResultError {
-		m.IncrementError(state)
+	if rr == reconciliation.MapperResultError {
+		m.IncrementError(rs)
 		log.Err(err).
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
@@ -70,8 +70,8 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return result.Requeue()
 	}
 
-	if !state.HasStrategy() {
-		log.Info().Str("annotation", rs.AnnotationStrategy).Msg("No annotation found")
+	if !rs.HasStrategy() {
+		log.Info().Str("annotation", reconciliation.AnnotationStrategy).Msg("No annotation found")
 		return result.Requeue()
 	}
 
@@ -80,39 +80,39 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		Msg("* Starting Reconciliation")
 
 	// == external-dns dnsendpoints CRs ==
-	dnsEndpoint, err := r.gslbDNSEndpoint(state)
+	dnsEndpoint, err := r.gslbDNSEndpoint(rs)
 	if err != nil {
-		m.IncrementError(state)
+		m.IncrementError(rs)
 		return result.RequeueError(err)
 	}
 
 	_, s := r.Tracer.Start(ctx, "SaveDNSEndpoint")
-	err = r.DNSProvider.SaveDNSEndpoint(state, dnsEndpoint)
+	err = r.DNSProvider.SaveDNSEndpoint(rs, dnsEndpoint)
 	if err != nil {
-		m.IncrementError(state)
+		m.IncrementError(rs)
 		return result.RequeueError(err)
 	}
 	s.End()
 
 	// == handle delegated zone in Edge DNS
 	_, szd := r.Tracer.Start(ctx, "CreateZoneDelegationForExternalDNS")
-	err = r.DNSProvider.CreateZoneDelegationForExternalDNS(state)
+	err = r.DNSProvider.CreateZoneDelegationForExternalDNS(rs)
 	if err != nil {
 		log.Err(err).Msg("Unable to create zone delegation")
-		m.IncrementError(state)
+		m.IncrementError(rs)
 		return result.Requeue()
 	}
 	szd.End()
 
 	// == Status =
-	err = r.updateStatus(state, dnsEndpoint)
+	err = r.updateStatus(rs, dnsEndpoint)
 	if err != nil {
-		m.IncrementError(state)
+		m.IncrementError(rs)
 		return result.RequeueError(err)
 	}
 	// == Finish ==========
 	// Everything went fine, requeue after some time to catch up
 	// with external Gslb status
-	m.IncrementReconciliation(state)
+	m.IncrementReconciliation(rs)
 	return result.Requeue()
 }

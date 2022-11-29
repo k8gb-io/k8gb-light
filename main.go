@@ -17,10 +17,9 @@ limitations under the License.
 package main
 
 import (
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
 	"os"
-
-	"cloud.example.com/annotation-operator/controllers/rs"
 
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 
@@ -114,7 +113,7 @@ func run() error {
 		Client:        mgr.GetClient(),
 		DepResolver:   resolver,
 		Scheme:        mgr.GetScheme(),
-		IngressMapper: rs.NewIngressMapper(mgr.GetClient()),
+		IngressMapper: reconciliation.NewIngressMapper(mgr.GetClient()),
 	}
 
 	log.Info().Msg("Starting metrics")

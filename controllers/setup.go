@@ -1,9 +1,8 @@
 package controllers
 
 import (
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
-
-	"cloud.example.com/annotation-operator/controllers/rs"
 
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -23,13 +22,13 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	ingressHandler := handler.EnqueueRequestsFromMapFunc(
 		func(a client.Object) []reconcile.Request {
-			rs1, err := rs.NewReconciliationState(a.(*netv1.Ingress))
+			rs1, err := reconciliation.NewReconciliationState(a.(*netv1.Ingress))
 			if err != nil {
 				return nil
 			}
 			rs2, result, _ := r.IngressMapper.Get(rs1.NamespacedName)
 			switch result {
-			case rs.MapperResultExists:
+			case reconciliation.MapperResultExists:
 				if !r.IngressMapper.Equal(rs1, rs2) {
 					return []reconcile.Request{{NamespacedName: rs1.NamespacedName}}
 				}

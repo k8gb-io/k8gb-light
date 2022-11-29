@@ -22,8 +22,7 @@ import (
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"
 	assistant2 "cloud.example.com/annotation-operator/controllers/providers/assistant"
-	"cloud.example.com/annotation-operator/controllers/rs"
-
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"fmt"
 	"sort"
 	"strings"
@@ -50,7 +49,7 @@ func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant) *
 	}
 }
 
-func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *rs.ReconciliationState) error {
+func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.ReconciliationState) error {
 	ttl := externaldns.TTL(rs.Spec.DNSTtlSeconds)
 	log.Info().
 		Interface("provider", p).
@@ -104,11 +103,11 @@ func (p *ExternalDNSProvider) GetExternalTargets(host string) (targets assistant
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }
 
-func (p *ExternalDNSProvider) IngressExposedIPs(rs *rs.ReconciliationState) ([]string, error) {
+func (p *ExternalDNSProvider) IngressExposedIPs(rs *reconciliation.ReconciliationState) ([]string, error) {
 	return p.assistant.IngressExposedIPs(rs)
 }
 
-func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *rs.ReconciliationState, i *externaldns.DNSEndpoint) error {
+func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *reconciliation.ReconciliationState, i *externaldns.DNSEndpoint) error {
 	return p.assistant.SaveDNSEndpoint(rs.NamespacedName.Namespace, i)
 }
 

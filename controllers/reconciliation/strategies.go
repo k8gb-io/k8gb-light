@@ -1,4 +1,4 @@
-package rs
+package reconciliation
 
 const (
 	// GeoIP strategy
