@@ -17,8 +17,9 @@ limitations under the License.
 package controllers
 
 import (
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
+
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"

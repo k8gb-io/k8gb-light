@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
+
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"

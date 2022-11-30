@@ -17,10 +17,11 @@ limitations under the License.
 package main
 
 import (
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
-	"cloud.example.com/annotation-operator/controllers/utils"
 	"context"
 	"os"
+
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
+	"cloud.example.com/annotation-operator/controllers/utils"
 
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 

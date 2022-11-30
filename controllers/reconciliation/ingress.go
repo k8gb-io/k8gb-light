@@ -30,8 +30,21 @@ func NewIngressMapper(c client.Client) *IngressMapper {
 	}
 }
 
-func (i *IngressMapper) Update(state *ReconciliationState) error {
-	return i.c.Update(context.TODO(), state.Ingress)
+func (i *IngressMapper) UpdateStatus(state *ReconciliationState) (err error) {
+	// check if object has not been deleted
+	var r MapperResult
+	var s *ReconciliationState
+	s, r, err = i.Get(state.NamespacedName)
+	switch r {
+	case MapperResultError:
+		return err
+	case MapperResultCreate:
+		// object was deleted
+		return nil
+	}
+	// update the planned object
+	s.Status = state.Status
+	return i.c.Update(context.TODO(), s.Ingress)
 }
 
 func (i *IngressMapper) Get(selector types.NamespacedName) (rs *ReconciliationState, result MapperResult, err error) {
