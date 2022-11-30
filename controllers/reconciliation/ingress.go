@@ -20,6 +20,7 @@ const (
 	MapperResultError
 )
 
+// IngressMapper provides API for working with ingress
 type IngressMapper struct {
 	c client.Client
 }
@@ -43,7 +44,7 @@ func (i *IngressMapper) UpdateStatus(state *ReconciliationState) (err error) {
 		return nil
 	}
 	// update the planned object
-	s.Status = state.Status
+	s.Ingress.Annotations[AnnotationStatus] = state.Status.String()
 	return i.c.Update(context.TODO(), s.Ingress)
 }
 

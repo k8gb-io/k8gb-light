@@ -54,6 +54,7 @@ func (s Status) String() string {
 }
 
 // ReconciliationState wraps information about ingress. Ensures that Ingress entity can't be nil
+// TODO: don't allow user to access Ingress directly. Minimize number of operations over ingress or spec, Consider to use Getters and Setters instead
 type ReconciliationState struct {
 	Ingress        *netv1.Ingress
 	Spec           Spec
@@ -155,8 +156,4 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 		}
 	}
 	return result, nil
-}
-
-func (rs *ReconciliationState) SetStatusAnnotation(status string) {
-	rs.Ingress.Annotations[AnnotationStatus] = status
 }

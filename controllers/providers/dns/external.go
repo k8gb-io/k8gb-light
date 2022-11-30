@@ -53,7 +53,7 @@ func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant) *
 func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.ReconciliationState) error {
 	ttl := externaldns.TTL(rs.Spec.DNSTtlSeconds)
 	log.Info().
-		Interface("provider", p.String()).
+		Str("provider", p.String()).
 		Msg("Creating/Updating DNSEndpoint CRDs")
 	NSServerList := []string{p.config.GetClusterNSName()}
 	for _, v := range p.config.GetExternalClusterNSNames() {

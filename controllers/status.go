@@ -54,8 +54,6 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.ReconciliationState, ep
 
 	m.UpdateEndpointStatus(ep)
 
-	rs.SetStatusAnnotation(rs.Status.String())
-
 	return r.IngressMapper.UpdateStatus(rs)
 }
 

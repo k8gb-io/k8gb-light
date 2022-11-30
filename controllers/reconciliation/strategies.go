@@ -1,5 +1,6 @@
 package reconciliation
 
+// TODO: redundant
 const (
 	// GeoIP strategy
 	GeoStrategy = "geoip"
