@@ -157,6 +157,6 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 	return result, nil
 }
 
-func (rs *ReconciliationState) SetStatus(status string) {
+func (rs *ReconciliationState) SetStatusAnnotation(status string) {
 	rs.Ingress.Annotations[AnnotationStatus] = status
 }

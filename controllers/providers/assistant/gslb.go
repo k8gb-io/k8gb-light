@@ -309,6 +309,8 @@ func (r *Gslb) GetExternalTargets(host string, extClusterNsNames map[string]stri
 		if err != nil {
 			return
 		}
+
+		log.Info().Msgf("\n\n%s\n%s\n\n", a.Answer[0].String(), a.Answer[1].String())
 		clusterTargets := getARecords(a)
 		if len(clusterTargets) > 0 {
 			targets[tag] = &Target{clusterTargets}

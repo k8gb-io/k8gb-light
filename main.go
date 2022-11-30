@@ -18,6 +18,7 @@ package main
 
 import (
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
+	"cloud.example.com/annotation-operator/controllers/utils"
 	"context"
 	"os"
 
@@ -109,11 +110,12 @@ func run() error {
 	}
 
 	reconciler := &controllers.AnnoReconciler{
-		Config:        config,
-		Client:        mgr.GetClient(),
-		DepResolver:   resolver,
-		Scheme:        mgr.GetScheme(),
-		IngressMapper: reconciliation.NewIngressMapper(mgr.GetClient()),
+		Config:           config,
+		Client:           mgr.GetClient(),
+		DepResolver:      resolver,
+		Scheme:           mgr.GetScheme(),
+		IngressMapper:    reconciliation.NewIngressMapper(mgr.GetClient()),
+		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 	}
 
 	log.Info().Msg("Starting metrics")

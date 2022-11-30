@@ -35,12 +35,13 @@ import (
 // AnnoReconciler reconciles a Anno object
 type AnnoReconciler struct {
 	client.Client
-	Scheme        *runtime.Scheme
-	Config        *depresolver.Config
-	DepResolver   depresolver.GslbResolver
-	DNSProvider   dns.Provider
-	Tracer        trace.Tracer
-	IngressMapper *reconciliation.IngressMapper
+	Scheme           *runtime.Scheme
+	Config           *depresolver.Config
+	DepResolver      depresolver.GslbResolver
+	DNSProvider      dns.Provider
+	Tracer           trace.Tracer
+	IngressMapper    *reconciliation.IngressMapper
+	ReconcilerResult *utils.ReconcileResultHandler
 }
 
 var log = logging.Logger()
@@ -48,31 +49,35 @@ var log = logging.Logger()
 var m = metrics.Metrics()
 
 func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	result := utils.NewReconcileResultHandler(30)
-	if req.NamespacedName.Name == "" || req.NamespacedName.Namespace == "" {
-		return result.Requeue()
-	}
+	ctx, span := r.Tracer.Start(ctx, "Reconcile")
+	defer span.End()
 
+	if req.NamespacedName.Name == "" || req.NamespacedName.Namespace == "" {
+		return r.ReconcilerResult.Requeue()
+	}
+	// TODO: add finalizer for infoblox only
 	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
-	if rr == reconciliation.MapperResultCreate {
+	switch rr {
+	case reconciliation.MapperResultCreate:
 		log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("Ingress not found. Stop...")
-		return result.Stop()
-	}
-	if rr == reconciliation.MapperResultError {
+		return r.ReconcilerResult.Stop()
+	case reconciliation.MapperResultError:
 		m.IncrementError(rs)
 		log.Err(err).
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("reading Ingress error")
-		return result.Requeue()
+		return r.ReconcilerResult.Requeue()
 	}
 
 	if !rs.HasStrategy() {
-		log.Info().Str("annotation", reconciliation.AnnotationStrategy).Msg("No annotation found")
-		return result.Requeue()
+		log.Info().
+			Str("annotation", reconciliation.AnnotationStrategy).
+			Msg("No annotation found")
+		return r.ReconcilerResult.Requeue()
 	}
 
 	log.Info().
@@ -83,14 +88,14 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	dnsEndpoint, err := r.gslbDNSEndpoint(rs)
 	if err != nil {
 		m.IncrementError(rs)
-		return result.RequeueError(err)
+		return r.ReconcilerResult.RequeueError(err)
 	}
 
 	_, s := r.Tracer.Start(ctx, "SaveDNSEndpoint")
 	err = r.DNSProvider.SaveDNSEndpoint(rs, dnsEndpoint)
 	if err != nil {
 		m.IncrementError(rs)
-		return result.RequeueError(err)
+		return r.ReconcilerResult.RequeueError(err)
 	}
 	s.End()
 
@@ -100,7 +105,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if err != nil {
 		log.Err(err).Msg("Unable to create zone delegation")
 		m.IncrementError(rs)
-		return result.Requeue()
+		return r.ReconcilerResult.Requeue()
 	}
 	szd.End()
 
@@ -108,11 +113,11 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	err = r.updateStatus(rs, dnsEndpoint)
 	if err != nil {
 		m.IncrementError(rs)
-		return result.RequeueError(err)
+		return r.ReconcilerResult.RequeueError(err)
 	}
 	// == Finish ==========
 	// Everything went fine, requeue after some time to catch up
 	// with external Gslb status
 	m.IncrementReconciliation(rs)
-	return result.Requeue()
+	return r.ReconcilerResult.Requeue()
 }

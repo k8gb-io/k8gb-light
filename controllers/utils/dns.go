@@ -80,8 +80,6 @@ func Exchange(m *dns.Msg, edgeDNSServers []DNSServer) (msg *dns.Msg, err error) 
 			return nil, fmt.Errorf("empty edgeDNSServer.Host in the list")
 		}
 		msg, err = dns.Exchange(m, ns.String())
-		// client := dns.Client{Net: "tcp"}
-		// msg, _, err = client.Exchange(m, "localhost:1053")
 		if err != nil {
 			continue
 		}
