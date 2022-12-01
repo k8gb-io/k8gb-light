@@ -163,7 +163,6 @@ type DependencyResolver struct {
 	config      *Config
 	onceConfig  sync.Once
 	errorConfig error
-	errorSpec   error
 }
 
 // NewDependencyResolver returns a new depresolver.DependencyResolver

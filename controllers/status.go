@@ -32,7 +32,7 @@ import (
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
-func (r *AnnoReconciler) updateStatus(rs *reconciliation.ReconciliationState, ep *externaldns.DNSEndpoint) (err error) {
+func (r *AnnoReconciler) updateStatus(rs *reconciliation.LoopState, ep *externaldns.DNSEndpoint) (err error) {
 	rs.Status.ServiceHealth, err = r.getServiceHealthStatus(rs)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.ReconciliationState, ep
 	return r.IngressMapper.UpdateStatus(rs)
 }
 
-func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.ReconciliationState) (map[string]reconciliation.HealthStatus, error) {
+func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.LoopState) (map[string]reconciliation.HealthStatus, error) {
 	serviceHealth := make(map[string]reconciliation.HealthStatus)
 	for _, rule := range rs.Ingress.Spec.Rules {
 		for _, path := range rule.HTTP.Paths {
@@ -106,7 +106,7 @@ func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.Reconciliatio
 	return serviceHealth, nil
 }
 
-func (r *AnnoReconciler) getHealthyRecords(rs *reconciliation.ReconciliationState) (map[string][]string, error) {
+func (r *AnnoReconciler) getHealthyRecords(rs *reconciliation.LoopState) (map[string][]string, error) {
 
 	dnsEndpoint := &externaldns.DNSEndpoint{}
 
@@ -130,7 +130,7 @@ func (r *AnnoReconciler) getHealthyRecords(rs *reconciliation.ReconciliationStat
 	return healthyRecords, nil
 }
 
-func (r *AnnoReconciler) hostsToCSV(rs *reconciliation.ReconciliationState) string {
+func (r *AnnoReconciler) hostsToCSV(rs *reconciliation.LoopState) string {
 	var hosts []string
 	for _, r := range rs.Ingress.Spec.Rules {
 		hosts = append(hosts, r.Host)

@@ -50,7 +50,7 @@ func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant) *
 	}
 }
 
-func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.ReconciliationState) error {
+func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.LoopState) error {
 	ttl := externaldns.TTL(rs.Spec.DNSTtlSeconds)
 	log.Info().
 		Str("provider", p.String()).
@@ -104,11 +104,11 @@ func (p *ExternalDNSProvider) GetExternalTargets(host string) (targets assistant
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }
 
-func (p *ExternalDNSProvider) IngressExposedIPs(rs *reconciliation.ReconciliationState) ([]string, error) {
+func (p *ExternalDNSProvider) IngressExposedIPs(rs *reconciliation.LoopState) ([]string, error) {
 	return p.assistant.IngressExposedIPs(rs)
 }
 
-func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *reconciliation.ReconciliationState, i *externaldns.DNSEndpoint) error {
+func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *reconciliation.LoopState, i *externaldns.DNSEndpoint) error {
 	return p.assistant.SaveDNSEndpoint(rs.NamespacedName.Namespace, i)
 }
 

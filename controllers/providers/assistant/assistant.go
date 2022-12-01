@@ -30,7 +30,7 @@ type Assistant interface {
 	// CoreDNSExposedIPs retrieves list of exposed IP by CoreDNS
 	CoreDNSExposedIPs() ([]string, error)
 	// IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-	IngressExposedIPs(*reconciliation.ReconciliationState) ([]string, error)
+	IngressExposedIPs(*reconciliation.LoopState) ([]string, error)
 	// GetExternalTargets retrieves slice of targets from external clusters
 	GetExternalTargets(host string, extClusterNsNames map[string]string) (targets Targets)
 	// SaveDNSEndpoint update DNS endpoint or create new one if doesnt exist

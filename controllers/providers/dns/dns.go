@@ -26,13 +26,13 @@ import (
 
 type Provider interface {
 	// CreateZoneDelegationForExternalDNS handles delegated zone in Edge DNS
-	CreateZoneDelegationForExternalDNS(*reconciliation.ReconciliationState) error
+	CreateZoneDelegationForExternalDNS(*reconciliation.LoopState) error
 	// IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-	IngressExposedIPs(*reconciliation.ReconciliationState) ([]string, error)
+	IngressExposedIPs(*reconciliation.LoopState) ([]string, error)
 	// GetExternalTargets retrieves list of external targets for specified host
 	GetExternalTargets(string) assistant.Targets
 	// SaveDNSEndpoint update DNS endpoint in gslb or create new one if doesn't exist
-	SaveDNSEndpoint(*reconciliation.ReconciliationState, *externaldns.DNSEndpoint) error
+	SaveDNSEndpoint(*reconciliation.LoopState, *externaldns.DNSEndpoint) error
 	// String see: Stringer interface
 	String() string
 }

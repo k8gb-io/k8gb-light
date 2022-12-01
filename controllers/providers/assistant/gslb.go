@@ -121,7 +121,7 @@ func extractIPFromLB(lb corev1.LoadBalancerIngress, ns utils.DNSList) (ips []str
 }
 
 // IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-func (r *Gslb) IngressExposedIPs(rs *reconciliation.ReconciliationState) ([]string, error) {
+func (r *Gslb) IngressExposedIPs(rs *reconciliation.LoopState) ([]string, error) {
 
 	gslbIngress := rs.Ingress.DeepCopy()
 	var gslbIngressIPs []string

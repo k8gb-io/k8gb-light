@@ -30,7 +30,7 @@ import (
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
-func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.ReconciliationState) (*externaldns.DNSEndpoint, error) {
+func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externaldns.DNSEndpoint, error) {
 
 	var gslbHosts []*externaldns.Endpoint
 	var ttl = externaldns.TTL(rs.Spec.DNSTtlSeconds)
@@ -152,7 +152,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.ReconciliationState)
 }
 
 // getLabels map of where key identifies region and weight, value identifies IP.
-func (r *AnnoReconciler) getLabels(rs *reconciliation.ReconciliationState, targets assistant.Targets) (labels map[string]string) {
+func (r *AnnoReconciler) getLabels(rs *reconciliation.LoopState, targets assistant.Targets) (labels map[string]string) {
 	labels = make(map[string]string, 0)
 	for k, v := range rs.Spec.Weights {
 		t, found := targets[k]
@@ -167,7 +167,12 @@ func (r *AnnoReconciler) getLabels(rs *reconciliation.ReconciliationState, targe
 	return labels
 }
 
-func (r *AnnoReconciler) updateRuntimeStatus(rs *reconciliation.ReconciliationState, isPrimary bool, isHealthy reconciliation.HealthStatus, finalTargets []string) {
+func (r *AnnoReconciler) updateRuntimeStatus(
+	rs *reconciliation.LoopState,
+	isPrimary bool,
+	isHealthy reconciliation.HealthStatus,
+	finalTargets []string,
+) {
 	switch rs.Spec.Type {
 	case depresolver.RoundRobinStrategy:
 		m.UpdateRoundrobinStatus(rs, isHealthy, finalTargets)

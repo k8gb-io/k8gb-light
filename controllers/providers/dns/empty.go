@@ -38,11 +38,11 @@ func NewEmptyDNS(config depresolver.Config, assistant assistant.Assistant) *Empt
 	}
 }
 
-func (p *EmptyDNSProvider) CreateZoneDelegationForExternalDNS(*reconciliation.ReconciliationState) (err error) {
+func (p *EmptyDNSProvider) CreateZoneDelegationForExternalDNS(*reconciliation.LoopState) (err error) {
 	return
 }
 
-func (p *EmptyDNSProvider) IngressExposedIPs(gslb *reconciliation.ReconciliationState) (r []string, err error) {
+func (p *EmptyDNSProvider) IngressExposedIPs(gslb *reconciliation.LoopState) (r []string, err error) {
 	return p.assistant.IngressExposedIPs(gslb)
 }
 
@@ -50,7 +50,7 @@ func (p *EmptyDNSProvider) GetExternalTargets(host string) (targets assistant.Ta
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }
 
-func (p *EmptyDNSProvider) SaveDNSEndpoint(gslb *reconciliation.ReconciliationState, i *externaldns.DNSEndpoint) error {
+func (p *EmptyDNSProvider) SaveDNSEndpoint(gslb *reconciliation.LoopState, i *externaldns.DNSEndpoint) error {
 	return p.assistant.SaveDNSEndpoint(gslb.NamespacedName.Namespace, i)
 }
 
