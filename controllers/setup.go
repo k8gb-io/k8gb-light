@@ -64,6 +64,6 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&netv1.Ingress{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Owns(&externaldns.DNSEndpoint{}).
 		Watches(&source.Kind{Type: &netv1.Ingress{}}, ingressHandler).
-		Watches(&source.Kind{Type: &corev1.Endpoints{}}, serviceEndpointHandler).
+		Watches(&source.Kind{Type: &corev1.Endpoints{}}, serviceEndpointHandler, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Complete(r)
 }

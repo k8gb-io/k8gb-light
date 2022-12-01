@@ -125,7 +125,6 @@ func (r *Gslb) IngressExposedIPs(rs *reconciliation.ReconciliationState) ([]stri
 
 	gslbIngress := rs.Ingress.DeepCopy()
 	var gslbIngressIPs []string
-
 	for _, ip := range gslbIngress.Status.LoadBalancer.Ingress {
 		if len(ip.IP) > 0 {
 			gslbIngressIPs = append(gslbIngressIPs, ip.IP)
