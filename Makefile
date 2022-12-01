@@ -26,6 +26,9 @@ NS?=demo
 GOLIC_VERSION  ?= v0.7.2
 GOKART_VERSION ?= v0.5.1
 GOLANGCI_VERSION ?= v1.50.1
+MOCKGEN_VERSION ?= v1.6.0
+
+MAKEIN =make -C .
 SHELL := bash
 
 ifndef NO_COLOR
@@ -80,6 +83,18 @@ gokart:
 	$(GOBIN)/gokart scan --globalsTainted --verbose
 
 
+.PHONY: mocks
+mocks:
+	go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
+	mockgen -package=mocks -destination=controllers/mocks/assistant_mock.go -source=controllers/providers/assistant/assistant.go Assistant
+	mockgen -package=mocks -destination=controllers/mocks/client_mock.go sigs.k8s.io/controller-runtime/pkg/client Client
+	mockgen -package=mocks -destination=controllers/mocks/resolver_mock.go -source=controllers/depresolver/resolver.go GslbResolver
+	mockgen -package=mocks -destination=controllers/mocks/provider_mock.go -source=controllers/providers/dns/dns.go Provider
+	mockgen -package=mocks -destination=controllers/mocks/manager_mock.go sigs.k8s.io/controller-runtime/pkg/manager Manager
+	mockgen -package=mocks -destination=controllers/mocks/infoblox-client_mock.go -source=controllers/providers/dns/infoblox-client.go InfobloxClient
+	mockgen -package=mocks -destination=controllers/mocks/infoblox-connection_mock.go github.com/infobloxopen/infoblox-go-client IBConnector
+	$(MAKEIN) license
+
 watch:
 	@watch -n 1 $(MAKEIN) generation
 
@@ -93,13 +108,12 @@ ing:
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb1
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb2
 
-
-
 image:
 	docker build . -t ${IMG}:${TAG}
-
 
 redeploy: build image
 	k3d image import ${REPOSITORY}/${BIN}:${TAG} -c test-gslb2
 	k3d image import ${REPOSITORY}/${BIN}:${TAG} -c test-gslb1
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'
+
+
