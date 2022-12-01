@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"cloud.example.com/annotation-operator/controllers/status"
-
-	"k8s.io/apimachinery/pkg/types"
+	"cloud.example.com/annotation-operator/controllers/depresolver"
 
 	netv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
 )
 
@@ -36,7 +35,7 @@ func (s *Spec) String() string {
 // Status defines the observed state of Gslb
 type Status struct {
 	// Associated Service status
-	ServiceHealth map[string]status.HealthStatus `json:"serviceHealth"`
+	ServiceHealth map[string]HealthStatus `json:"serviceHealth"`
 	// Current Healthy DNS record structure
 	HealthyRecords map[string][]string `json:"healthyRecords"`
 	// Cluster Geo Tag
@@ -68,7 +67,7 @@ func NewReconciliationState(ingress *netv1.Ingress) (m *ReconciliationState, err
 		return m, fmt.Errorf("nil *ingress")
 	}
 	m.Status = Status{
-		ServiceHealth:  map[string]status.HealthStatus{},
+		ServiceHealth:  map[string]HealthStatus{},
 		HealthyRecords: map[string][]string{},
 		GeoTag:         "",
 		Hosts:          "",
@@ -142,17 +141,18 @@ func (rs *ReconciliationState) asSpec(annotations map[string]string) (result Spe
 	}
 
 	if value, found := annotations[AnnotationWeightJSON]; found {
+		// e.g: '{"eu":5,"us":10}'
 		w := make(map[string]int, 0)
 		err = json.Unmarshal([]byte(value), &w)
 		if err != nil {
-			return result, err
+			return result, fmt.Errorf("parsing %s (%v)", AnnotationWeightJSON, err)
 		}
 		result.Weights = w
 	}
 
-	if result.Type == FailoverStrategy {
+	if result.Type == depresolver.FailoverStrategy {
 		if len(result.PrimaryGeoTag) == 0 {
-			return result, fmt.Errorf("%s strategy requires annotation %s", FailoverStrategy, AnnotationPrimaryGeoTag)
+			return result, fmt.Errorf("%s strategy requires annotation %s", depresolver.FailoverStrategy, AnnotationPrimaryGeoTag)
 		}
 	}
 	return result, nil

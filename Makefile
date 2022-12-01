@@ -21,10 +21,10 @@ ing:
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb2
 
 build:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ../k8gb ../main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./k8gb main.go
 
 image:
-	docker build ../. -t ${IMG}:${TAG}
+	docker build . -t ${IMG}:${TAG}
 
 
 redeploy: build image

@@ -25,8 +25,6 @@ import (
 
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
-	"cloud.example.com/annotation-operator/controllers/status"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -57,8 +55,8 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.ReconciliationState, ep
 	return r.IngressMapper.UpdateStatus(rs)
 }
 
-func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.ReconciliationState) (map[string]status.HealthStatus, error) {
-	serviceHealth := make(map[string]status.HealthStatus)
+func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.ReconciliationState) (map[string]reconciliation.HealthStatus, error) {
+	serviceHealth := make(map[string]reconciliation.HealthStatus)
 	for _, rule := range rs.Ingress.Spec.Rules {
 		for _, path := range rule.HTTP.Paths {
 			if path.Backend.Service == nil || path.Backend.Service.Name == "" {
@@ -66,7 +64,7 @@ func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.Reconciliatio
 					Str("gslb", rs.NamespacedName.Name).
 					Interface("service", path.Backend.Service).
 					Msg("Malformed service definition")
-				serviceHealth[rule.Host] = status.NotFound
+				serviceHealth[rule.Host] = reconciliation.NotFound
 				continue
 			}
 			service := &corev1.Service{}
@@ -77,7 +75,7 @@ func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.Reconciliatio
 			err := r.Get(context.TODO(), finder, service)
 			if err != nil {
 				if errors.IsNotFound(err) {
-					serviceHealth[rule.Host] = status.NotFound
+					serviceHealth[rule.Host] = reconciliation.NotFound
 					continue
 				}
 				return serviceHealth, err
@@ -95,11 +93,11 @@ func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.Reconciliatio
 				return serviceHealth, err
 			}
 
-			serviceHealth[rule.Host] = status.Unhealthy
+			serviceHealth[rule.Host] = reconciliation.Unhealthy
 			if len(endpoints.Subsets) > 0 {
 				for _, subset := range endpoints.Subsets {
 					if len(subset.Addresses) > 0 {
-						serviceHealth[rule.Host] = status.Healthy
+						serviceHealth[rule.Host] = reconciliation.Healthy
 					}
 				}
 			}

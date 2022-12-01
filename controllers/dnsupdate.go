@@ -22,12 +22,9 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
-
-	"cloud.example.com/annotation-operator/controllers/status"
-
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/providers/assistant"
+	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -56,7 +53,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.ReconciliationState)
 		}
 
 		isPrimary := rs.Spec.PrimaryGeoTag == r.Config.ClusterGeoTag
-		isHealthy := health == status.Healthy
+		isHealthy := health == reconciliation.Healthy
 
 		if isHealthy {
 			finalTargets.Append(r.Config.ClusterGeoTag, localTargets)
@@ -89,7 +86,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.ReconciliationState)
 							Str("gslb", rs.NamespacedName.Name).
 							Str("cluster", rs.Spec.PrimaryGeoTag).
 							Strs("targets", finalTargets.GetIPs()).
-							Str("workload", status.Unhealthy.String()).
+							Str("workload", reconciliation.Unhealthy.String()).
 							Msg("Executing failover strategy for primary cluster")
 					}
 				} else {
@@ -101,7 +98,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.ReconciliationState)
 						Str("gslb", rs.NamespacedName.Name).
 						Str("cluster", rs.Spec.PrimaryGeoTag).
 						Strs("targets", finalTargets.GetIPs()).
-						Str("workload", status.Healthy.String()).
+						Str("workload", reconciliation.Healthy.String()).
 						Msg("Executing failover strategy for secondary cluster")
 				}
 			}
@@ -170,7 +167,7 @@ func (r *AnnoReconciler) getLabels(rs *reconciliation.ReconciliationState, targe
 	return labels
 }
 
-func (r *AnnoReconciler) updateRuntimeStatus(rs *reconciliation.ReconciliationState, isPrimary bool, isHealthy status.HealthStatus, finalTargets []string) {
+func (r *AnnoReconciler) updateRuntimeStatus(rs *reconciliation.ReconciliationState, isPrimary bool, isHealthy reconciliation.HealthStatus, finalTargets []string) {
 	switch rs.Spec.Type {
 	case depresolver.RoundRobinStrategy:
 		m.UpdateRoundrobinStatus(rs, isHealthy, finalTargets)

@@ -30,7 +30,6 @@ import (
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/status"
 	"cloud.example.com/annotation-operator/controllers/utils"
 
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -110,24 +109,24 @@ func newPrometheusMetrics(config depresolver.Config) (metrics *PrometheusMetrics
 	return
 }
 
-func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(rs *reconciliation.ReconciliationState, serviceHealth map[string]status.HealthStatus) {
+func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(rs *reconciliation.ReconciliationState, serviceHealth map[string]reconciliation.HealthStatus) {
 	var healthyHostsCount, unhealthyHostsCount, notFoundHostsCount int
 	for _, hs := range serviceHealth {
 		switch hs {
-		case status.Healthy:
+		case reconciliation.Healthy:
 			healthyHostsCount++
-		case status.Unhealthy:
+		case reconciliation.Unhealthy:
 			unhealthyHostsCount++
 		default:
 			notFoundHostsCount++
 		}
 	}
 	m.metrics.K8gbGslbServiceStatusNum.
-		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": status.Healthy.String()}).Set(float64(healthyHostsCount))
+		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": reconciliation.Healthy.String()}).Set(float64(healthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
-		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": status.Unhealthy.String()}).Set(float64(unhealthyHostsCount))
+		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": reconciliation.Unhealthy.String()}).Set(float64(unhealthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
-		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": status.NotFound.String()}).Set(float64(notFoundHostsCount))
+		With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": reconciliation.NotFound.String()}).Set(float64(notFoundHostsCount))
 }
 
 func (m *PrometheusMetrics) UpdateHealthyRecordsMetric(rs *reconciliation.ReconciliationState, healthyRecords map[string][]string) {
@@ -145,7 +144,7 @@ func (m *PrometheusMetrics) UpdateEndpointStatus(ep *externaldns.DNSEndpoint) {
 	}
 }
 
-func (m *PrometheusMetrics) UpdateFailoverStatus(rs *reconciliation.ReconciliationState, isPrimary bool, healthy status.HealthStatus, targets []string) {
+func (m *PrometheusMetrics) UpdateFailoverStatus(rs *reconciliation.ReconciliationState, isPrimary bool, healthy reconciliation.HealthStatus, targets []string) {
 	t := secondary
 	if isPrimary {
 		t = primary
@@ -153,11 +152,11 @@ func (m *PrometheusMetrics) UpdateFailoverStatus(rs *reconciliation.Reconciliati
 	m.updateRuntimeStatus(rs, m.metrics.K8gbGslbStatusCountForFailover, healthy, targets, "_"+t)
 }
 
-func (m *PrometheusMetrics) UpdateRoundrobinStatus(rs *reconciliation.ReconciliationState, healthy status.HealthStatus, targets []string) {
+func (m *PrometheusMetrics) UpdateRoundrobinStatus(rs *reconciliation.ReconciliationState, healthy reconciliation.HealthStatus, targets []string) {
 	m.updateRuntimeStatus(rs, m.metrics.K8gbGslbStatusCountForRoundrobin, healthy, targets, "")
 }
 
-func (m *PrometheusMetrics) UpdateGeoIPStatus(gslb *reconciliation.ReconciliationState, healthy status.HealthStatus, targets []string) {
+func (m *PrometheusMetrics) UpdateGeoIPStatus(gslb *reconciliation.ReconciliationState, healthy reconciliation.HealthStatus, targets []string) {
 	m.updateRuntimeStatus(gslb, m.metrics.K8gbGslbStatusCountForGeoip, healthy, targets, "")
 }
 
@@ -357,22 +356,22 @@ func (m *PrometheusMetrics) registry() (r map[string]prometheus.Collector) {
 func (m *PrometheusMetrics) updateRuntimeStatus(
 	rs *reconciliation.ReconciliationState,
 	vec *prometheus.GaugeVec,
-	healthStatus status.HealthStatus,
+	healthStatus reconciliation.HealthStatus,
 	targets []string,
 	tag string) {
 	var h, u, n int
 	switch healthStatus {
-	case status.Healthy:
+	case reconciliation.Healthy:
 		h = len(targets)
-	case status.Unhealthy:
+	case reconciliation.Unhealthy:
 		u = len(targets)
-	case status.NotFound:
+	case reconciliation.NotFound:
 		n = len(targets)
 	}
-	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", status.Healthy, tag)}).
+	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", reconciliation.Healthy, tag)}).
 		Set(float64(h))
-	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", status.Unhealthy, tag)}).
+	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", reconciliation.Unhealthy, tag)}).
 		Set(float64(u))
-	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", status.NotFound, tag)}).
+	vec.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name, "status": fmt.Sprintf("%s%s", reconciliation.NotFound, tag)}).
 		Set(float64(n))
 }
