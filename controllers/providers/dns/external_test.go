@@ -26,6 +26,7 @@ import (
 	"cloud.example.com/annotation-operator/controllers/utils"
 	"fmt"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -66,6 +67,9 @@ var a = struct {
 	State: func() *reconciliation.LoopState {
 
 		return &reconciliation.LoopState{
+			Spec: reconciliation.Spec{
+				DNSTtlSeconds: 30,
+			},
 			NamespacedName: types.NamespacedName{Namespace: "test", Name: "test"},
 		}
 	}(),
@@ -112,13 +116,11 @@ func TestCreateZoneDelegationOnExternalDNS(t *testing.T) {
 	m := mocks.NewMockAssistant(ctrl)
 	p := NewExternalDNS(a.Config, m)
 	m.EXPECT().IngressExposedIPs(a.State).Return(a.TargetIPs, nil).Times(1)
-	//m.EXPECT().SaveDNSEndpoint(a.Config.K8gbNamespace, gomock.Eq(expectedDNSEndpoint)).Return(nil).Times(1).
-	//	Do(func(ns string, ep *externaldns.DNSEndpoint) {
-	//		require.True(t, reflect.DeepEqual(ep, expectedDNSEndpoint))
-	//		require.Equal(t, ns, a.Config.K8gbNamespace)
-	//	})
-
-	m.EXPECT().SaveDNSEndpoint(a.Config.K8gbNamespace, gomock.Eq(expectedDNSEndpoint)).Return(nil).Times(1)
+	m.EXPECT().SaveDNSEndpoint(a.Config.K8gbNamespace, gomock.Eq(expectedDNSEndpoint)).Return(nil).Times(1).
+		Do(func(ns string, ep *externaldns.DNSEndpoint) {
+			require.True(t, reflect.DeepEqual(ep, expectedDNSEndpoint))
+			require.Equal(t, ns, a.Config.K8gbNamespace)
+		})
 
 	// act
 	err := p.CreateZoneDelegationForExternalDNS(a.State)
