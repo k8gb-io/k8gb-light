@@ -40,16 +40,22 @@ type InfobloxProvider struct {
 	config    depresolver.Config
 	client    InfobloxClient
 	log       *zerolog.Logger
+	metrics   *metrics.PrometheusMetrics
 }
 
-var m = metrics.Metrics()
-
-func NewInfobloxDNS(config depresolver.Config, assistant assistant.Assistant, client InfobloxClient, log *zerolog.Logger) *InfobloxProvider {
+func NewInfobloxDNS(
+	config depresolver.Config,
+	assistant assistant.Assistant,
+	client InfobloxClient,
+	log *zerolog.Logger,
+	metrics *metrics.PrometheusMetrics,
+) *InfobloxProvider {
 	return &InfobloxProvider{
 		client:    client,
 		assistant: assistant,
 		config:    config,
 		log:       log,
+		metrics:   metrics,
 	}
 }
 
@@ -68,12 +74,12 @@ func (p *InfobloxProvider) sanitizeDelegateZone(local, upstream []ibcl.NameServe
 func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.LoopState) error {
 	objMgr, err := p.client.GetObjectManager()
 	if err != nil {
-		m.InfobloxIncrementZoneUpdateError(rs)
+		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 		return err
 	}
 	addresses, err := p.assistant.IngressExposedIPs(rs)
 	if err != nil {
-		m.InfobloxIncrementZoneUpdateError(rs)
+		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 		return err
 	}
 	var delegateTo []ibcl.NameServer
@@ -85,14 +91,14 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 
 	findZone, err := p.getZoneDelegated(objMgr, p.config.DNSZone)
 	if err != nil {
-		m.InfobloxIncrementZoneUpdateError(rs)
+		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 		return err
 	}
 
 	if findZone != nil {
 		err = p.checkZoneDelegated(findZone)
 		if err != nil {
-			m.InfobloxIncrementZoneUpdateError(rs)
+			p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 			return err
 		}
 
@@ -128,10 +134,10 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 					Msg("Updating delegated zone with the server list")
 				_, err = p.updateZoneDelegated(objMgr, findZone.Ref, currentList)
 				if err != nil {
-					m.InfobloxIncrementZoneUpdateError(rs)
+					p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 					return err
 				}
-				m.InfobloxIncrementZoneUpdate(rs)
+				p.metrics.InfobloxIncrementZoneUpdate(rs.NamespacedName)
 			}
 		}
 	} else {
@@ -144,10 +150,10 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 			Msg("Delegated records")
 		_, err = p.createZoneDelegated(objMgr, p.config.DNSZone, delegateTo)
 		if err != nil {
-			m.InfobloxIncrementZoneUpdateError(rs)
+			p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 			return err
 		}
-		m.InfobloxIncrementZoneUpdate(rs)
+		p.metrics.InfobloxIncrementZoneUpdate(rs.NamespacedName)
 	}
 	if p.config.SplitBrainCheck {
 		return p.saveHeartbeatTXTRecord(objMgr, rs)
@@ -231,7 +237,7 @@ func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs
 			Msg("Creating split brain TXT record")
 		_, err = p.createTXTRecord(objMgr, heartbeatTXTName, edgeTimestamp, uint(rs.Spec.DNSTtlSeconds))
 		if err != nil {
-			m.InfobloxIncrementHeartbeatError(rs)
+			p.metrics.InfobloxIncrementHeartbeatError(rs.NamespacedName)
 			return
 		}
 	} else {
@@ -240,11 +246,11 @@ func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs
 			Msg("Updating split brain TXT record")
 		_, err = p.updateTXTRecord(objMgr, heartbeatTXTName, edgeTimestamp)
 		if err != nil {
-			m.InfobloxIncrementHeartbeatError(rs)
+			p.metrics.InfobloxIncrementHeartbeatError(rs.NamespacedName)
 			return
 		}
 	}
-	m.InfobloxIncrementHeartbeat(rs)
+	p.metrics.InfobloxIncrementHeartbeat(rs.NamespacedName)
 	return
 }
 
@@ -270,55 +276,55 @@ func (p *InfobloxProvider) filterOutDelegateTo(delegateTo []ibcl.NameServer, fqd
 func (p *InfobloxProvider) createZoneDelegated(o *ibcl.ObjectManager, fqdn string, d []ibcl.NameServer) (res *ibcl.ZoneDelegated, err error) {
 	start := time.Now()
 	res, err = o.CreateZoneDelegated(fqdn, d)
-	m.InfobloxObserveRequestDuration(start, metrics.CreateZoneDelegated, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.CreateZoneDelegated, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) getZoneDelegated(o *ibcl.ObjectManager, fqdn string) (res *ibcl.ZoneDelegated, err error) {
 	start := time.Now()
 	res, err = o.GetZoneDelegated(fqdn)
-	m.InfobloxObserveRequestDuration(start, metrics.GetZoneDelegated, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.GetZoneDelegated, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) updateZoneDelegated(o *ibcl.ObjectManager, fqdn string, d []ibcl.NameServer) (res *ibcl.ZoneDelegated, err error) {
 	start := time.Now()
 	res, err = o.UpdateZoneDelegated(fqdn, d)
-	m.InfobloxObserveRequestDuration(start, metrics.UpdateZoneDelegated, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.UpdateZoneDelegated, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) deleteZoneDelegated(o *ibcl.ObjectManager, fqdn string) (res string, err error) {
 	start := time.Now()
 	res, err = o.DeleteZoneDelegated(fqdn)
-	m.InfobloxObserveRequestDuration(start, metrics.DeleteZoneDelegated, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.DeleteZoneDelegated, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) createTXTRecord(o *ibcl.ObjectManager, name string, text string, ttl uint) (res *ibcl.RecordTXT, err error) {
 	start := time.Now()
 	res, err = o.CreateTXTRecord(name, text, ttl, "default")
-	m.InfobloxObserveRequestDuration(start, metrics.CreateTXTRecord, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.CreateTXTRecord, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) getTXTRecord(o *ibcl.ObjectManager, name string) (res *ibcl.RecordTXT, err error) {
 	start := time.Now()
 	res, err = o.GetTXTRecord(name)
-	m.InfobloxObserveRequestDuration(start, metrics.GetTXTRecord, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.GetTXTRecord, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) updateTXTRecord(o *ibcl.ObjectManager, name string, text string) (res *ibcl.RecordTXT, err error) {
 	start := time.Now()
 	res, err = o.UpdateTXTRecord(name, text)
-	m.InfobloxObserveRequestDuration(start, metrics.UpdateTXTRecord, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.UpdateTXTRecord, err == nil)
 	return
 }
 
 func (p *InfobloxProvider) deleteTXTRecord(o *ibcl.ObjectManager, name string) (res string, err error) {
 	start := time.Now()
 	res, err = o.DeleteTXTRecord(name)
-	m.InfobloxObserveRequestDuration(start, metrics.DeleteTXTRecord, err == nil)
+	p.metrics.InfobloxObserveRequestDuration(start, metrics.DeleteTXTRecord, err == nil)
 	return
 }

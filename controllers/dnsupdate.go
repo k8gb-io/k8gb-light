@@ -175,10 +175,10 @@ func (r *AnnoReconciler) updateRuntimeStatus(
 ) {
 	switch rs.Spec.Type {
 	case depresolver.RoundRobinStrategy:
-		m.UpdateRoundrobinStatus(rs, isHealthy, finalTargets)
+		r.Metrics.UpdateRoundrobinStatus(rs.NamespacedName, isHealthy, finalTargets)
 	case depresolver.GeoStrategy:
-		m.UpdateGeoIPStatus(rs, isHealthy, finalTargets)
+		r.Metrics.UpdateGeoIPStatus(rs.NamespacedName, isHealthy, finalTargets)
 	case depresolver.FailoverStrategy:
-		m.UpdateFailoverStatus(rs, isPrimary, isHealthy, finalTargets)
+		r.Metrics.UpdateFailoverStatus(rs.NamespacedName, isPrimary, isHealthy, finalTargets)
 	}
 }

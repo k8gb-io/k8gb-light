@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	defaultGslb = &reconciliation.LoopState{
+	loopState = &reconciliation.LoopState{
 		NamespacedName: types.NamespacedName{Namespace: namespace, Name: gslbName},
 	}
 	defaultEndpoint = new(externaldns.DNSEndpoint)
@@ -106,7 +106,7 @@ func TestReconciliationTotal(t *testing.T) {
 	m := newPrometheusMetrics(defaultConfig)
 	cnt1 := testutil.ToFloat64(m.Get(K8gbGslbReconciliationLoopsTotal).AsCounterVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.IncrementReconciliation(defaultGslb)
+	m.IncrementReconciliation(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(K8gbGslbReconciliationLoopsTotal).AsCounterVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	assert.Equal(t, cnt1+1.0, cnt2)
@@ -121,7 +121,7 @@ func TestHealthyRecords(t *testing.T) {
 	}
 	// act
 	cnt1 := testutil.ToFloat64(m.Get(K8gbGslbHealthyRecords).AsGaugeVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
-	m.UpdateHealthyRecordsMetric(defaultGslb, data)
+	m.UpdateHealthyRecordsMetric(loopState.NamespacedName, data)
 	cnt2 := testutil.ToFloat64(m.Get(K8gbGslbHealthyRecords).AsGaugeVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// assert
 	assert.Equal(t, 0.0, cnt1)
@@ -134,7 +134,7 @@ func TestEmptyHealthyRecords(t *testing.T) {
 	m := newPrometheusMetrics(defaultConfig)
 	// act
 	cnt1 := testutil.ToFloat64(m.Get(K8gbGslbHealthyRecords).AsGaugeVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
-	m.UpdateHealthyRecordsMetric(defaultGslb, data)
+	m.UpdateHealthyRecordsMetric(loopState.NamespacedName, data)
 	cnt2 := testutil.ToFloat64(m.Get(K8gbGslbHealthyRecords).AsGaugeVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// assert
 	assert.Equal(t, 0.0, cnt1)
@@ -147,7 +147,7 @@ func TestErrorIncrement(t *testing.T) {
 	name := K8gbGslbErrorsTotal
 	cnt1 := testutil.ToFloat64(m.Get(name).AsCounterVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.IncrementError(defaultGslb)
+	m.IncrementError(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(name).AsCounterVec().With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	assert.Equal(t, cnt1+1.0, cnt2)
@@ -159,7 +159,7 @@ func TestInfobloxZoneUpdateErrorIncrement(t *testing.T) {
 	cnt1 := testutil.ToFloat64(m.Get(K8gbInfobloxZoneUpdateErrorsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.InfobloxIncrementZoneUpdateError(defaultGslb)
+	m.InfobloxIncrementZoneUpdateError(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(K8gbInfobloxZoneUpdateErrorsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
@@ -172,7 +172,7 @@ func TestInfobloxHeartbeatIncrement(t *testing.T) {
 	cnt1 := testutil.ToFloat64(m.Get(K8gbInfobloxHeartbeatsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.InfobloxIncrementHeartbeat(defaultGslb)
+	m.InfobloxIncrementHeartbeat(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(K8gbInfobloxHeartbeatsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
@@ -185,7 +185,7 @@ func TestInfobloxHeartbeatErrorIncrement(t *testing.T) {
 	cnt1 := testutil.ToFloat64(m.Get(K8gbInfobloxHeartbeatErrorsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.InfobloxIncrementHeartbeatError(defaultGslb)
+	m.InfobloxIncrementHeartbeatError(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(K8gbInfobloxHeartbeatErrorsTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
@@ -198,7 +198,7 @@ func TestInfobloxZoneUpdateIncrement(t *testing.T) {
 	cnt1 := testutil.ToFloat64(m.Get(K8gbInfobloxZoneUpdatesTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
 	// act
-	m.InfobloxIncrementZoneUpdate(defaultGslb)
+	m.InfobloxIncrementZoneUpdate(loopState.NamespacedName)
 	// assert
 	cnt2 := testutil.ToFloat64(m.Get(K8gbInfobloxZoneUpdatesTotal).AsCounterVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName}))
@@ -221,7 +221,7 @@ func TestUpgradeIngressHost(t *testing.T) {
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": reconciliation.Unhealthy.String()}))
 	cntNotFound1 := testutil.ToFloat64(m.Get(K8gbGslbServiceStatusNum).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": reconciliation.NotFound.String()}))
-	m.UpdateIngressHostsPerStatusMetric(defaultGslb, serviceHealth)
+	m.UpdateIngressHostsPerStatusMetric(loopState.NamespacedName, serviceHealth)
 	cntHealthy2 := testutil.ToFloat64(m.Get(K8gbGslbServiceStatusNum).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": reconciliation.Healthy.String()}))
 	ctnUnhealthy2 := testutil.ToFloat64(m.Get(K8gbGslbServiceStatusNum).AsGaugeVec().
@@ -242,7 +242,7 @@ func TestUpdateFailover(t *testing.T) {
 	m := newPrometheusMetrics(defaultConfig)
 
 	// act
-	m.UpdateFailoverStatus(defaultGslb, true, reconciliation.Healthy, []string{"10.0.0.1", "10.0.0.2"})
+	m.UpdateFailoverStatus(loopState.NamespacedName, true, reconciliation.Healthy, []string{"10.0.0.1", "10.0.0.2"})
 	// assert
 	hp := testutil.ToFloat64(m.Get(K8gbGslbStatusCountForFailover).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": fmt.Sprintf("%s_%s", reconciliation.Healthy, primary)}))
@@ -255,7 +255,7 @@ func TestUpdateFailover(t *testing.T) {
 	assert.Equal(t, 0., fp)
 
 	// act
-	m.UpdateFailoverStatus(defaultGslb, false, reconciliation.Unhealthy, []string{"10.0.1.1", "10.0.1.2"})
+	m.UpdateFailoverStatus(loopState.NamespacedName, false, reconciliation.Unhealthy, []string{"10.0.1.1", "10.0.1.2"})
 	// assert
 	hs := testutil.ToFloat64(m.Get(K8gbGslbStatusCountForFailover).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": fmt.Sprintf("%s_%s", reconciliation.Healthy, secondary)}))
@@ -273,7 +273,7 @@ func TestUpdateRoundRobin(t *testing.T) {
 	m := newPrometheusMetrics(defaultConfig)
 
 	// act
-	m.UpdateRoundrobinStatus(defaultGslb, reconciliation.Healthy, []string{"10.0.0.1", "10.0.0.2"})
+	m.UpdateRoundrobinStatus(loopState.NamespacedName, reconciliation.Healthy, []string{"10.0.0.1", "10.0.0.2"})
 	// assert
 	hp := testutil.ToFloat64(m.Get(K8gbGslbStatusCountForRoundrobin).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": reconciliation.Healthy.String()}))
@@ -286,7 +286,7 @@ func TestUpdateRoundRobin(t *testing.T) {
 	assert.Equal(t, 0., fp)
 
 	// act
-	m.UpdateRoundrobinStatus(defaultGslb, reconciliation.Unhealthy, []string{"10.0.1.1", "10.0.1.2"})
+	m.UpdateRoundrobinStatus(loopState.NamespacedName, reconciliation.Unhealthy, []string{"10.0.1.1", "10.0.1.2"})
 	// assert
 	hs := testutil.ToFloat64(m.Get(K8gbGslbStatusCountForRoundrobin).AsGaugeVec().
 		With(prometheus.Labels{"namespace": namespace, "name": gslbName, "status": reconciliation.Healthy.String()}))

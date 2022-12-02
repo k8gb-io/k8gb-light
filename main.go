@@ -127,16 +127,6 @@ func run() error {
 		return err
 	}
 
-	reconciler := &controllers.AnnoReconciler{
-		Config:           config,
-		Client:           mgr.GetClient(),
-		DepResolver:      resolver,
-		Scheme:           mgr.GetScheme(),
-		IngressMapper:    reconciliation.NewIngressMapper(mgr.GetClient()),
-		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
-		Log:              log,
-	}
-
 	log.Info().Msg("Starting metrics")
 	metrics.Init(config)
 	defer metrics.Metrics().Unregister()
@@ -146,9 +136,20 @@ func run() error {
 		return err
 	}
 
+	reconciler := &controllers.AnnoReconciler{
+		Config:           config,
+		Client:           mgr.GetClient(),
+		DepResolver:      resolver,
+		Scheme:           mgr.GetScheme(),
+		IngressMapper:    reconciliation.NewIngressMapper(mgr.GetClient()),
+		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
+		Log:              log,
+		Metrics:          metrics.Metrics(),
+	}
+
 	log.Info().Msg("Resolving DNS provider")
 	var f *dns.ProviderFactory
-	f, err = dns.NewDNSProviderFactory(reconciler.Client, *reconciler.Config, log)
+	f, err = dns.NewDNSProviderFactory(reconciler.Client, *reconciler.Config, log, reconciler.Metrics)
 	if err != nil {
 		log.Err(err).Msg("Unable to create DNS provider factory")
 		return err

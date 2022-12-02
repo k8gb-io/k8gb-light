@@ -38,7 +38,7 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.LoopState, ep *external
 		return err
 	}
 
-	m.UpdateIngressHostsPerStatusMetric(rs, rs.Status.ServiceHealth)
+	r.Metrics.UpdateIngressHostsPerStatusMetric(rs.NamespacedName, rs.Status.ServiceHealth)
 
 	rs.Status.HealthyRecords, err = r.getHealthyRecords(rs)
 	if err != nil {
@@ -48,9 +48,9 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.LoopState, ep *external
 	rs.Status.GeoTag = r.Config.ClusterGeoTag
 	rs.Status.Hosts = r.hostsToCSV(rs)
 
-	m.UpdateHealthyRecordsMetric(rs, rs.Status.HealthyRecords)
+	r.Metrics.UpdateHealthyRecordsMetric(rs.NamespacedName, rs.Status.HealthyRecords)
 
-	m.UpdateEndpointStatus(ep)
+	r.Metrics.UpdateEndpointStatus(ep)
 
 	return r.IngressMapper.UpdateStatus(rs)
 }

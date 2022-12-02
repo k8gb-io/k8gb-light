@@ -61,7 +61,7 @@ func TestFactoryInfoblox(t *testing.T) {
 	customConfig := defaultConfig
 	customConfig.EdgeDNSType = depresolver.DNSTypeInfoblox
 	// act
-	f, err := NewDNSProviderFactory(client, customConfig, &log)
+	f, err := NewDNSProviderFactory(client, customConfig, log, mx)
 	require.NoError(t, err)
 	provider := f.Provider()
 	// assert
@@ -76,7 +76,7 @@ func TestFactoryExternal(t *testing.T) {
 	customConfig := defaultConfig
 	customConfig.EdgeDNSType = depresolver.DNSTypeExternal
 	// act
-	f, err := NewDNSProviderFactory(client, customConfig, &log)
+	f, err := NewDNSProviderFactory(client, customConfig, log, mx)
 	require.NoError(t, err)
 	provider := f.Provider()
 	// assert
@@ -91,7 +91,7 @@ func TestFactoryNoEdgeDNS(t *testing.T) {
 	customConfig := defaultConfig
 	customConfig.EdgeDNSType = depresolver.DNSTypeNoEdgeDNS
 	// act
-	f, err := NewDNSProviderFactory(client, customConfig, &log)
+	f, err := NewDNSProviderFactory(client, customConfig, log, mx)
 	require.NoError(t, err)
 	provider := f.Provider()
 	// assert
@@ -105,7 +105,7 @@ func TestFactoryNilClient(t *testing.T) {
 	customConfig.EdgeDNSType = depresolver.DNSTypeNoEdgeDNS
 	// act
 	// assert
-	_, err := NewDNSProviderFactory(nil, customConfig, &log)
+	_, err := NewDNSProviderFactory(nil, customConfig, log, mx)
 	require.Error(t, err)
 }
 
@@ -116,6 +116,17 @@ func TestFactoryNilLog(t *testing.T) {
 	customConfig.EdgeDNSType = depresolver.DNSTypeNoEdgeDNS
 	// act
 	// assert
-	_, err := NewDNSProviderFactory(client, customConfig, nil)
+	_, err := NewDNSProviderFactory(client, customConfig, nil, mx)
+	require.Error(t, err)
+}
+
+func TestFactoryNilMetrics(t *testing.T) {
+	// arrange
+	client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithRuntimeObjects([]runtime.Object{}...).Build()
+	customConfig := defaultConfig
+	customConfig.EdgeDNSType = depresolver.DNSTypeInfoblox
+	// act
+	// assert
+	_, err := NewDNSProviderFactory(client, customConfig, log, nil)
 	require.Error(t, err)
 }

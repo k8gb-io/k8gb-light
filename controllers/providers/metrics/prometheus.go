@@ -27,6 +27,8 @@ import (
 	"sync"
 	"time"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
@@ -110,7 +112,7 @@ func newPrometheusMetrics(config depresolver.Config) (metrics *PrometheusMetrics
 }
 
 func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(
-	rs *reconciliation.LoopState,
+	n types.NamespacedName,
 	serviceHealth map[string]reconciliation.HealthStatus,
 ) {
 	var healthyHostsCount, unhealthyHostsCount, notFoundHostsCount int
@@ -126,32 +128,32 @@ func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(
 	}
 	m.metrics.K8gbGslbServiceStatusNum.
 		With(prometheus.Labels{
-			"namespace": rs.NamespacedName.Namespace,
-			"name":      rs.NamespacedName.Name,
+			"namespace": n.Namespace,
+			"name":      n.Name,
 			"status":    reconciliation.Healthy.String(),
 		}).Set(float64(healthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
 		With(prometheus.Labels{
-			"namespace": rs.NamespacedName.Namespace,
-			"name":      rs.NamespacedName.Name,
+			"namespace": n.Namespace,
+			"name":      n.Name,
 			"status":    reconciliation.Unhealthy.String(),
 		}).Set(float64(unhealthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
 		With(prometheus.Labels{
-			"namespace": rs.NamespacedName.Namespace,
-			"name":      rs.NamespacedName.Name,
+			"namespace": n.Namespace,
+			"name":      n.Name,
 			"status":    reconciliation.NotFound.String(),
 		}).Set(float64(notFoundHostsCount))
 }
 
-func (m *PrometheusMetrics) UpdateHealthyRecordsMetric(rs *reconciliation.LoopState, healthyRecords map[string][]string) {
+func (m *PrometheusMetrics) UpdateHealthyRecordsMetric(n types.NamespacedName, healthyRecords map[string][]string) {
 	var hrsCount int
 	for _, hrs := range healthyRecords {
 		hrsCount += len(hrs)
 	}
 	m.metrics.K8gbGslbHealthyRecords.With(prometheus.Labels{
-		"namespace": rs.NamespacedName.Namespace,
-		"name":      rs.NamespacedName.Name,
+		"namespace": n.Namespace,
+		"name":      n.Name,
 	}).Set(float64(hrsCount))
 }
 
@@ -163,7 +165,7 @@ func (m *PrometheusMetrics) UpdateEndpointStatus(ep *externaldns.DNSEndpoint) {
 }
 
 func (m *PrometheusMetrics) UpdateFailoverStatus(
-	rs *reconciliation.LoopState,
+	n types.NamespacedName,
 	isPrimary bool,
 	healthy reconciliation.HealthStatus,
 	targets []string,
@@ -172,39 +174,39 @@ func (m *PrometheusMetrics) UpdateFailoverStatus(
 	if isPrimary {
 		t = primary
 	}
-	m.updateRuntimeStatus(rs, m.metrics.K8gbGslbStatusCountForFailover, healthy, targets, "_"+t)
+	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForFailover, healthy, targets, "_"+t)
 }
 
-func (m *PrometheusMetrics) UpdateRoundrobinStatus(rs *reconciliation.LoopState, healthy reconciliation.HealthStatus, targets []string) {
-	m.updateRuntimeStatus(rs, m.metrics.K8gbGslbStatusCountForRoundrobin, healthy, targets, "")
+func (m *PrometheusMetrics) UpdateRoundrobinStatus(n types.NamespacedName, healthy reconciliation.HealthStatus, targets []string) {
+	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForRoundrobin, healthy, targets, "")
 }
 
-func (m *PrometheusMetrics) UpdateGeoIPStatus(gslb *reconciliation.LoopState, healthy reconciliation.HealthStatus, targets []string) {
-	m.updateRuntimeStatus(gslb, m.metrics.K8gbGslbStatusCountForGeoip, healthy, targets, "")
+func (m *PrometheusMetrics) UpdateGeoIPStatus(n types.NamespacedName, healthy reconciliation.HealthStatus, targets []string) {
+	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForGeoip, healthy, targets, "")
 }
 
-func (m *PrometheusMetrics) IncrementError(rs *reconciliation.LoopState) {
-	m.metrics.K8gbGslbErrorsTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) IncrementError(n types.NamespacedName) {
+	m.metrics.K8gbGslbErrorsTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
-func (m *PrometheusMetrics) IncrementReconciliation(rs *reconciliation.LoopState) {
-	m.metrics.K8gbGslbReconciliationLoopsTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) IncrementReconciliation(n types.NamespacedName) {
+	m.metrics.K8gbGslbReconciliationLoopsTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
-func (m *PrometheusMetrics) InfobloxIncrementZoneUpdate(rs *reconciliation.LoopState) {
-	m.metrics.K8gbInfobloxZoneUpdatesTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) InfobloxIncrementZoneUpdate(n types.NamespacedName) {
+	m.metrics.K8gbInfobloxZoneUpdatesTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
-func (m *PrometheusMetrics) InfobloxIncrementZoneUpdateError(rs *reconciliation.LoopState) {
-	m.metrics.K8gbInfobloxZoneUpdateErrorsTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) InfobloxIncrementZoneUpdateError(n types.NamespacedName) {
+	m.metrics.K8gbInfobloxZoneUpdateErrorsTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
-func (m *PrometheusMetrics) InfobloxIncrementHeartbeat(rs *reconciliation.LoopState) {
-	m.metrics.K8gbInfobloxHeartbeatsTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) InfobloxIncrementHeartbeat(n types.NamespacedName) {
+	m.metrics.K8gbInfobloxHeartbeatsTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
-func (m *PrometheusMetrics) InfobloxIncrementHeartbeatError(rs *reconciliation.LoopState) {
-	m.metrics.K8gbInfobloxHeartbeatErrorsTotal.With(prometheus.Labels{"namespace": rs.NamespacedName.Namespace, "name": rs.NamespacedName.Name}).Inc()
+func (m *PrometheusMetrics) InfobloxIncrementHeartbeatError(n types.NamespacedName) {
+	m.metrics.K8gbInfobloxHeartbeatErrorsTotal.With(prometheus.Labels{"namespace": n.Namespace, "name": n.Name}).Inc()
 }
 
 func (m *PrometheusMetrics) InfobloxObserveRequestDuration(start time.Time, request DNSProviderRequest, success bool) {
@@ -377,36 +379,36 @@ func (m *PrometheusMetrics) registry() (r map[string]prometheus.Collector) {
 }
 
 func (m *PrometheusMetrics) updateRuntimeStatus(
-	rs *reconciliation.LoopState,
+	n types.NamespacedName,
 	vec *prometheus.GaugeVec,
 	healthStatus reconciliation.HealthStatus,
 	targets []string,
 	tag string) {
-	var h, u, n int
+	var h, u, f int
 	switch healthStatus {
 	case reconciliation.Healthy:
 		h = len(targets)
 	case reconciliation.Unhealthy:
 		u = len(targets)
 	case reconciliation.NotFound:
-		n = len(targets)
+		f = len(targets)
 	}
 	vec.With(prometheus.Labels{
-		"namespace": rs.NamespacedName.Namespace,
-		"name":      rs.NamespacedName.Name,
+		"namespace": n.Namespace,
+		"name":      n.Name,
 		"status":    fmt.Sprintf("%s%s", reconciliation.Healthy, tag),
 	}).
 		Set(float64(h))
 	vec.With(prometheus.Labels{
-		"namespace": rs.NamespacedName.Namespace,
-		"name":      rs.NamespacedName.Name,
+		"namespace": n.Namespace,
+		"name":      n.Name,
 		"status":    fmt.Sprintf("%s%s", reconciliation.Unhealthy, tag),
 	}).
 		Set(float64(u))
 	vec.With(prometheus.Labels{
-		"namespace": rs.NamespacedName.Namespace,
-		"name":      rs.NamespacedName.Name,
+		"namespace": n.Namespace,
+		"name":      n.Name,
 		"status":    fmt.Sprintf("%s%s", reconciliation.NotFound, tag),
 	}).
-		Set(float64(n))
+		Set(float64(f))
 }

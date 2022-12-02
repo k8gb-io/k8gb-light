@@ -62,9 +62,8 @@ type AnnoReconciler struct {
 	IngressMapper    *reconciliation.IngressMapper
 	ReconcilerResult *utils.ReconcileResultHandler
 	Log              *zerolog.Logger
+	Metrics          *metrics.PrometheusMetrics
 }
-
-var m = metrics.Metrics()
 
 func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ctx, span := r.Tracer.Start(ctx, "Reconcile")
@@ -83,7 +82,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Msg("Ingress not found. Stop...")
 		return r.ReconcilerResult.Stop()
 	case reconciliation.MapperResultError:
-		m.IncrementError(rs)
+		r.Metrics.IncrementError(req.NamespacedName)
 		r.Log.Err(err).
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
@@ -105,14 +104,14 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// == external-dns dnsendpoints CRs ==
 	dnsEndpoint, err := r.gslbDNSEndpoint(rs)
 	if err != nil {
-		m.IncrementError(rs)
+		r.Metrics.IncrementError(rs.NamespacedName)
 		return r.ReconcilerResult.RequeueError(err)
 	}
 
 	_, s := r.Tracer.Start(ctx, "SaveDNSEndpoint")
 	err = r.DNSProvider.SaveDNSEndpoint(rs, dnsEndpoint)
 	if err != nil {
-		m.IncrementError(rs)
+		r.Metrics.IncrementError(rs.NamespacedName)
 		return r.ReconcilerResult.RequeueError(err)
 	}
 	s.End()
@@ -122,7 +121,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	err = r.DNSProvider.CreateZoneDelegationForExternalDNS(rs)
 	if err != nil {
 		r.Log.Err(err).Msg("Unable to create zone delegation")
-		m.IncrementError(rs)
+		r.Metrics.IncrementError(rs.NamespacedName)
 		return r.ReconcilerResult.Requeue()
 	}
 	szd.End()
@@ -130,12 +129,12 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// == Status =
 	err = r.updateStatus(rs, dnsEndpoint)
 	if err != nil {
-		m.IncrementError(rs)
+		r.Metrics.IncrementError(rs.NamespacedName)
 		return r.ReconcilerResult.RequeueError(err)
 	}
 	// == Finish ==========
 	// Everything went fine, requeue after some time to catch up
 	// with external Gslb status
-	m.IncrementReconciliation(rs)
+	r.Metrics.IncrementReconciliation(rs.NamespacedName)
 	return r.ReconcilerResult.Requeue()
 }
