@@ -44,7 +44,7 @@ var (
 		Ref:        ref,
 	}
 
-	defaultGslb = &reconciliation.LoopState{
+	defaultState = &reconciliation.LoopState{
 		NamespacedName: types.NamespacedName{Namespace: "test-infoblox", Name: "test-infoblox"},
 	}
 	ipRange = []string{"10.0.0.1", "10.0.0.2"}
@@ -154,7 +154,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNS(t *testing.T) {
 	provider := NewInfobloxDNS(config, a, cl)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultGslb)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
 	// assert
 	assert.NoError(t, err)
 }
@@ -183,7 +183,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabled(t *test
 	provider := NewInfobloxDNS(config, a, cl)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultGslb)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
 	// assert
 	assert.NoError(t, err)
 }
@@ -207,7 +207,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabledCreating
 	provider := NewInfobloxDNS(config, a, cl)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultGslb)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
 	// assert
 	assert.NoError(t, err)
 }
@@ -233,7 +233,7 @@ func TestInfobloxFinalize(t *testing.T) {
 	provider := NewInfobloxDNS(config, a, cl)
 
 	// act
-	err := provider.Finalize(defaultGslb)
+	err := provider.Finalize(defaultState)
 
 	// assert
 	assert.NoError(t, err)
