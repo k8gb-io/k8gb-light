@@ -74,7 +74,7 @@ build:
 .PHONY: test
 test:
 	@echo -e "\n$(YELLOW)Running the unit tests$(NC)"
-	go test ./... -coverprofile cover.out
+	go test $$(go list ./... | grep -Ev '/mocks|/terratest|/logging|/tracing') --cover
 
 # GoKart - Go Security Static Analysis
 # see: https://github.com/praetorian-inc/gokart

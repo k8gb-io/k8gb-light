@@ -23,6 +23,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
@@ -37,15 +39,17 @@ type InfobloxProvider struct {
 	assistant assistant.Assistant
 	config    depresolver.Config
 	client    InfobloxClient
+	log       *zerolog.Logger
 }
 
 var m = metrics.Metrics()
 
-func NewInfobloxDNS(config depresolver.Config, assistant assistant.Assistant, client InfobloxClient) *InfobloxProvider {
+func NewInfobloxDNS(config depresolver.Config, assistant assistant.Assistant, client InfobloxClient, log *zerolog.Logger) *InfobloxProvider {
 	return &InfobloxProvider{
 		client:    client,
 		assistant: assistant,
 		config:    config,
+		log:       log,
 	}
 }
 
@@ -105,7 +109,7 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 						extClusterHeartbeatFQDNs[extClusterGeoTag],
 						time.Second*time.Duration(rs.Spec.SplitBrainThresholdSeconds))
 					if err != nil {
-						log.Err(err).
+						p.log.Err(err).
 							Str("cluster", nsServerNameExt).
 							Msg("Got the error from TXT based checkAlive. External cluster doesn't " +
 								"look alive, filtering it out from delegated zone configuration.")
@@ -115,10 +119,10 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 			}
 
 			if !reflect.DeepEqual(findZone.DelegateTo, currentList) {
-				log.Info().
+				p.log.Info().
 					Interface("records", findZone.DelegateTo).
 					Msg("Found delegated zone records")
-				log.Info().
+				p.log.Info().
 					Str("DNSZone", p.config.DNSZone).
 					Interface("serverList", currentList).
 					Msg("Updating delegated zone with the server list")
@@ -131,11 +135,11 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 			}
 		}
 	} else {
-		log.Info().
+		p.log.Info().
 			Str("DNSZone", p.config.DNSZone).
 			Msg("Creating delegated zone")
 		sortZones(delegateTo)
-		log.Debug().
+		p.log.Debug().
 			Interface("records", delegateTo).
 			Msg("Delegated records")
 		_, err = p.createZoneDelegated(objMgr, p.config.DNSZone, delegateTo)
@@ -167,7 +171,7 @@ func (p *InfobloxProvider) Finalize(rs *reconciliation.LoopState) error {
 			return err
 		}
 		if len(findZone.Ref) > 0 {
-			log.Info().
+			p.log.Info().
 				Str("DNSZone", p.config.DNSZone).
 				Msg("Deleting delegated zone")
 			_, err := p.deleteZoneDelegated(objMgr, findZone.Ref)
@@ -185,7 +189,7 @@ func (p *InfobloxProvider) Finalize(rs *reconciliation.LoopState) error {
 
 	if findTXT != nil {
 		if len(findTXT.Ref) > 0 {
-			log.Info().
+			p.log.Info().
 				Str("TXTRecords", heartbeatTXTName).
 				Msg("Deleting split brain TXT record")
 			_, err := p.deleteTXTRecord(objMgr, findTXT.Ref)
@@ -222,7 +226,7 @@ func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs
 		return
 	}
 	if heartbeatTXTRecord == nil {
-		log.Info().
+		p.log.Info().
 			Str("HeartbeatTXTName", heartbeatTXTName).
 			Msg("Creating split brain TXT record")
 		_, err = p.createTXTRecord(objMgr, heartbeatTXTName, edgeTimestamp, uint(rs.Spec.DNSTtlSeconds))
@@ -231,7 +235,7 @@ func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs
 			return
 		}
 	} else {
-		log.Info().
+		p.log.Info().
 			Str("HeartbeatTXTName", heartbeatTXTName).
 			Msg("Updating split brain TXT record")
 		_, err = p.updateTXTRecord(objMgr, heartbeatTXTName, edgeTimestamp)

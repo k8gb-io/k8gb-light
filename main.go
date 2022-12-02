@@ -134,6 +134,7 @@ func run() error {
 		Scheme:           mgr.GetScheme(),
 		IngressMapper:    reconciliation.NewIngressMapper(mgr.GetClient()),
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
+		Log:              log,
 	}
 
 	log.Info().Msg("Starting metrics")
@@ -147,7 +148,7 @@ func run() error {
 
 	log.Info().Msg("Resolving DNS provider")
 	var f *dns.ProviderFactory
-	f, err = dns.NewDNSProviderFactory(reconciler.Client, *reconciler.Config)
+	f, err = dns.NewDNSProviderFactory(reconciler.Client, *reconciler.Config, log)
 	if err != nil {
 		log.Err(err).Msg("Unable to create DNS provider factory")
 		return err

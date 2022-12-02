@@ -60,7 +60,7 @@ func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.LoopState) (m
 	for _, rule := range rs.Ingress.Spec.Rules {
 		for _, path := range rule.HTTP.Paths {
 			if path.Backend.Service == nil || path.Backend.Service.Name == "" {
-				log.Warn().
+				r.Log.Warn().
 					Str("gslb", rs.NamespacedName.Name).
 					Interface("service", path.Backend.Service).
 					Msg("Malformed service definition")

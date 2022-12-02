@@ -38,9 +38,9 @@ import (
 	"context"
 
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
+	"github.com/rs/zerolog"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/logging"
 	"cloud.example.com/annotation-operator/controllers/providers/dns"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	"go.opentelemetry.io/otel/trace"
@@ -61,9 +61,8 @@ type AnnoReconciler struct {
 	Tracer           trace.Tracer
 	IngressMapper    *reconciliation.IngressMapper
 	ReconcilerResult *utils.ReconcileResultHandler
+	Log              *zerolog.Logger
 }
-
-var log = logging.Logger()
 
 var m = metrics.Metrics()
 
@@ -78,14 +77,14 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
 	switch rr {
 	case reconciliation.MapperResultCreate:
-		log.Info().
+		r.Log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("Ingress not found. Stop...")
 		return r.ReconcilerResult.Stop()
 	case reconciliation.MapperResultError:
 		m.IncrementError(rs)
-		log.Err(err).
+		r.Log.Err(err).
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("reading Ingress error")
@@ -93,13 +92,13 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if !rs.HasStrategy() {
-		log.Info().
+		r.Log.Info().
 			Str("annotation", reconciliation.AnnotationStrategy).
 			Msg("No annotation found")
 		return r.ReconcilerResult.Requeue()
 	}
 
-	log.Info().
+	r.Log.Info().
 		Str("EdgeDNSZone", r.Config.DNSZone).
 		Msg("* Starting Reconciliation")
 
@@ -122,7 +121,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	_, szd := r.Tracer.Start(ctx, "CreateZoneDelegationForExternalDNS")
 	err = r.DNSProvider.CreateZoneDelegationForExternalDNS(rs)
 	if err != nil {
-		log.Err(err).Msg("Unable to create zone delegation")
+		r.Log.Err(err).Msg("Unable to create zone delegation")
 		m.IncrementError(rs)
 		return r.ReconcilerResult.Requeue()
 	}

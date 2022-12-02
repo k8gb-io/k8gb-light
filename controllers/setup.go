@@ -63,7 +63,7 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			c := mgr.GetClient()
 			err := c.List(context.TODO(), ingList, client.InNamespace(a.GetNamespace()))
 			if err != nil {
-				log.Info().Msg("Can't fetch ingress objects")
+				r.Log.Info().Msg("Can't fetch ingress objects")
 				return nil
 			}
 			for _, ing := range ingList.Items {

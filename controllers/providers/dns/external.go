@@ -23,8 +23,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/rs/zerolog"
+
 	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/logging"
 	assistant2 "cloud.example.com/annotation-operator/controllers/providers/assistant"
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
@@ -38,21 +39,21 @@ type ExternalDNSProvider struct {
 	assistant    assistant2.Assistant
 	config       depresolver.Config
 	endpointName string
+	log          *zerolog.Logger
 }
 
-var log = logging.Logger()
-
-func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant) *ExternalDNSProvider {
+func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant, log *zerolog.Logger) *ExternalDNSProvider {
 	return &ExternalDNSProvider{
 		assistant:    assistant,
 		config:       config,
 		endpointName: fmt.Sprintf("k8gb-ns-%s", externalDNSTypeCommon),
+		log:          log,
 	}
 }
 
 func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.LoopState) error {
 	ttl := externaldns.TTL(rs.Spec.DNSTtlSeconds)
-	log.Info().
+	p.log.Info().
 		Str("provider", p.String()).
 		Msg("Creating/Updating DNSEndpoint CRDs")
 	NSServerList := []string{p.config.GetClusterNSName()}

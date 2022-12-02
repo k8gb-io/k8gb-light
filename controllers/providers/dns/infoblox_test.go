@@ -72,7 +72,7 @@ func TestCanFilterOutDelegatedZoneEntryAccordingFQDNProvided(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockInfobloxClient(ctrl)
-	provider := NewInfobloxDNS(customConfig, a, m)
+	provider := NewInfobloxDNS(customConfig, a, m, &log)
 	// act
 	extClusters := customConfig.GetExternalClusterNSNames()
 	got := provider.filterOutDelegateTo(delegateTo, extClusters["za"])
@@ -110,7 +110,7 @@ func TestCanSanitizeDelegatedZone(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockInfobloxClient(ctrl)
-	provider := NewInfobloxDNS(customConfig, a, m)
+	provider := NewInfobloxDNS(customConfig, a, m, &log)
 	// act
 	got := provider.sanitizeDelegateZone(local, upstream)
 	// assert
@@ -151,7 +151,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNS(t *testing.T) {
 	con.EXPECT().GetObject(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(2, []ibclient.ZoneDelegated{defaultDelegatedZone}).Return(nil)
 	cl.EXPECT().GetObjectManager().Return(ibclient.NewObjectManager(con, "k8gbclient", ""), nil).Times(1)
 	config := defaultConfig
-	provider := NewInfobloxDNS(config, a, cl)
+	provider := NewInfobloxDNS(config, a, cl, &log)
 
 	// act
 	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
@@ -180,7 +180,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabled(t *test
 	}).AnyTimes()
 	config := defaultConfig
 	config.SplitBrainCheck = true
-	provider := NewInfobloxDNS(config, a, cl)
+	provider := NewInfobloxDNS(config, a, cl, &log)
 
 	// act
 	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
@@ -204,7 +204,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabledCreating
 	con.EXPECT().GetObject(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(2, []ibclient.RecordTXT{}).Return(nil).AnyTimes()
 	config := defaultConfig
 	config.SplitBrainCheck = true
-	provider := NewInfobloxDNS(config, a, cl)
+	provider := NewInfobloxDNS(config, a, cl, &log)
 
 	// act
 	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
@@ -230,7 +230,7 @@ func TestInfobloxFinalize(t *testing.T) {
 	}).Times(1)
 	cl.EXPECT().GetObjectManager().Return(ibclient.NewObjectManager(con, "k8gbclient", ""), nil).Times(1)
 	config := defaultConfig
-	provider := NewInfobloxDNS(config, a, cl)
+	provider := NewInfobloxDNS(config, a, cl, &log)
 
 	// act
 	err := provider.Finalize(defaultState)

@@ -82,7 +82,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 					// If cluster is Primary and Unhealthy return Secondary external targets
 					if !isHealthy {
 						finalTargets = externalTargets
-						log.Info().
+						r.Log.Info().
 							Str("gslb", rs.NamespacedName.Name).
 							Str("cluster", rs.Spec.PrimaryGeoTag).
 							Strs("targets", finalTargets.GetIPs()).
@@ -94,7 +94,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 					// then return Primary external targets.
 					// Return own targets by default.
 					finalTargets = externalTargets
-					log.Info().
+					r.Log.Info().
 						Str("gslb", rs.NamespacedName.Name).
 						Str("cluster", rs.Spec.PrimaryGeoTag).
 						Strs("targets", finalTargets.GetIPs()).
@@ -103,13 +103,13 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 				}
 			}
 		} else {
-			log.Info().
+			r.Log.Info().
 				Str("host", host).
 				Msg("No external targets have been found for host")
 		}
 
 		r.updateRuntimeStatus(rs, isPrimary, health, finalTargets.GetIPs())
-		log.Info().
+		r.Log.Info().
 			Str("gslb", rs.NamespacedName.Name).
 			Strs("targets", finalTargets.GetIPs()).
 			Msg("Final target list")
