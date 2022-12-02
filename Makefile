@@ -67,6 +67,7 @@ lint:
 
 .PHONY: build
 build:
+	@echo -e "\n$(YELLOW)Building binary$(NC)"
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./k8gb main.go
 
 # run tests
