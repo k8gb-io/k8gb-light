@@ -33,10 +33,10 @@ import (
 type MapperResult int
 
 const (
-	MapperResultExists MapperResult = iota
+	MapperResultExists MapperResult = 1 << iota
 	MapperResultNotFound
 	MapperResultError
-	MapperResultNoAnnotationFound
+	MapperResultExistsButNotAnnotationFound
 )
 
 // IngressMapper provides API for working with ingress
@@ -70,7 +70,7 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 func (i *IngressMapper) Get(selector types.NamespacedName) (rs *LoopState, result MapperResult, err error) {
 	var ing = &netv1.Ingress{}
 	err = i.c.Get(context.TODO(), selector, ing)
-	result, err = i.getConverterResult(err)
+	result, err = i.getConverterResult(err, ing)
 	if result == MapperResultError {
 		return nil, result, err
 	}
@@ -95,11 +95,14 @@ func (i *IngressMapper) Equal(rs1 *LoopState, rs2 *LoopState) bool {
 	return true
 }
 
-func (i *IngressMapper) getConverterResult(err error) (MapperResult, error) {
+func (i *IngressMapper) getConverterResult(err error, ing *netv1.Ingress) (MapperResult, error) {
 	if err != nil && errors.IsNotFound(err) {
 		return MapperResultNotFound, nil
 	} else if err != nil {
 		return MapperResultError, err
+	}
+	if _, found := ing.GetAnnotations()[AnnotationStrategy]; !found {
+		return MapperResultExistsButNotAnnotationFound, nil
 	}
 	return MapperResultExists, nil
 }

@@ -75,11 +75,12 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// TODO: add finalizer for infoblox only
 	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
 	switch rr {
-	case reconciliation.MapperResultNotFound:
+	case reconciliation.MapperResultNotFound, reconciliation.MapperResultExistsButNotAnnotationFound:
 		r.Log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
-			Msg("Ingress not found. Stop...")
+			Str("Annotation", reconciliation.AnnotationStrategy).
+			Msg("Ingress or annotation not found. Stop...")
 		return r.ReconcilerResult.Stop()
 	case reconciliation.MapperResultError:
 		r.Metrics.IncrementError(req.NamespacedName)
@@ -87,13 +88,6 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
 			Msg("reading Ingress error")
-		return r.ReconcilerResult.Requeue()
-	}
-
-	if !rs.HasStrategy() {
-		r.Log.Info().
-			Str("annotation", reconciliation.AnnotationStrategy).
-			Msg("No annotation found")
 		return r.ReconcilerResult.Requeue()
 	}
 

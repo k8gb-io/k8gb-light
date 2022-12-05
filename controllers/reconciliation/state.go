@@ -96,12 +96,6 @@ func NewLoopState(ingress *netv1.Ingress) (m *LoopState, err error) {
 	return m, err
 }
 
-func (rs *LoopState) HasStrategy() bool {
-	annotations := rs.Ingress.GetAnnotations()
-	_, found := annotations[AnnotationStrategy]
-	return found
-}
-
 func (rs *LoopState) asSpec(annotations map[string]string) (result Spec, err error) {
 	toInt := func(k string, v string) (int, error) {
 		intValue, err := strconv.Atoi(v)

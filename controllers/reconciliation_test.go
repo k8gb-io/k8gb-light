@@ -47,7 +47,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func TestReconcile(t *testing.T) {
+func TestReconcileRequest(t *testing.T) {
 	// arrange
 	const reconcileRequeue = 30 * time.Second
 	var ing = &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Name: "ing"}}
@@ -61,34 +61,34 @@ func TestReconcile(t *testing.T) {
 		Result  controllerruntime.Result
 	}{
 		{
-			Name:    "Empty request",
+			Name:    "Request Empty",
 			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "", Name: ""}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
-			Name:    "Only namespace filled",
+			Name:    "Request Namespace",
 			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "demo", Name: ""}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
-			Name:    "Only name filled",
+			Name:    "Request Name",
 			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "", Name: ing.Name}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
-			Name:    "NotFound ingress",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "notFound", Name: ing.Name}},
-			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
-		},
-		{
-			Name:    "Error ingress",
+			Name:    "Ingress Error",
 			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "error", Name: ing.Name}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
-			Name:    "AlreadyExists ingress without annotation",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "found", Name: ing.Name}},
-			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
+			Name:    "Ingress NotFound",
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "notFound", Name: ing.Name}},
+			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
+		},
+		{
+			Name:    "Ingress Found Without Annotation",
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "foundNoAnnotation", Name: ing.Name}},
+			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
 		},
 	}
 
@@ -98,7 +98,7 @@ func TestReconcile(t *testing.T) {
 		Return(errors.NewNotFound(schema.GroupResource{}, ing.Name)).AnyTimes()
 	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "error", Name: ing.Name}, gomock.Any()).
 		Return(fmt.Errorf("random error")).AnyTimes()
-	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "found", Name: ing.Name}, gomock.Any()).
+	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "foundNoAnnotation", Name: ing.Name}, gomock.Any()).
 		Return(nil).AnyTimes()
 
 	// act
