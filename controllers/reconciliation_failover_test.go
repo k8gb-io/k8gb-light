@@ -5,6 +5,9 @@ import (
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"context"
 	"github.com/golang/mock/gomock"
+	corev1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"testing"
@@ -38,29 +41,102 @@ func TestFailoverSwitch(t *testing.T) {
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	r := getMockedReconciler(ctrl)
+	m := fakeMapper(ctrl)
 
 	tests := []struct {
-		name   string
-		req    reconcile.Request
-		result result
+		name         string
+		req          reconcile.Request
+		mapperResult result
+		service      *corev1.Service
 	}{
 		{
 			name: "Switch",
 			req:  reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "switch", Name: ingressName}},
-			result: result{
-				s:   &reconciliation.LoopState{},
+			mapperResult: result{
+				s: &reconciliation.LoopState{
+					NamespacedName: types.NamespacedName{Namespace: "switch", Name: ingressName},
+					Ingress:        testIngresses.HealthyIngress,
+				},
 				r:   reconciliation.MapperResultExists,
-				err: nil},
+				err: nil,
+			},
 		},
 	}
 	// act
 	// assert
+	s := func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
+		svc.Name = testIngresses.HealthyService.Name
+		svc.Spec = testIngresses.HealthyService.Spec
+		return nil
+	}
+
+	s2 := func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
+		ep.Subsets = testIngresses.HealthyEndpoint.Subsets
+		return nil
+	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			r.IngressMapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).
-				Return(test.result.s, test.result.r, test.result.err).AnyTimes()
-			_, _ = r.Reconcile(context.TODO(), test.req)
+			m.IngressMapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).Return(test.mapperResult.s, test.mapperResult.r, test.mapperResult.err).AnyTimes()
+			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s).Times(1)
+			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s2).Times(1)
+			_, _ = m.Reconcile(context.TODO(), test.req)
 		})
 	}
+}
+
+var pathType = netv1.PathTypePrefix
+
+var testIngresses = struct {
+	HealthyIngress  *netv1.Ingress
+	HealthyService  *corev1.Service
+	HealthyEndpoint *corev1.Endpoints
+	NotFoundIngress *netv1.Ingress
+}{
+	HealthyIngress: &netv1.Ingress{
+		Spec: netv1.IngressSpec{
+			IngressClassName: nil, DefaultBackend: nil, TLS: nil, Rules: []netv1.IngressRule{
+				{
+					Host: "test.cloud.example.com",
+					IngressRuleValue: netv1.IngressRuleValue{
+						HTTP: &netv1.HTTPIngressRuleValue{
+							Paths: []netv1.HTTPIngressPath{
+								{Path: "/demo", PathType: &pathType, Backend: netv1.IngressBackend{
+									Service: &netv1.IngressServiceBackend{
+										Name: "test-service",
+										Port: netv1.ServiceBackendPort{
+											Name:   "test-port",
+											Number: 8808,
+										},
+									},
+								}},
+							},
+						},
+					},
+				},
+			}},
+	},
+	HealthyEndpoint: &corev1.Endpoints{
+		Subsets: []corev1.EndpointSubset{
+			{
+				Addresses: []corev1.EndpointAddress{
+					{
+						IP: "10.42.1.28",
+					},
+				},
+			},
+		},
+	},
+	HealthyService: &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-service",
+		},
+		Spec: corev1.ServiceSpec{
+			Ports:       []corev1.ServicePort{{Port: 8808}},
+			ClusterIP:   "",
+			ClusterIPs:  nil,
+			Type:        "ClusterIP",
+			ExternalIPs: nil,
+		},
+	},
 }
