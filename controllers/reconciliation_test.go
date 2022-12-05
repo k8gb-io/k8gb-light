@@ -24,9 +24,7 @@ import (
 	"testing"
 	"time"
 
-	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"cloud.example.com/annotation-operator/controllers/logging"
@@ -38,7 +36,6 @@ import (
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/mocks"
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"cloud.example.com/annotation-operator/controllers/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -49,9 +46,10 @@ import (
 
 func TestReconcileRequest(t *testing.T) {
 	// arrange
-	const reconcileRequeue = 30 * time.Second
-	var ing = &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Name: "ing"}}
-
+	const (
+		reconcileRequeue = 30 * time.Second
+		ingressName      = "ing"
+	)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -72,40 +70,39 @@ func TestReconcileRequest(t *testing.T) {
 		},
 		{
 			Name:    "Request Name",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "", Name: ing.Name}},
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "", Name: ingressName}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
 			Name:    "Ingress Error",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "error", Name: ing.Name}},
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "error", Name: ingressName}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: reconcileRequeue},
 		},
 		{
 			Name:    "Ingress NotFound",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "notFound", Name: ing.Name}},
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "notFound", Name: ingressName}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
 		},
 		{
 			Name:    "Ingress Found Without Annotation",
-			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "foundNoAnnotation", Name: ing.Name}},
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
 		},
 	}
 
 	r := getMockedReconciler(ctrl)
 	r.Config.ReconcileRequeueSeconds = int(reconcileRequeue.Seconds())
-	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "notFound", Name: ing.Name}, gomock.Any()).
-		Return(errors.NewNotFound(schema.GroupResource{}, ing.Name)).AnyTimes()
-	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "error", Name: ing.Name}, gomock.Any()).
+	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "notFound", Name: ingressName}, gomock.Any()).
+		Return(errors.NewNotFound(schema.GroupResource{}, ingressName)).AnyTimes()
+	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "error", Name: ingressName}, gomock.Any()).
 		Return(fmt.Errorf("random error")).AnyTimes()
-	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "foundNoAnnotation", Name: ing.Name}, gomock.Any()).
+	r.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}, gomock.Any()).
 		Return(nil).AnyTimes()
 
 	// act
 	// assert
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			ing = &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Name: "ing"}}
 			result, err := r.Reconcile(context.TODO(), test.Request)
 			assert.Equal(t, test.Result, result)
 			require.NoError(t, err)
@@ -119,6 +116,7 @@ func getMockedReconciler(ctrl *gomock.Controller) *AnnoReconciler {
 	p := mocks.NewMockProvider(ctrl)
 	tr := mocks.NewMockTracer(ctrl)
 	trsp := mocks.NewMockSpan(ctrl)
+	m := mocks.NewMockMapper(ctrl)
 
 	config := &depresolver.Config{
 		ReconcileRequeueSeconds: 30,
@@ -129,7 +127,7 @@ func getMockedReconciler(ctrl *gomock.Controller) *AnnoReconciler {
 		DepResolver:      r,
 		DNSProvider:      p,
 		Config:           config,
-		IngressMapper:    reconciliation.NewIngressMapper(c),
+		IngressMapper:    m,
 		Tracer:           tr,
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              logging.Logger(),

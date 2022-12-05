@@ -59,7 +59,7 @@ type AnnoReconciler struct {
 	DepResolver      depresolver.GslbResolver
 	DNSProvider      dns.Provider
 	Tracer           trace.Tracer
-	IngressMapper    *reconciliation.IngressMapper
+	IngressMapper    reconciliation.Mapper
 	ReconcilerResult *utils.ReconcileResultHandler
 	Log              *zerolog.Logger
 	Metrics          *metrics.PrometheusMetrics
@@ -72,7 +72,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if req.NamespacedName.Name == "" || req.NamespacedName.Namespace == "" {
 		return r.ReconcilerResult.Requeue()
 	}
-	// TODO: add finalizer for infoblox only
+
 	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
 	switch rr {
 	case reconciliation.MapperResultNotFound, reconciliation.MapperResultExistsButNotAnnotationFound:
