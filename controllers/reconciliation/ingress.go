@@ -34,8 +34,9 @@ type MapperResult int
 
 const (
 	MapperResultExists MapperResult = iota
-	MapperResultCreate
+	MapperResultNotFound
 	MapperResultError
+	MapperResultNoAnnotationFound
 )
 
 // IngressMapper provides API for working with ingress
@@ -57,7 +58,7 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 	switch r {
 	case MapperResultError:
 		return err
-	case MapperResultCreate:
+	case MapperResultNotFound:
 		// object was deleted
 		return nil
 	}
@@ -96,7 +97,7 @@ func (i *IngressMapper) Equal(rs1 *LoopState, rs2 *LoopState) bool {
 
 func (i *IngressMapper) getConverterResult(err error) (MapperResult, error) {
 	if err != nil && errors.IsNotFound(err) {
-		return MapperResultCreate, nil
+		return MapperResultNotFound, nil
 	} else if err != nil {
 		return MapperResultError, err
 	}

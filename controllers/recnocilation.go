@@ -75,7 +75,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// TODO: add finalizer for infoblox only
 	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
 	switch rr {
-	case reconciliation.MapperResultCreate:
+	case reconciliation.MapperResultNotFound:
 		r.Log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).
