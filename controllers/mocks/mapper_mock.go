@@ -83,6 +83,20 @@ func (mr *MockMapperMockRecorder) Get(selector interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMapper)(nil).Get), selector)
 }
 
+// InjectFinalizer mocks base method.
+func (m *MockMapper) InjectFinalizer(selector types.NamespacedName) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InjectFinalizer", selector)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InjectFinalizer indicates an expected call of InjectFinalizer.
+func (mr *MockMapperMockRecorder) InjectFinalizer(selector interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InjectFinalizer", reflect.TypeOf((*MockMapper)(nil).InjectFinalizer), selector)
+}
+
 // UpdateStatus mocks base method.
 func (m *MockMapper) UpdateStatus(state *reconciliation.LoopState) error {
 	m.ctrl.T.Helper()

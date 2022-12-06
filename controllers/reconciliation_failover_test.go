@@ -1,16 +1,17 @@
 package controllers
 
 import (
+	"context"
+	"testing"
+
 	"cloud.example.com/annotation-operator/controllers/mocks"
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
-	"context"
 	"github.com/golang/mock/gomock"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"testing"
 )
 
 /*
@@ -56,12 +57,16 @@ func TestFailoverSwitch(t *testing.T) {
 				s: &reconciliation.LoopState{
 					NamespacedName: types.NamespacedName{Namespace: "switch", Name: ingressName},
 					Ingress:        testIngresses.HealthyIngress,
+					Spec:           reconciliation.Spec{DNSTtlSeconds: 30},
 				},
 				r:   reconciliation.MapperResultExists,
 				err: nil,
 			},
 		},
 	}
+	m.Config.EdgeDNSZone = "example.com"
+	m.Config.ClusterGeoTag = "us"
+
 	// act
 	// assert
 	s := func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
@@ -77,9 +82,11 @@ func TestFailoverSwitch(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			m.IngressMapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).Return(test.mapperResult.s, test.mapperResult.r, test.mapperResult.err).AnyTimes()
+			m.IngressMapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).
+				Return(test.mapperResult.s, test.mapperResult.r, test.mapperResult.err).AnyTimes()
 			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s).Times(1)
 			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s2).Times(1)
+			m.DNSProvider.(*mocks.MockProvider).EXPECT().IngressExposedIPs(gomock.Any()).Return([]string{"172.18.0.5", "172.18.0.6"}, nil)
 			_, _ = m.Reconcile(context.TODO(), test.req)
 		})
 	}

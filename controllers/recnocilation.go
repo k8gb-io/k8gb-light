@@ -90,6 +90,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Msg("reading Ingress error")
 		return r.ReconcilerResult.Requeue()
 	}
+	r.handleFinalizer()
 
 	r.Log.Info().
 		Str("EdgeDNSZone", r.Config.DNSZone).
@@ -131,4 +132,9 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// with external Gslb status
 	r.Metrics.IncrementReconciliation(rs.NamespacedName)
 	return r.ReconcilerResult.Requeue()
+}
+
+func (r *AnnoReconciler) handleFinalizer() {
+	// Inject finalizer for ingress if implemented
+
 }

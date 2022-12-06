@@ -107,6 +107,7 @@ generation:
 	@echo "Ingress generation" `kubectl get ingress $(KEY) -ojsonpath={.metadata.generation} -n $(NS)`
 	@echo
 	@kubectl get dnsendpoint $(KEY) -oyaml -n $(NS) | grep "  endpoints:" -A 23
+	@echo "dig test-gslb2" `dig -p 5054 @localhost demo.cloud.example.com +tcp +nostats +noedns +nocomment;`
 
 ing:
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb1
