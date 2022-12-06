@@ -26,3 +26,14 @@ func Contains[T comparable](list []T, s T) bool {
 	}
 	return false
 }
+
+func Remove[T comparable](list []T, s T) []T {
+	result := make([]T, 0)
+	for _, v := range list {
+		if v == s {
+			continue
+		}
+		result = append(result, v)
+	}
+	return result
+}

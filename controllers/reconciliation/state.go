@@ -36,7 +36,7 @@ const (
 	AnnotationSplitBrainThresholdSeconds = "k8gb.io/splitbrain-threshold-seconds"
 	AnnotationWeightJSON                 = "k8gb.io/weights"
 	AnnotationStatus                     = "k8gb.io/status"
-	finalizer                            = "k8gb.io/finalizer"
+	Finalizer                            = "k8gb.io/finalizer"
 )
 
 type Spec struct {

@@ -39,6 +39,7 @@ import (
 
 	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/codes"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/providers/dns"
@@ -69,6 +70,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	ctx, span := r.Tracer.Start(ctx, "Reconcile")
 	defer span.End()
 
+	// == handle request
 	if req.NamespacedName.Name == "" || req.NamespacedName.Namespace == "" {
 		return r.ReconcilerResult.Requeue()
 	}
@@ -90,7 +92,37 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Msg("reading Ingress error")
 		return r.ReconcilerResult.Requeue()
 	}
-	r.handleFinalizer()
+
+	// == handle finalizers
+	if r.DNSProvider.RequireFinalizer() {
+		_, fSpan := r.Tracer.Start(ctx, "Handle finalizer")
+		result, err := r.handleFinalizer(rs)
+		switch result {
+		case reconciliation.MapperFinalizerSkipped:
+			fSpan.End()
+		case reconciliation.MapperFinalizerInstalled:
+			r.Log.Info().
+				Str("finalizer", reconciliation.Finalizer).
+				Msg("Injected finalizer")
+			fSpan.End()
+		case reconciliation.MapperFinalizerRemoved:
+			r.Log.Info().
+				Str("finalizer", reconciliation.Finalizer).
+				Msg("Remove injected finalizer")
+			fSpan.End()
+			return r.ReconcilerResult.Stop()
+		case reconciliation.MapperResultError:
+			r.Log.Warn().
+				Str("finalizer", reconciliation.Finalizer).
+				AnErr("error", err).
+				Msg("Injecting finalizer error")
+			fSpan.RecordError(err)
+			fSpan.SetStatus(codes.Error, err.Error())
+			fSpan.End()
+			r.Metrics.IncrementError(rs.NamespacedName)
+			return r.ReconcilerResult.RequeueError(err)
+		}
+	}
 
 	r.Log.Info().
 		Str("EdgeDNSZone", r.Config.DNSZone).
@@ -128,13 +160,24 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return r.ReconcilerResult.RequeueError(err)
 	}
 	// == Finish ==========
-	// Everything went fine, requeue after some time to catch up
-	// with external Gslb status
+	// Everything went fine, requeue after RECONCILE_REQUEUE_SECONDS
 	r.Metrics.IncrementReconciliation(rs.NamespacedName)
 	return r.ReconcilerResult.Requeue()
 }
 
-func (r *AnnoReconciler) handleFinalizer() {
-	// Inject finalizer for ingress if implemented
+func (r *AnnoReconciler) handleFinalizer(rs *reconciliation.LoopState) (reconciliation.MapperResult, error) {
 
+	// Inject finalizer if doesn't exists
+	result, err := r.IngressMapper.TryInjectFinalizer(rs)
+	if result == reconciliation.MapperFinalizerInstalled|reconciliation.MapperResultError {
+		return result, err
+	}
+
+	// Try remove if isMarkedToBeDeleted
+	result, err = r.IngressMapper.TryRemoveFinalizer(rs, r.DNSProvider.Finalize)
+	if result == reconciliation.MapperFinalizerRemoved|reconciliation.MapperResultError {
+		return result, err
+	}
+
+	return reconciliation.MapperFinalizerSkipped, nil
 }

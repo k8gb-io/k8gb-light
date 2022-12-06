@@ -57,3 +57,11 @@ func (p *EmptyDNSProvider) SaveDNSEndpoint(gslb *reconciliation.LoopState, i *ex
 func (p *EmptyDNSProvider) String() string {
 	return "EMPTY"
 }
+
+func (p *EmptyDNSProvider) RequireFinalizer() bool {
+	return false
+}
+
+func (p *EmptyDNSProvider) Finalize(*reconciliation.LoopState) error {
+	return nil
+}

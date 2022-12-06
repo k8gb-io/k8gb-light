@@ -35,4 +35,8 @@ type Provider interface {
 	SaveDNSEndpoint(*reconciliation.LoopState, *externaldns.DNSEndpoint) error
 	// String see: Stringer interface
 	String() string
+	// RequireFinalizer tells whether provider requires to collect any resources
+	RequireFinalizer() bool
+	// Finalize would be implemented when RequireFinalizer is true
+	Finalize(*reconciliation.LoopState) error
 }

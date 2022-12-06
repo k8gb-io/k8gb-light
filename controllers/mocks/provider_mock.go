@@ -68,6 +68,20 @@ func (mr *MockProviderMockRecorder) CreateZoneDelegationForExternalDNS(arg0 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateZoneDelegationForExternalDNS", reflect.TypeOf((*MockProvider)(nil).CreateZoneDelegationForExternalDNS), arg0)
 }
 
+// Finalize mocks base method.
+func (m *MockProvider) Finalize(arg0 *reconciliation.LoopState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Finalize", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Finalize indicates an expected call of Finalize.
+func (mr *MockProviderMockRecorder) Finalize(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finalize", reflect.TypeOf((*MockProvider)(nil).Finalize), arg0)
+}
+
 // GetExternalTargets mocks base method.
 func (m *MockProvider) GetExternalTargets(arg0 string) assistant.Targets {
 	m.ctrl.T.Helper()
@@ -95,6 +109,20 @@ func (m *MockProvider) IngressExposedIPs(arg0 *reconciliation.LoopState) ([]stri
 func (mr *MockProviderMockRecorder) IngressExposedIPs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngressExposedIPs", reflect.TypeOf((*MockProvider)(nil).IngressExposedIPs), arg0)
+}
+
+// RequireFinalizer mocks base method.
+func (m *MockProvider) RequireFinalizer() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RequireFinalizer")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// RequireFinalizer indicates an expected call of RequireFinalizer.
+func (mr *MockProviderMockRecorder) RequireFinalizer() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequireFinalizer", reflect.TypeOf((*MockProvider)(nil).RequireFinalizer))
 }
 
 // SaveDNSEndpoint mocks base method.

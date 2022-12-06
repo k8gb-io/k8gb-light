@@ -22,8 +22,9 @@ import "k8s.io/apimachinery/pkg/types"
 
 // Mapper is wrapper around resource. Mappers are an only way to access resources
 type Mapper interface {
-	UpdateStatus(state *LoopState) error
-	Get(selector types.NamespacedName) (rs *LoopState, result MapperResult, err error)
-	Equal(rs1 *LoopState, rs2 *LoopState) bool
-	InjectFinalizer(selector types.NamespacedName) error
+	UpdateStatus(*LoopState) error
+	Get(types.NamespacedName) (*LoopState, MapperResult, error)
+	Equal(*LoopState, *LoopState) bool
+	TryInjectFinalizer(*LoopState) (MapperResult, error)
+	TryRemoveFinalizer(*LoopState, func(*LoopState) error) (MapperResult, error)
 }

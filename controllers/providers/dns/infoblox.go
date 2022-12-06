@@ -223,6 +223,10 @@ func (p *InfobloxProvider) String() string {
 	return "Infoblox"
 }
 
+func (p *InfobloxProvider) RequireFinalizer() bool {
+	return true
+}
+
 func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs *reconciliation.LoopState) (err error) {
 	var heartbeatTXTRecord *ibcl.RecordTXT
 	edgeTimestamp := fmt.Sprint(time.Now().UTC().Format("2006-01-02T15:04:05"))

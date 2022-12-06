@@ -116,3 +116,11 @@ func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *reconciliation.LoopState, i *e
 func (p *ExternalDNSProvider) String() string {
 	return strings.ToUpper(externalDNSTypeCommon)
 }
+
+func (p *ExternalDNSProvider) RequireFinalizer() bool {
+	return false
+}
+
+func (p *ExternalDNSProvider) Finalize(*reconciliation.LoopState) error {
+	return nil
+}
