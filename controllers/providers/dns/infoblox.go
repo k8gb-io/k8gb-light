@@ -25,9 +25,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
-
 	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/providers/assistant"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -71,7 +70,7 @@ func (p *InfobloxProvider) sanitizeDelegateZone(local, upstream []ibcl.NameServe
 	return final
 }
 
-func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.LoopState) error {
+func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *mapper.LoopState) error {
 	objMgr, err := p.client.GetObjectManager()
 	if err != nil {
 		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
@@ -161,7 +160,7 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation
 	return nil
 }
 
-func (p *InfobloxProvider) Finalize(rs *reconciliation.LoopState) error {
+func (p *InfobloxProvider) Finalize(rs *mapper.LoopState) error {
 	objMgr, err := p.client.GetObjectManager()
 	if err != nil {
 		return err
@@ -211,11 +210,11 @@ func (p *InfobloxProvider) GetExternalTargets(host string) (targets assistant.Ta
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }
 
-func (p *InfobloxProvider) IngressExposedIPs(rs *reconciliation.LoopState) ([]string, error) {
+func (p *InfobloxProvider) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
 	return p.assistant.IngressExposedIPs(rs)
 }
 
-func (p *InfobloxProvider) SaveDNSEndpoint(rs *reconciliation.LoopState, i *externaldns.DNSEndpoint) error {
+func (p *InfobloxProvider) SaveDNSEndpoint(rs *mapper.LoopState, i *externaldns.DNSEndpoint) error {
 	return p.assistant.SaveDNSEndpoint(rs.NamespacedName.Namespace, i)
 }
 
@@ -227,7 +226,7 @@ func (p *InfobloxProvider) RequireFinalizer() bool {
 	return true
 }
 
-func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs *reconciliation.LoopState) (err error) {
+func (p *InfobloxProvider) saveHeartbeatTXTRecord(objMgr *ibcl.ObjectManager, rs *mapper.LoopState) (err error) {
 	var heartbeatTXTRecord *ibcl.RecordTXT
 	edgeTimestamp := fmt.Sprint(time.Now().UTC().Format("2006-01-02T15:04:05"))
 	heartbeatTXTName := p.config.GetClusterHeartbeatFQDN(rs.NamespacedName.Name)

@@ -25,10 +25,10 @@ import (
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/logging"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/mocks"
 	"cloud.example.com/annotation-operator/controllers/providers/assistant"
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"cloud.example.com/annotation-operator/controllers/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +46,7 @@ import (
 // test data
 var a = struct {
 	Config              depresolver.Config
-	State               *reconciliation.LoopState
+	State               *mapper.LoopState
 	TargetIPs           []string
 	TargetNSNamesSorted []string
 }{
@@ -64,10 +64,10 @@ var a = struct {
 		DNSZone:       "cloud.example.com",
 		K8gbNamespace: "k8gb",
 	},
-	State: func() *reconciliation.LoopState {
+	State: func() *mapper.LoopState {
 
-		return &reconciliation.LoopState{
-			Spec: reconciliation.Spec{
+		return &mapper.LoopState{
+			Spec: mapper.Spec{
 				DNSTtlSeconds: 30,
 			},
 			NamespacedName: types.NamespacedName{Namespace: "test", Name: "test"},

@@ -26,8 +26,8 @@ import (
 	reflect "reflect"
 	time "time"
 
+	reconciliation "cloud.example.com/annotation-operator/controllers/mapper"
 	assistant "cloud.example.com/annotation-operator/controllers/providers/assistant"
-	reconciliation "cloud.example.com/annotation-operator/controllers/reconciliation"
 	gomock "github.com/golang/mock/gomock"
 	endpoint "sigs.k8s.io/external-dns/endpoint"
 )

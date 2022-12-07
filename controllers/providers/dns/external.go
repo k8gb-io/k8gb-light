@@ -26,8 +26,8 @@ import (
 	"github.com/rs/zerolog"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	assistant2 "cloud.example.com/annotation-operator/controllers/providers/assistant"
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -51,7 +51,7 @@ func NewExternalDNS(config depresolver.Config, assistant assistant2.Assistant, l
 	}
 }
 
-func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *reconciliation.LoopState) error {
+func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *mapper.LoopState) error {
 	ttl := externaldns.TTL(rs.Spec.DNSTtlSeconds)
 	p.log.Info().
 		Str("provider", p.String()).
@@ -105,11 +105,11 @@ func (p *ExternalDNSProvider) GetExternalTargets(host string) (targets assistant
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }
 
-func (p *ExternalDNSProvider) IngressExposedIPs(rs *reconciliation.LoopState) ([]string, error) {
+func (p *ExternalDNSProvider) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
 	return p.assistant.IngressExposedIPs(rs)
 }
 
-func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *reconciliation.LoopState, i *externaldns.DNSEndpoint) error {
+func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *mapper.LoopState, i *externaldns.DNSEndpoint) error {
 	return p.assistant.SaveDNSEndpoint(rs.NamespacedName.Namespace, i)
 }
 
@@ -121,6 +121,6 @@ func (p *ExternalDNSProvider) RequireFinalizer() bool {
 	return false
 }
 
-func (p *ExternalDNSProvider) Finalize(*reconciliation.LoopState) error {
+func (p *ExternalDNSProvider) Finalize(*mapper.LoopState) error {
 	return nil
 }

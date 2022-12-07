@@ -25,9 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
-
 	"cloud.example.com/annotation-operator/controllers/logging"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/utils"
 
 	"github.com/miekg/dns"
@@ -121,7 +120,7 @@ func extractIPFromLB(lb corev1.LoadBalancerIngress, ns utils.DNSList) (ips []str
 }
 
 // IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-func (r *Gslb) IngressExposedIPs(rs *reconciliation.LoopState) ([]string, error) {
+func (r *Gslb) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
 
 	gslbIngress := rs.Ingress.DeepCopy()
 	var gslbIngressIPs []string

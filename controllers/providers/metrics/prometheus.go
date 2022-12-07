@@ -29,9 +29,8 @@ import (
 
 	"k8s.io/apimachinery/pkg/types"
 
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
-
 	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/utils"
 
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -113,14 +112,14 @@ func newPrometheusMetrics(config depresolver.Config) (metrics *PrometheusMetrics
 
 func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(
 	n types.NamespacedName,
-	serviceHealth map[string]reconciliation.HealthStatus,
+	serviceHealth map[string]mapper.HealthStatus,
 ) {
 	var healthyHostsCount, unhealthyHostsCount, notFoundHostsCount int
 	for _, hs := range serviceHealth {
 		switch hs {
-		case reconciliation.Healthy:
+		case mapper.Healthy:
 			healthyHostsCount++
-		case reconciliation.Unhealthy:
+		case mapper.Unhealthy:
 			unhealthyHostsCount++
 		default:
 			notFoundHostsCount++
@@ -130,19 +129,19 @@ func (m *PrometheusMetrics) UpdateIngressHostsPerStatusMetric(
 		With(prometheus.Labels{
 			"namespace": n.Namespace,
 			"name":      n.Name,
-			"status":    reconciliation.Healthy.String(),
+			"status":    mapper.Healthy.String(),
 		}).Set(float64(healthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
 		With(prometheus.Labels{
 			"namespace": n.Namespace,
 			"name":      n.Name,
-			"status":    reconciliation.Unhealthy.String(),
+			"status":    mapper.Unhealthy.String(),
 		}).Set(float64(unhealthyHostsCount))
 	m.metrics.K8gbGslbServiceStatusNum.
 		With(prometheus.Labels{
 			"namespace": n.Namespace,
 			"name":      n.Name,
-			"status":    reconciliation.NotFound.String(),
+			"status":    mapper.NotFound.String(),
 		}).Set(float64(notFoundHostsCount))
 }
 
@@ -167,7 +166,7 @@ func (m *PrometheusMetrics) UpdateEndpointStatus(ep *externaldns.DNSEndpoint) {
 func (m *PrometheusMetrics) UpdateFailoverStatus(
 	n types.NamespacedName,
 	isPrimary bool,
-	healthy reconciliation.HealthStatus,
+	healthy mapper.HealthStatus,
 	targets []string,
 ) {
 	t := secondary
@@ -177,11 +176,11 @@ func (m *PrometheusMetrics) UpdateFailoverStatus(
 	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForFailover, healthy, targets, "_"+t)
 }
 
-func (m *PrometheusMetrics) UpdateRoundrobinStatus(n types.NamespacedName, healthy reconciliation.HealthStatus, targets []string) {
+func (m *PrometheusMetrics) UpdateRoundrobinStatus(n types.NamespacedName, healthy mapper.HealthStatus, targets []string) {
 	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForRoundrobin, healthy, targets, "")
 }
 
-func (m *PrometheusMetrics) UpdateGeoIPStatus(n types.NamespacedName, healthy reconciliation.HealthStatus, targets []string) {
+func (m *PrometheusMetrics) UpdateGeoIPStatus(n types.NamespacedName, healthy mapper.HealthStatus, targets []string) {
 	m.updateRuntimeStatus(n, m.metrics.K8gbGslbStatusCountForGeoip, healthy, targets, "")
 }
 
@@ -381,34 +380,34 @@ func (m *PrometheusMetrics) registry() (r map[string]prometheus.Collector) {
 func (m *PrometheusMetrics) updateRuntimeStatus(
 	n types.NamespacedName,
 	vec *prometheus.GaugeVec,
-	healthStatus reconciliation.HealthStatus,
+	healthStatus mapper.HealthStatus,
 	targets []string,
 	tag string) {
 	var h, u, f int
 	switch healthStatus {
-	case reconciliation.Healthy:
+	case mapper.Healthy:
 		h = len(targets)
-	case reconciliation.Unhealthy:
+	case mapper.Unhealthy:
 		u = len(targets)
-	case reconciliation.NotFound:
+	case mapper.NotFound:
 		f = len(targets)
 	}
 	vec.With(prometheus.Labels{
 		"namespace": n.Namespace,
 		"name":      n.Name,
-		"status":    fmt.Sprintf("%s%s", reconciliation.Healthy, tag),
+		"status":    fmt.Sprintf("%s%s", mapper.Healthy, tag),
 	}).
 		Set(float64(h))
 	vec.With(prometheus.Labels{
 		"namespace": n.Namespace,
 		"name":      n.Name,
-		"status":    fmt.Sprintf("%s%s", reconciliation.Unhealthy, tag),
+		"status":    fmt.Sprintf("%s%s", mapper.Unhealthy, tag),
 	}).
 		Set(float64(u))
 	vec.With(prometheus.Labels{
 		"namespace": n.Namespace,
 		"name":      n.Name,
-		"status":    fmt.Sprintf("%s%s", reconciliation.NotFound, tag),
+		"status":    fmt.Sprintf("%s%s", mapper.NotFound, tag),
 	}).
 		Set(float64(f))
 }

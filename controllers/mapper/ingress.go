@@ -1,4 +1,4 @@
-package reconciliation
+package mapper
 
 /*
 Copyright 2022 The k8gb Contributors.
@@ -32,19 +32,19 @@ import (
 
 // todo: rename package to reconciliation
 
-type MapperResult int
+type Result int
 
 const (
-	MapperResultExists MapperResult = 1 << iota
-	MapperResultNotFound
-	MapperResultError
-	MapperResultExistsButNotAnnotationFound
-	MapperFinalizerRemoved
-	MapperFinalizerInstalled
-	MapperFinalizerSkipped
+	ResultExists Result = 1 << iota
+	ResultNotFound
+	ResultError
+	ResultExistsButNotAnnotationFound
+	ResultFinalizerRemoved
+	ResultFinalizerInstalled
+	ResultContinue
 )
 
-func (r MapperResult) IsIn(m ...MapperResult) bool {
+func (r Result) IsIn(m ...Result) bool {
 	for _, v := range m {
 		if v == r {
 			return true
@@ -66,13 +66,13 @@ func NewIngressMapper(c client.Client) *IngressMapper {
 
 func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 	// check if object has not been deleted
-	var r MapperResult
+	var r Result
 	var s *LoopState
 	s, r, err = i.Get(state.NamespacedName)
 	switch r {
-	case MapperResultError:
+	case ResultError:
 		return err
-	case MapperResultNotFound:
+	case ResultNotFound:
 		// object was deleted
 		return nil
 	}
@@ -81,16 +81,16 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 	return i.c.Update(context.TODO(), s.Ingress)
 }
 
-func (i *IngressMapper) Get(selector types.NamespacedName) (rs *LoopState, result MapperResult, err error) {
+func (i *IngressMapper) Get(selector types.NamespacedName) (rs *LoopState, result Result, err error) {
 	var ing = &netv1.Ingress{}
 	err = i.c.Get(context.TODO(), selector, ing)
 	result, err = i.getConverterResult(err, ing)
-	if result == MapperResultError {
+	if result == ResultError {
 		return nil, result, err
 	}
 	rs, err = NewLoopState(ing)
 	if err != nil {
-		result = MapperResultError
+		result = ResultError
 	}
 	return rs, result, err
 }
@@ -109,52 +109,52 @@ func (i *IngressMapper) Equal(rs1 *LoopState, rs2 *LoopState) bool {
 	return true
 }
 
-func (i *IngressMapper) TryInjectFinalizer(rs *LoopState) (MapperResult, error) {
+func (i *IngressMapper) TryInjectFinalizer(rs *LoopState) (Result, error) {
 	if rs == nil || rs.Ingress == nil {
-		return MapperResultError, fmt.Errorf("injecting finalizer from nil values")
+		return ResultError, fmt.Errorf("injecting finalizer from nil values")
 	}
 	if !utils.Contains(rs.Ingress.GetFinalizers(), Finalizer) {
 		rs.Ingress.SetFinalizers(append(rs.Ingress.GetFinalizers(), Finalizer))
 		err := i.c.Update(context.TODO(), rs.Ingress)
 		if err != nil {
-			return MapperResultError, err
+			return ResultError, err
 		}
-		return MapperFinalizerInstalled, nil
+		return ResultFinalizerInstalled, nil
 	}
-	return MapperFinalizerSkipped, nil
+	return ResultContinue, nil
 }
 
-func (i *IngressMapper) TryRemoveFinalizer(rs *LoopState, finalize func(*LoopState) error) (MapperResult, error) {
+func (i *IngressMapper) TryRemoveFinalizer(rs *LoopState, finalize func(*LoopState) error) (Result, error) {
 	if rs == nil || rs.Ingress == nil {
-		return MapperResultError, fmt.Errorf("removing finalizer from nil values")
+		return ResultError, fmt.Errorf("removing finalizer from nil values")
 	}
 	if utils.Contains(rs.Ingress.GetFinalizers(), Finalizer) {
 		isMarkedToBeDeleted := rs.Ingress.GetDeletionTimestamp() != nil
 		if !isMarkedToBeDeleted {
-			return MapperFinalizerSkipped, nil
+			return ResultContinue, nil
 		}
 		err := finalize(rs)
 		if err != nil {
-			return MapperResultError, err
+			return ResultError, err
 		}
 		rs.Ingress.SetFinalizers(utils.Remove(rs.Ingress.GetFinalizers(), Finalizer))
 		err = i.c.Update(context.TODO(), rs.Ingress)
 		if err != nil {
-			return MapperResultError, err
+			return ResultError, err
 		}
-		return MapperFinalizerRemoved, nil
+		return ResultFinalizerRemoved, nil
 	}
-	return MapperFinalizerSkipped, nil
+	return ResultContinue, nil
 }
 
-func (i *IngressMapper) getConverterResult(err error, ing *netv1.Ingress) (MapperResult, error) {
+func (i *IngressMapper) getConverterResult(err error, ing *netv1.Ingress) (Result, error) {
 	if err != nil && errors.IsNotFound(err) {
-		return MapperResultNotFound, nil
+		return ResultNotFound, nil
 	} else if err != nil {
-		return MapperResultError, err
+		return ResultError, err
 	}
 	if _, found := ing.GetAnnotations()[AnnotationStrategy]; !found {
-		return MapperResultExistsButNotAnnotationFound, nil
+		return ResultExistsButNotAnnotationFound, nil
 	}
-	return MapperResultExists, nil
+	return ResultExists, nil
 }

@@ -1,4 +1,4 @@
-package reconciliation
+package mapper
 
 /*
 Copyright 2022 The k8gb Contributors.
@@ -23,8 +23,8 @@ import "k8s.io/apimachinery/pkg/types"
 // Mapper is wrapper around resource. Mappers are an only way to access resources
 type Mapper interface {
 	UpdateStatus(*LoopState) error
-	Get(types.NamespacedName) (*LoopState, MapperResult, error)
+	Get(types.NamespacedName) (*LoopState, Result, error)
 	Equal(*LoopState, *LoopState) bool
-	TryInjectFinalizer(*LoopState) (MapperResult, error)
-	TryRemoveFinalizer(*LoopState, func(*LoopState) error) (MapperResult, error)
+	TryInjectFinalizer(*LoopState) (Result, error)
+	TryRemoveFinalizer(*LoopState, func(*LoopState) error) (Result, error)
 }

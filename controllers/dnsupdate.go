@@ -22,15 +22,16 @@ import (
 	"fmt"
 	"strings"
 
+	"cloud.example.com/annotation-operator/controllers/mapper"
+
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/providers/assistant"
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
-func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externaldns.DNSEndpoint, error) {
+func (r *AnnoReconciler) gslbDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSEndpoint, error) {
 
 	var gslbHosts []*externaldns.Endpoint
 	var ttl = externaldns.TTL(rs.Spec.DNSTtlSeconds)
@@ -53,7 +54,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 		}
 
 		isPrimary := rs.Spec.PrimaryGeoTag == r.Config.ClusterGeoTag
-		isHealthy := health == reconciliation.Healthy
+		isHealthy := health == mapper.Healthy
 
 		if isHealthy {
 			finalTargets.Append(r.Config.ClusterGeoTag, localTargets)
@@ -86,7 +87,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 							Str("gslb", rs.NamespacedName.Name).
 							Str("cluster", rs.Spec.PrimaryGeoTag).
 							Strs("targets", finalTargets.GetIPs()).
-							Str("workload", reconciliation.Unhealthy.String()).
+							Str("workload", mapper.Unhealthy.String()).
 							Msg("Executing failover strategy for primary cluster")
 					}
 				} else {
@@ -98,7 +99,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 						Str("gslb", rs.NamespacedName.Name).
 						Str("cluster", rs.Spec.PrimaryGeoTag).
 						Strs("targets", finalTargets.GetIPs()).
-						Str("workload", reconciliation.Healthy.String()).
+						Str("workload", mapper.Healthy.String()).
 						Msg("Executing failover strategy for secondary cluster")
 				}
 			}
@@ -152,7 +153,7 @@ func (r *AnnoReconciler) gslbDNSEndpoint(rs *reconciliation.LoopState) (*externa
 }
 
 // getLabels map of where key identifies region and weight, value identifies IP.
-func (r *AnnoReconciler) getLabels(rs *reconciliation.LoopState, targets assistant.Targets) (labels map[string]string) {
+func (r *AnnoReconciler) getLabels(rs *mapper.LoopState, targets assistant.Targets) (labels map[string]string) {
 	labels = make(map[string]string, 0)
 	for k, v := range rs.Spec.Weights {
 		t, found := targets[k]
@@ -168,9 +169,9 @@ func (r *AnnoReconciler) getLabels(rs *reconciliation.LoopState, targets assista
 }
 
 func (r *AnnoReconciler) updateRuntimeStatus(
-	rs *reconciliation.LoopState,
+	rs *mapper.LoopState,
 	isPrimary bool,
-	isHealthy reconciliation.HealthStatus,
+	isHealthy mapper.HealthStatus,
 	finalTargets []string,
 ) {
 	switch rs.Spec.Type {

@@ -38,7 +38,7 @@ import (
 	"context"
 	"os"
 
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
+	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/utils"
 
 	externaldns "sigs.k8s.io/external-dns/endpoint"
@@ -141,7 +141,7 @@ func run() error {
 		Client:           mgr.GetClient(),
 		DepResolver:      resolver,
 		Scheme:           mgr.GetScheme(),
-		Mapper:           reconciliation.NewIngressMapper(mgr.GetClient()),
+		Mapper:           mapper.NewIngressMapper(mgr.GetClient()),
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              log,
 		Metrics:          metrics.Metrics(),

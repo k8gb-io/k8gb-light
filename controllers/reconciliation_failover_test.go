@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"cloud.example.com/annotation-operator/controllers/mapper"
+
 	"cloud.example.com/annotation-operator/controllers/mocks"
-	"cloud.example.com/annotation-operator/controllers/reconciliation"
 	"github.com/golang/mock/gomock"
 	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
@@ -36,8 +37,8 @@ func UTestFailoverSwitch(t *testing.T) {
 	// arrange
 	const ingressName = "ing"
 	type result = struct {
-		s   *reconciliation.LoopState
-		r   reconciliation.MapperResult
+		s   *mapper.LoopState
+		r   mapper.Result
 		err error
 	}
 	ctrl := gomock.NewController(t)
@@ -54,12 +55,12 @@ func UTestFailoverSwitch(t *testing.T) {
 			name: "Switch",
 			req:  reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "switch", Name: ingressName}},
 			mapperResult: result{
-				s: &reconciliation.LoopState{
+				s: &mapper.LoopState{
 					NamespacedName: types.NamespacedName{Namespace: "switch", Name: ingressName},
 					Ingress:        testIngresses.HealthyIngress,
-					Spec:           reconciliation.Spec{DNSTtlSeconds: 30},
+					Spec:           mapper.Spec{DNSTtlSeconds: 30},
 				},
-				r:   reconciliation.MapperResultExists,
+				r:   mapper.ResultExists,
 				err: nil,
 			},
 		},
