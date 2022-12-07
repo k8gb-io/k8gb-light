@@ -76,7 +76,12 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *mapper.LoopSta
 		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 		return err
 	}
-	addresses, err := p.assistant.IngressExposedIPs(rs)
+	var addresses []string
+	if p.config.CoreDNSExposed {
+		addresses, err = p.assistant.CoreDNSExposedIPs()
+	} else {
+		addresses, err = p.assistant.IngressExposedIPs(rs)
+	}
 	if err != nil {
 		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
 		return err
