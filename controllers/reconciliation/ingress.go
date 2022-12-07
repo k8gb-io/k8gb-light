@@ -44,6 +44,15 @@ const (
 	MapperFinalizerSkipped
 )
 
+func (r MapperResult) IsIn(m ...MapperResult) bool {
+	for _, v := range m {
+		if v == r {
+			return true
+		}
+	}
+	return false
+}
+
 // IngressMapper provides API for working with ingress
 type IngressMapper struct {
 	c client.Client

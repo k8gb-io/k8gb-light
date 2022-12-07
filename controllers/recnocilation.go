@@ -169,13 +169,13 @@ func (r *AnnoReconciler) handleFinalizer(rs *reconciliation.LoopState) (reconcil
 
 	// Inject finalizer if doesn't exists
 	result, err := r.IngressMapper.TryInjectFinalizer(rs)
-	if result == reconciliation.MapperFinalizerInstalled|reconciliation.MapperResultError {
+	if result.IsIn(reconciliation.MapperFinalizerInstalled, reconciliation.MapperResultError) {
 		return result, err
 	}
 
 	// Try remove if isMarkedToBeDeleted
 	result, err = r.IngressMapper.TryRemoveFinalizer(rs, r.DNSProvider.Finalize)
-	if result == reconciliation.MapperFinalizerRemoved|reconciliation.MapperResultError {
+	if result.IsIn(reconciliation.MapperFinalizerRemoved, reconciliation.MapperResultError) {
 		return result, err
 	}
 

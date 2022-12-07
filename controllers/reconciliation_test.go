@@ -112,6 +112,82 @@ func TestReconcileRequest(t *testing.T) {
 	}
 }
 
+func TestFinalizerInReconciliation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	//m := fakeMapper(ctrl)
+
+	//m.handleFinalizer()
+}
+
+func TestHandleFinalizer(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	// arrange
+	var ferr = fmt.Errorf("finalizer err")
+	var tests = []struct {
+		Name           string
+		ExpectedResult reconciliation.MapperResult
+		SetMocks       func(*mocks.MockMapper)
+	}{
+		{
+			Name:           "Inject Finalizer",
+			ExpectedResult: reconciliation.MapperFinalizerInstalled,
+			SetMocks: func(c *mocks.MockMapper) {
+				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerInstalled, nil).Times(1)
+			},
+		},
+		{
+			Name:           "Inject Finalizer Error",
+			ExpectedResult: reconciliation.MapperResultError,
+			SetMocks: func(c *mocks.MockMapper) {
+				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperResultError, ferr).Times(1)
+			},
+		},
+		{
+			Name:           "Remove Finalizer",
+			ExpectedResult: reconciliation.MapperFinalizerRemoved,
+			SetMocks: func(c *mocks.MockMapper) {
+				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerSkipped, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(reconciliation.MapperFinalizerRemoved, nil).Times(1)
+			},
+		},
+		{
+			Name:           "Remove Finalizer Error",
+			ExpectedResult: reconciliation.MapperResultError,
+			SetMocks: func(c *mocks.MockMapper) {
+				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerSkipped, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(reconciliation.MapperResultError, ferr).Times(1)
+			},
+		},
+		{
+			Name:           "Finalizer Skipped",
+			ExpectedResult: reconciliation.MapperFinalizerSkipped,
+			SetMocks: func(c *mocks.MockMapper) {
+				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerSkipped, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(reconciliation.MapperFinalizerSkipped, ferr).Times(1)
+			},
+		},
+	}
+
+	// act
+	// assert
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			r := fakeMapper(ctrl)
+			test.SetMocks(r.IngressMapper.(*mocks.MockMapper))
+			result, err := r.handleFinalizer(nil)
+			assert.Equal(t, test.ExpectedResult, result)
+			if result == reconciliation.MapperResultError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 // if you want to mock client use fakeClient
 func fakeClient(ctrl *gomock.Controller) *AnnoReconciler {
 	r := fakeMapper(ctrl)
