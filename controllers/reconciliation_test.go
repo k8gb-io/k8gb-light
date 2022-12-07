@@ -112,14 +112,49 @@ func TestReconcileRequest(t *testing.T) {
 	}
 }
 
-func TestFinalizerInReconciliation(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	//m := fakeMapper(ctrl)
-
-	//m.handleFinalizer()
-}
+//  func TestFinalizerInReconciliation(t *testing.T) {
+//	ctrl := gomock.NewController(t)
+//	defer ctrl.Finish()
+//	const (
+//		reconcileRequeue = 30 * time.Second
+//		ingressName      = "ing"
+//	)
+//
+//	var tests = []struct {
+//		Name     string
+//		Result   reconcile.Result
+//		SetMocks func(*AnnoReconciler)
+//	}{
+//		{
+//			Name:   "Finalizer Installed",
+//			Result: reconcile.Result{Requeue: true, RequeueAfter: reconcileRequeue},
+//			SetMocks: func(r *AnnoReconciler) {
+//				//trsp := mocks.NewMockSpan().EXPECT()trsp.EXPECT().End(gomock.Any()).Return().AnyTimes()
+//				//tr.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), trsp).AnyTimes()
+//				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Times(2)
+//				r.IngressMapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, reconciliation.MapperResultExists, nil).Times(1)
+//				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
+//				r.IngressMapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerInstalled, nil).Times(1)
+//			},
+//		},
+//		{
+//			Name: "Finalizer Not Required",
+//		},
+//	}
+//
+//	// act
+//	// assert
+//	for _, test := range tests {
+//		t.Run(test.Name, func(t *testing.T) {
+//			m := fakeMapper(ctrl)
+//			test.SetMocks(m)
+//			result, err := m.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "exists", Name: "ing"}})
+//			assert.Equal(t, test.Result, result)
+//			assert.NoError(t, err)
+//		})
+//	}
+//	//m.handleFinalizer()
+//  }
 
 func TestHandleFinalizer(t *testing.T) {
 	ctrl := gomock.NewController(t)
