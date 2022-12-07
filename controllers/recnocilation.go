@@ -130,7 +130,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		Msg("* Starting Reconciliation")
 
 	// == external-dns dnsendpoints CRs ==
-	dnsEndpoint, err := r.gslbDNSEndpoint(rs)
+	dnsEndpoint, err := r.getDNSEndpoint(rs)
 	if err != nil {
 		r.Metrics.IncrementError(rs.NamespacedName)
 		return r.ReconcilerResult.RequeueError(err)

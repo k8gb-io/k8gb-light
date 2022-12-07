@@ -31,7 +31,7 @@ import (
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
-func (r *AnnoReconciler) gslbDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSEndpoint, error) {
+func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSEndpoint, error) {
 
 	var gslbHosts []*externaldns.Endpoint
 	var ttl = externaldns.TTL(rs.Spec.DNSTtlSeconds)

@@ -100,60 +100,89 @@ func TestReconcileRequest(t *testing.T) {
 	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}, gomock.Any()).
 		Return(nil).AnyTimes()
 
-	// act
-	// assert
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
+			// arrange
 			result, err := cl.Reconcile(context.TODO(), test.Request)
+
+			// assert
 			assert.Equal(t, test.Result, result)
 			require.NoError(t, err)
 		})
 	}
 }
 
-//  func TestFinalizerInReconciliation(t *testing.T) {
-//	ctrl := gomock.NewController(t)
-//	defer ctrl.Finish()
-//	const (
-//		reconcileRequeue = 30 * time.Second
-//		ingressName      = "ing"
-//	)
-//
-//	var tests = []struct {
-//		Name     string
-//		Result   reconcile.Result
-//		SetMocks func(*AnnoReconciler)
-//	}{
-//		{
-//			Name:   "Finalizer Installed",
-//			Result: reconcile.Result{Requeue: true, RequeueAfter: reconcileRequeue},
-//			SetMocks: func(r *AnnoReconciler) {
-//				//trsp := mocks.NewMockSpan().EXPECT()trsp.EXPECT().End(gomock.Any()).Return().AnyTimes()
-//				//tr.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), trsp).AnyTimes()
-//				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Times(2)
-//				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, reconciliation.ResultExists, nil).Times(1)
-//				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
-//				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.ResultFinalizerInstalled, nil).Times(1)
-//			},
-//		},
-//		{
-//			Name: "Finalizer Not Required",
-//		},
-//	}
-//
-//	// act
-//	// assert
-//	for _, test := range tests {
-//		t.Run(test.Name, func(t *testing.T) {
-//			m := fakeMapper(ctrl)
-//			test.SetMocks(m)
-//			result, err := m.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "exists", Name: "ing"}})
-//			assert.Equal(t, test.Result, result)
-//			assert.NoError(t, err)
-//		})
-//	}
-//	//m.handleFinalizer()
-//  }
+func TestFinalizerInReconciliation(t *testing.T) {
+	// The test evaluates the state that returns the finalization in the reconciliation loop.
+	// The test focuses not only on the state, but also on the correct call of the tracer.
+	// test
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	const (
+		ingressName = "ing"
+	)
+	var ferr = fmt.Errorf("finalizer err")
+
+	var tests = []struct {
+		Name     string
+		Result   reconcile.Result
+		SetMocks func(*AnnoReconciler)
+		HasError bool
+	}{
+		{
+			Name:     "Finalizer Installed",
+			Result:   reconcile.Result{Requeue: false, RequeueAfter: 0},
+			HasError: false,
+			SetMocks: func(r *AnnoReconciler) {
+
+				span := mocks.NewMockSpan(ctrl)
+				span.EXPECT().End(gomock.Any()).Times(2)
+				r.Tracer = mocks.NewMockTracer(ctrl)
+				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), span).Times(2)
+
+				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, mapper.ResultExists, nil).Times(1)
+				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
+				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultContinue, nil).Times(1)
+				r.Mapper.(*mocks.MockMapper).EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(mapper.ResultFinalizerRemoved, nil).Times(1)
+			},
+		},
+		{
+			Name:     "Finalizer Error",
+			Result:   reconcile.Result{Requeue: false, RequeueAfter: 0},
+			HasError: true,
+			SetMocks: func(r *AnnoReconciler) {
+				span := mocks.NewMockSpan(ctrl)
+				span.EXPECT().End(gomock.Any()).Times(1)
+
+				fspan := mocks.NewMockSpan(ctrl)
+				fspan.EXPECT().RecordError(gomock.Any()).Times(1)
+				fspan.EXPECT().SetStatus(gomock.Any(), gomock.Any()).Times(1)
+				fspan.EXPECT().End(gomock.Any()).Return().Times(1)
+
+				r.Tracer = mocks.NewMockTracer(ctrl)
+				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), span).Times(1)
+				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), fspan).Times(1)
+				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).
+					Return(&mapper.LoopState{NamespacedName: types.NamespacedName{Namespace: "ns", Name: ingressName}}, mapper.ResultExists, nil).Times(1)
+				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultError, ferr).Times(1)
+				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
+			},
+		},
+		// TODO: cover the rest of states
+	}
+
+	// act
+	// assert
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			m := fakeMapper(ctrl)
+			test.SetMocks(m)
+			result, err := m.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "exists", Name: "ing"}})
+			assert.Equal(t, test.Result, result)
+			assert.Equal(t, err != nil, test.HasError)
+		})
+	}
+}
 
 func TestHandleFinalizer(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -234,8 +263,8 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 	c := mocks.NewMockClient(ctrl)
 	r := mocks.NewMockGslbResolver(ctrl)
 	p := mocks.NewMockProvider(ctrl)
-	tr := mocks.NewMockTracer(ctrl)
-	trsp := mocks.NewMockSpan(ctrl)
+	defaultTracer := mocks.NewMockTracer(ctrl)
+	defaultTracerSpan := mocks.NewMockSpan(ctrl)
 	m := mocks.NewMockMapper(ctrl)
 
 	config := &depresolver.Config{
@@ -248,12 +277,13 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 		DNSProvider:      p,
 		Config:           config,
 		Mapper:           m,
-		Tracer:           tr,
+		Tracer:           defaultTracer,
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              logging.Logger(),
 		Metrics:          metrics.Metrics(),
 	}
-	trsp.EXPECT().End(gomock.Any()).Return().AnyTimes()
-	tr.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), trsp).AnyTimes()
+	// we want to provide default tracer and span
+	defaultTracerSpan.EXPECT().End(gomock.Any()).Return().AnyTimes()
+	defaultTracer.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), defaultTracerSpan).AnyTimes()
 	return reconciler
 }
