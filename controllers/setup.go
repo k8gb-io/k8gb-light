@@ -45,10 +45,10 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			if err != nil {
 				return nil
 			}
-			rs2, result, _ := r.IngressMapper.Get(rs1.NamespacedName)
+			rs2, result, _ := r.Mapper.Get(rs1.NamespacedName)
 			switch result {
 			case reconciliation.MapperResultExists:
-				if !r.IngressMapper.Equal(rs1, rs2) {
+				if !r.Mapper.Equal(rs1, rs2) {
 					return []reconcile.Request{{NamespacedName: rs1.NamespacedName}}
 				}
 			default:

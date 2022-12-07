@@ -132,9 +132,9 @@ func TestReconcileRequest(t *testing.T) {
 //				//trsp := mocks.NewMockSpan().EXPECT()trsp.EXPECT().End(gomock.Any()).Return().AnyTimes()
 //				//tr.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), trsp).AnyTimes()
 //				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Times(2)
-//				r.IngressMapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, reconciliation.MapperResultExists, nil).Times(1)
+//				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, reconciliation.MapperResultExists, nil).Times(1)
 //				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
-//				r.IngressMapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerInstalled, nil).Times(1)
+//				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(reconciliation.MapperFinalizerInstalled, nil).Times(1)
 //			},
 //		},
 //		{
@@ -211,7 +211,7 @@ func TestHandleFinalizer(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			r := fakeMapper(ctrl)
-			test.SetMocks(r.IngressMapper.(*mocks.MockMapper))
+			test.SetMocks(r.Mapper.(*mocks.MockMapper))
 			result, err := r.handleFinalizer(nil)
 			assert.Equal(t, test.ExpectedResult, result)
 			if result == reconciliation.MapperResultError {
@@ -226,7 +226,7 @@ func TestHandleFinalizer(t *testing.T) {
 // if you want to mock client use fakeClient
 func fakeClient(ctrl *gomock.Controller) *AnnoReconciler {
 	r := fakeMapper(ctrl)
-	r.IngressMapper = reconciliation.NewIngressMapper(r.Client)
+	r.Mapper = reconciliation.NewIngressMapper(r.Client)
 	return r
 }
 
@@ -248,7 +248,7 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 		DepResolver:      r,
 		DNSProvider:      p,
 		Config:           config,
-		IngressMapper:    m,
+		Mapper:           m,
 		Tracer:           tr,
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              logging.Logger(),

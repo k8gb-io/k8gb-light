@@ -60,7 +60,7 @@ type AnnoReconciler struct {
 	DepResolver      depresolver.GslbResolver
 	DNSProvider      dns.Provider
 	Tracer           trace.Tracer
-	IngressMapper    reconciliation.Mapper
+	Mapper           reconciliation.Mapper
 	ReconcilerResult *utils.ReconcileResultHandler
 	Log              *zerolog.Logger
 	Metrics          *metrics.PrometheusMetrics
@@ -75,7 +75,7 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return r.ReconcilerResult.Requeue()
 	}
 
-	rs, rr, err := r.IngressMapper.Get(req.NamespacedName)
+	rs, rr, err := r.Mapper.Get(req.NamespacedName)
 	switch rr {
 	case reconciliation.MapperResultNotFound, reconciliation.MapperResultExistsButNotAnnotationFound:
 		r.Log.Info().
@@ -168,13 +168,13 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func (r *AnnoReconciler) handleFinalizer(rs *reconciliation.LoopState) (reconciliation.MapperResult, error) {
 
 	// Inject finalizer if doesn't exists
-	result, err := r.IngressMapper.TryInjectFinalizer(rs)
+	result, err := r.Mapper.TryInjectFinalizer(rs)
 	if result.IsIn(reconciliation.MapperFinalizerInstalled, reconciliation.MapperResultError) {
 		return result, err
 	}
 
 	// Try remove if isMarkedToBeDeleted
-	result, err = r.IngressMapper.TryRemoveFinalizer(rs, r.DNSProvider.Finalize)
+	result, err = r.Mapper.TryRemoveFinalizer(rs, r.DNSProvider.Finalize)
 	if result.IsIn(reconciliation.MapperFinalizerRemoved, reconciliation.MapperResultError) {
 		return result, err
 	}

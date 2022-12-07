@@ -82,7 +82,7 @@ func UTestFailoverSwitch(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			m.IngressMapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).
+			m.Mapper.(*mocks.MockMapper).EXPECT().Get(test.req.NamespacedName).
 				Return(test.mapperResult.s, test.mapperResult.r, test.mapperResult.err).AnyTimes()
 			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s).Times(1)
 			m.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(s2).Times(1)

@@ -141,7 +141,7 @@ func run() error {
 		Client:           mgr.GetClient(),
 		DepResolver:      resolver,
 		Scheme:           mgr.GetScheme(),
-		IngressMapper:    reconciliation.NewIngressMapper(mgr.GetClient()),
+		Mapper:           reconciliation.NewIngressMapper(mgr.GetClient()),
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              log,
 		Metrics:          metrics.Metrics(),

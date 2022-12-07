@@ -52,7 +52,7 @@ func (r *AnnoReconciler) updateStatus(rs *reconciliation.LoopState, ep *external
 
 	r.Metrics.UpdateEndpointStatus(ep)
 
-	return r.IngressMapper.UpdateStatus(rs)
+	return r.Mapper.UpdateStatus(rs)
 }
 
 func (r *AnnoReconciler) getServiceHealthStatus(rs *reconciliation.LoopState) (map[string]reconciliation.HealthStatus, error) {
