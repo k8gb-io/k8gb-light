@@ -26,7 +26,7 @@ import (
 	reflect "reflect"
 	time "time"
 
-	reconciliation "cloud.example.com/annotation-operator/controllers/mapper"
+	mapper "cloud.example.com/annotation-operator/controllers/mapper"
 	assistant "cloud.example.com/annotation-operator/controllers/providers/assistant"
 	gomock "github.com/golang/mock/gomock"
 	endpoint "sigs.k8s.io/external-dns/endpoint"
@@ -85,7 +85,7 @@ func (mr *MockAssistantMockRecorder) GetExternalTargets(host, extClusterNsNames 
 }
 
 // IngressExposedIPs mocks base method.
-func (m *MockAssistant) IngressExposedIPs(arg0 *reconciliation.LoopState) ([]string, error) {
+func (m *MockAssistant) IngressExposedIPs(arg0 *mapper.LoopState) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IngressExposedIPs", arg0)
 	ret0, _ := ret[0].([]string)

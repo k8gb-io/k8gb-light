@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"strings"
 
+	"cloud.example.com/annotation-operator/controllers/providers/metrics"
+
 	"cloud.example.com/annotation-operator/controllers/mapper"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
@@ -54,7 +56,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 		}
 
 		isPrimary := rs.Spec.PrimaryGeoTag == r.Config.ClusterGeoTag
-		isHealthy := health == mapper.Healthy
+		isHealthy := health == metrics.Healthy
 
 		if isHealthy {
 			finalTargets.Append(r.Config.ClusterGeoTag, localTargets)
@@ -87,7 +89,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 							Str("gslb", rs.NamespacedName.Name).
 							Str("cluster", rs.Spec.PrimaryGeoTag).
 							Strs("targets", finalTargets.GetIPs()).
-							Str("workload", mapper.Unhealthy.String()).
+							Str("workload", metrics.Unhealthy.String()).
 							Msg("Executing failover strategy for primary cluster")
 					}
 				} else {
@@ -99,7 +101,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 						Str("gslb", rs.NamespacedName.Name).
 						Str("cluster", rs.Spec.PrimaryGeoTag).
 						Strs("targets", finalTargets.GetIPs()).
-						Str("workload", mapper.Healthy.String()).
+						Str("workload", metrics.Healthy.String()).
 						Msg("Executing failover strategy for secondary cluster")
 				}
 			}
@@ -171,7 +173,7 @@ func (r *AnnoReconciler) getLabels(rs *mapper.LoopState, targets assistant.Targe
 func (r *AnnoReconciler) updateRuntimeStatus(
 	rs *mapper.LoopState,
 	isPrimary bool,
-	isHealthy mapper.HealthStatus,
+	isHealthy metrics.HealthStatus,
 	finalTargets []string,
 ) {
 	switch rs.Spec.Type {

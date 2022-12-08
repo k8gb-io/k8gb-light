@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"cloud.example.com/annotation-operator/controllers/providers/metrics"
+
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 
 	netv1 "k8s.io/api/networking/v1"
@@ -54,7 +56,7 @@ func (s *Spec) String() string {
 // Status defines the observed state of Gslb
 type Status struct {
 	// Associated Service status
-	ServiceHealth map[string]HealthStatus `json:"serviceHealth"`
+	ServiceHealth map[string]metrics.HealthStatus `json:"serviceHealth"`
 	// Current Healthy DNS record structure
 	HealthyRecords map[string][]string `json:"healthyRecords"`
 	// Cluster Geo Tag
@@ -86,7 +88,7 @@ func NewLoopState(ingress *netv1.Ingress) (m *LoopState, err error) {
 		return m, fmt.Errorf("nil *ingress")
 	}
 	m.Status = Status{
-		ServiceHealth:  map[string]HealthStatus{},
+		ServiceHealth:  map[string]metrics.HealthStatus{},
 		HealthyRecords: map[string][]string{},
 		GeoTag:         "",
 		Hosts:          "",

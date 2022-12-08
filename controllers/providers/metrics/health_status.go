@@ -1,4 +1,4 @@
-package mapper
+package metrics
 
 /*
 Copyright 2022 The k8gb Contributors.
