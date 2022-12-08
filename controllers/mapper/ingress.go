@@ -56,6 +56,10 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 		// object was deleted
 		return nil
 	}
+	// don't do update if nothing has changed
+	if s.Ingress.Annotations[AnnotationStatus] == state.Status.String() {
+		return nil
+	}
 	// update the planned object
 	s.Ingress.Annotations[AnnotationStatus] = state.Status.String()
 	return i.c.Update(context.TODO(), s.Ingress)
