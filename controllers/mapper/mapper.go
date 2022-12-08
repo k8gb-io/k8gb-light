@@ -24,6 +24,7 @@ import "k8s.io/apimachinery/pkg/types"
 type Mapper interface {
 	UpdateStatus(*LoopState) error
 	Get(types.NamespacedName) (*LoopState, Result, error)
+	GetHealthStatus(*LoopState) (map[string]HealthStatus, error)
 	Equal(*LoopState, *LoopState) bool
 	TryInjectFinalizer(*LoopState) (Result, error)
 	TryRemoveFinalizer(*LoopState, func(*LoopState) error) (Result, error)

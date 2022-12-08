@@ -24,15 +24,11 @@ import (
 	"strings"
 
 	"cloud.example.com/annotation-operator/controllers/mapper"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 func (r *AnnoReconciler) updateStatus(rs *mapper.LoopState, ep *externaldns.DNSEndpoint) (err error) {
-	rs.Status.ServiceHealth, err = r.getServiceHealthStatus(rs)
+	rs.Status.ServiceHealth, err = r.Mapper.GetHealthStatus(rs)
 	if err != nil {
 		return err
 	}
@@ -52,57 +48,6 @@ func (r *AnnoReconciler) updateStatus(rs *mapper.LoopState, ep *externaldns.DNSE
 	r.Metrics.UpdateEndpointStatus(ep)
 
 	return r.Mapper.UpdateStatus(rs)
-}
-
-func (r *AnnoReconciler) getServiceHealthStatus(rs *mapper.LoopState) (map[string]mapper.HealthStatus, error) {
-	serviceHealth := make(map[string]mapper.HealthStatus)
-	for _, rule := range rs.Ingress.Spec.Rules {
-		for _, path := range rule.HTTP.Paths {
-			if path.Backend.Service == nil || path.Backend.Service.Name == "" {
-				r.Log.Warn().
-					Str("gslb", rs.NamespacedName.Name).
-					Interface("service", path.Backend.Service).
-					Msg("Malformed service definition")
-				serviceHealth[rule.Host] = mapper.NotFound
-				continue
-			}
-			service := &corev1.Service{}
-			finder := client.ObjectKey{
-				Namespace: rs.NamespacedName.Namespace,
-				Name:      path.Backend.Service.Name,
-			}
-			err := r.Get(context.TODO(), finder, service)
-			if err != nil {
-				if errors.IsNotFound(err) {
-					serviceHealth[rule.Host] = mapper.NotFound
-					continue
-				}
-				return serviceHealth, err
-			}
-
-			endpoints := &corev1.Endpoints{}
-
-			nn := types.NamespacedName{
-				Name:      path.Backend.Service.Name,
-				Namespace: rs.NamespacedName.Namespace,
-			}
-
-			err = r.Get(context.TODO(), nn, endpoints)
-			if err != nil {
-				return serviceHealth, err
-			}
-
-			serviceHealth[rule.Host] = mapper.Unhealthy
-			if len(endpoints.Subsets) > 0 {
-				for _, subset := range endpoints.Subsets {
-					if len(subset.Addresses) > 0 {
-						serviceHealth[rule.Host] = mapper.Healthy
-					}
-				}
-			}
-		}
-	}
-	return serviceHealth, nil
 }
 
 func (r *AnnoReconciler) getHealthyRecords(rs *mapper.LoopState) (map[string][]string, error) {

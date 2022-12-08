@@ -36,7 +36,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 	var gslbHosts []*externaldns.Endpoint
 	var ttl = externaldns.TTL(rs.Spec.DNSTtlSeconds)
 
-	serviceHealth, err := r.getServiceHealthStatus(rs)
+	serviceHealth, err := r.Mapper.GetHealthStatus(rs)
 	if err != nil {
 		return nil, err
 	}
