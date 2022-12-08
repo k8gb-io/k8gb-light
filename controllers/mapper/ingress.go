@@ -33,29 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// todo: rename package to reconciliation
-
-type Result int
-
-const (
-	ResultExists Result = 1 << iota
-	ResultNotFound
-	ResultError
-	ResultExistsButNotAnnotationFound
-	ResultFinalizerRemoved
-	ResultFinalizerInstalled
-	ResultContinue
-)
-
-func (r Result) IsIn(m ...Result) bool {
-	for _, v := range m {
-		if v == r {
-			return true
-		}
-	}
-	return false
-}
-
 // IngressMapper provides API for working with ingress
 type IngressMapper struct {
 	c client.Client
