@@ -91,7 +91,7 @@ func TestReconcileRequest(t *testing.T) {
 		},
 	}
 
-	cl := fakeClient(ctrl)
+	cl := fakeClient(ctrl, depresolver.Config{})
 	cl.Config.ReconcileRequeueSeconds = int(reconcileRequeue.Seconds())
 	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "notFound", Name: ingressName}, gomock.Any()).
 		Return(errors.NewNotFound(schema.GroupResource{}, ingressName)).AnyTimes()
@@ -252,9 +252,9 @@ func TestHandleFinalizer(t *testing.T) {
 }
 
 // if you want to mock client use fakeClient
-func fakeClient(ctrl *gomock.Controller) *AnnoReconciler {
+func fakeClient(ctrl *gomock.Controller, config depresolver.Config) *AnnoReconciler {
 	r := fakeMapper(ctrl)
-	r.Mapper = mapper.NewIngressMapper(r.Client)
+	r.Mapper = mapper.NewIngressMapper(r.Client, &config)
 	return r
 }
 

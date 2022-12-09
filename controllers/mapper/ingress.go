@@ -23,6 +23,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"cloud.example.com/annotation-operator/controllers/depresolver"
+
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	corev1 "k8s.io/api/core/v1"
 
@@ -35,12 +37,14 @@ import (
 
 // IngressMapper provides API for working with ingress
 type IngressMapper struct {
-	c client.Client
+	c      client.Client
+	config *depresolver.Config
 }
 
-func NewIngressMapper(c client.Client) *IngressMapper {
+func NewIngressMapper(c client.Client, config *depresolver.Config) *IngressMapper {
 	return &IngressMapper{
-		c: c,
+		c:      c,
+		config: config,
 	}
 }
 
@@ -167,6 +171,23 @@ func (i *IngressMapper) GetHealthStatus(rs *LoopState) (map[string]metrics.Healt
 		}
 	}
 	return serviceHealth, nil
+}
+
+func (i *IngressMapper) GetExposedIPs(rs *LoopState) ([]string, error) {
+	var exposed []string
+	for _, ing := range rs.Ingress.Status.LoadBalancer.Ingress {
+		if len(ing.IP) > 0 {
+			exposed = append(exposed, ing.IP)
+		}
+		if len(ing.Hostname) > 0 {
+			ips, err := utils.Dig(ing.Hostname, i.config.EdgeDNSServers...)
+			if err != nil {
+				return nil, err
+			}
+			exposed = append(exposed, ips...)
+		}
+	}
+	return exposed, nil
 }
 
 func (i *IngressMapper) getConverterResult(err error, ing *netv1.Ingress) (Result, error) {
