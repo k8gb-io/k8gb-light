@@ -97,7 +97,7 @@ mocks:
 	mockgen -package=mocks -destination=controllers/mocks/infoblox-connection_mock.go github.com/infobloxopen/infoblox-go-client IBConnector
 	mockgen -package=mocks -destination=controllers/mocks/tracer_mock.go go.opentelemetry.io/otel/trace Tracer
 	mockgen -package=mocks -destination=controllers/mocks/span_mock.go go.opentelemetry.io/otel/trace Span
-	#mockgen -package=mocks -destination=controllers/mocks/metrics_mock.go -source=controllers/reconciliation/mapper.go Mapper
+	mockgen -package=mocks -destination=controllers/mocks/metrics_mock.go -source=controllers/providers/metrics/provider.go Provider
 	$(MAKEIN) license
 
 watch:

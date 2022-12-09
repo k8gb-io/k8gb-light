@@ -27,37 +27,17 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/apimachinery/pkg/types"
-
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 	"cloud.example.com/annotation-operator/controllers/utils"
-
-	externaldns "sigs.k8s.io/external-dns/endpoint"
-
 	"github.com/prometheus/client_golang/prometheus"
+	"k8s.io/apimachinery/pkg/types"
 	crm "sigs.k8s.io/controller-runtime/pkg/metrics"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 const (
 	primary   = "primary"
 	secondary = "secondary"
-)
-
-const (
-	K8gbGslbErrorsTotal               = "k8gb_gslb_errors_total"
-	K8gbGslbHealthyRecords            = "k8gb_gslb_healthy_records"
-	K8gbGslbReconciliationLoopsTotal  = "k8gb_gslb_reconciliation_loops_total"
-	K8gbGslbServiceStatusNum          = "k8gb_gslb_service_status_num"
-	K8gbGslbStatusCountForFailover    = "k8gb_gslb_status_count_for_failover"
-	K8gbGslbStatusCountForRoundrobin  = "k8gb_gslb_status_count_for_roundrobin"
-	K8gbGslbStatusCountForGeoIP       = "k8gb_gslb_status_count_for_geoip"
-	K8gbInfobloxHeartbeatsTotal       = "k8gb_infoblox_heartbeats_total"
-	K8gbInfobloxHeartbeatErrorsTotal  = "k8gb_infoblox_heartbeat_errors_total"
-	K8gbInfobloxRequestDuration       = "k8gb_infoblox_request_duration"
-	K8gbInfobloxZoneUpdatesTotal      = "k8gb_infoblox_zone_updates_total"
-	K8gbInfobloxZoneUpdateErrorsTotal = "k8gb_infoblox_zone_update_errors_total"
-	K8gbEndpointStatusNum             = "k8gb_endpoint_status_num"
-	K8gbRuntimeInfo                   = "k8gb_runtime_info"
 )
 
 // collectors contains list of metrics.

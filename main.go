@@ -129,8 +129,8 @@ func run() error {
 
 	log.Info().Msg("Starting metrics")
 	metrics.Init(config)
-	defer metrics.Metrics().Unregister()
-	err = metrics.Metrics().Register()
+	defer metrics.Prometheus().Unregister()
+	err = metrics.Prometheus().Register()
 	if err != nil {
 		log.Err(err).Msg("Unable to register metrics")
 		return err
@@ -144,7 +144,7 @@ func run() error {
 		Mapper:           mapper.NewMapper(mgr.GetClient(), config),
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              log,
-		Metrics:          metrics.Metrics(),
+		Metrics:          metrics.Prometheus(),
 	}
 
 	log.Info().Msg("Resolving DNS provider")
@@ -163,7 +163,7 @@ func run() error {
 		log.Err(err).Msg("Unable to create Gslb controller")
 		return err
 	}
-	metrics.Metrics().SetRuntimeInfo(version, commit)
+	metrics.Prometheus().SetRuntimeInfo(version, commit)
 
 	// tracing
 	cfg := tracing.Settings{

@@ -51,7 +51,7 @@ var (
 func TestMetricsSingletonIsNotNil(t *testing.T) {
 	// arrange
 	// act
-	m := Metrics()
+	m := Prometheus()
 	// assert
 	assert.NotNil(t, m)
 	assert.Equal(t, DefaultMetricsNamespace, m.config.K8gbNamespace)
@@ -64,7 +64,7 @@ func TestMetricsSingletonInitTwice(t *testing.T) {
 	// act
 	Init(c1)
 	Init(c2)
-	m := Metrics()
+	m := Prometheus()
 	// assert
 	assert.Equal(t, c1.K8gbNamespace, m.config.K8gbNamespace)
 }
@@ -90,7 +90,7 @@ func TestPrometheusRegistry(t *testing.T) {
 
 func TestMetricsRegister(t *testing.T) {
 	// arrange
-	m := Metrics()
+	m := Prometheus()
 	// act
 	err := m.Register()
 	m.Unregister()

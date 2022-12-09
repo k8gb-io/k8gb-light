@@ -39,7 +39,7 @@ type InfobloxProvider struct {
 	config    depresolver.Config
 	client    InfobloxClient
 	log       *zerolog.Logger
-	metrics   *metrics.PrometheusMetrics
+	metrics   metrics.Metrics
 }
 
 func NewInfobloxDNS(
@@ -47,7 +47,7 @@ func NewInfobloxDNS(
 	assistant assistant.Assistant,
 	client InfobloxClient,
 	log *zerolog.Logger,
-	metrics *metrics.PrometheusMetrics,
+	metrics metrics.Metrics,
 ) *InfobloxProvider {
 	return &InfobloxProvider{
 		client:    client,

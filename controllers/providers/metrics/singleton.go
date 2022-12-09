@@ -34,8 +34,8 @@ var (
 	metrics = nop()
 )
 
-// Metrics public static metrics, providing instance of initialised metrics
-func Metrics() *PrometheusMetrics {
+// Prometheus public static metrics, providing instance of initialised metrics
+func Prometheus() *PrometheusMetrics {
 	return &metrics
 }
 

@@ -30,8 +30,6 @@ import (
 	"cloud.example.com/annotation-operator/controllers/logging"
 	"cloud.example.com/annotation-operator/controllers/mapper"
 
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-
 	"github.com/stretchr/testify/assert"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
@@ -266,6 +264,7 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 	defaultTracer := mocks.NewMockTracer(ctrl)
 	defaultTracerSpan := mocks.NewMockSpan(ctrl)
 	m := mocks.NewMockMapper(ctrl)
+	defaultMetrics := mocks.NewMockMetrics(ctrl)
 
 	config := &depresolver.Config{
 		ReconcileRequeueSeconds: 30,
@@ -280,10 +279,13 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 		Tracer:           defaultTracer,
 		ReconcilerResult: utils.NewReconcileResultHandler(config.ReconcileRequeueSeconds),
 		Log:              logging.Logger(),
-		Metrics:          metrics.Metrics(),
+		Metrics:          defaultMetrics,
 	}
-	// we want to provide default tracer and span
+	// providing default tracer and span
 	defaultTracerSpan.EXPECT().End(gomock.Any()).Return().AnyTimes()
 	defaultTracer.EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), defaultTracerSpan).AnyTimes()
+
+	// providing default metrics
+	defaultMetrics.EXPECT().IncrementError(gomock.Any()).AnyTimes()
 	return reconciler
 }

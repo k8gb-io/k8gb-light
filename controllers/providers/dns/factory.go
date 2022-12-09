@@ -35,14 +35,14 @@ type ProviderFactory struct {
 	config  depresolver.Config
 	client  client.Client
 	log     *zerolog.Logger
-	metrics *metrics.PrometheusMetrics
+	metrics metrics.Metrics
 }
 
 func NewDNSProviderFactory(
 	client client.Client,
 	config depresolver.Config,
 	log *zerolog.Logger,
-	metrics *metrics.PrometheusMetrics,
+	metrics metrics.Metrics,
 ) (f *ProviderFactory, err error) {
 	if client == nil {
 		err = fmt.Errorf("nil client")

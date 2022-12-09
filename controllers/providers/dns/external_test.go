@@ -86,7 +86,7 @@ var a = struct {
 }
 
 var log = logging.Logger()
-var mx = metrics.Metrics()
+var mx = metrics.Prometheus()
 
 var expectedDNSEndpoint = &externaldns.DNSEndpoint{
 	ObjectMeta: metav1.ObjectMeta{
