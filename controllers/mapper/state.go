@@ -76,27 +76,32 @@ func (s Status) String() string {
 // LoopState wraps information about ingress. Ensures that Ingress entity can't be nil
 // TODO: don't allow user to access Ingress directly. Minimize number of operations over ingress or spec, Consider to use Getters and Setters instead
 type LoopState struct {
+	Mapper
 	Ingress        *netv1.Ingress
 	Spec           Spec
 	NamespacedName types.NamespacedName
 	Status         Status
 }
 
-func NewLoopState(ingress *netv1.Ingress) (m *LoopState, err error) {
-	m = new(LoopState)
+func fromIngress(ingress *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
+	rs = &LoopState{Mapper: m}
 	if ingress == nil {
-		return m, fmt.Errorf("nil *ingress")
+		return rs, fmt.Errorf("nil *ingress")
 	}
-	m.Status = Status{
+	rs.Status = Status{
 		ServiceHealth:  map[string]metrics.HealthStatus{},
 		HealthyRecords: map[string][]string{},
 		GeoTag:         "",
 		Hosts:          "",
 	}
-	m.Ingress = ingress
-	m.Spec, err = m.asSpec(ingress.GetAnnotations())
-	m.NamespacedName = types.NamespacedName{Namespace: ingress.Namespace, Name: ingress.Name}
-	return m, err
+	rs.Ingress = ingress
+	rs.Spec, err = rs.asSpec(ingress.GetAnnotations())
+	rs.NamespacedName = types.NamespacedName{Namespace: ingress.Namespace, Name: ingress.Name}
+	return rs, err
+}
+
+func fromGatewayAPI(gw *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
+	panic("not implemented")
 }
 
 func (rs *LoopState) asSpec(annotations map[string]string) (result Spec, err error) {

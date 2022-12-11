@@ -29,7 +29,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"cloud.example.com/annotation-operator/controllers/utils"
-	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,7 +51,7 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 	// check if object has not been deleted
 	var r Result
 	var s *LoopState
-	s, r, err = i.Get(state.NamespacedName)
+	s, r, err = NewCommonProvider(i.c, i.config).Get(state.NamespacedName)
 	switch r {
 	case ResultError:
 		return err
@@ -67,20 +66,6 @@ func (i *IngressMapper) UpdateStatus(state *LoopState) (err error) {
 	// update the planned object
 	s.Ingress.Annotations[AnnotationStatus] = state.Status.String()
 	return i.c.Update(context.TODO(), s.Ingress)
-}
-
-func (i *IngressMapper) Get(selector types.NamespacedName) (rs *LoopState, result Result, err error) {
-	var ing = &netv1.Ingress{}
-	err = i.c.Get(context.TODO(), selector, ing)
-	result, err = i.getConverterResult(err, ing)
-	if result == ResultError {
-		return nil, result, err
-	}
-	rs, err = NewLoopState(ing)
-	if err != nil {
-		result = ResultError
-	}
-	return rs, result, err
 }
 
 // Equal compares given ingress annotations and Ingres.Spec. If any of ingresses doesn't exist, returns false
@@ -188,16 +173,4 @@ func (i *IngressMapper) GetExposedIPs(rs *LoopState) ([]string, error) {
 		}
 	}
 	return exposed, nil
-}
-
-func (i *IngressMapper) getConverterResult(err error, ing *netv1.Ingress) (Result, error) {
-	if err != nil && errors.IsNotFound(err) {
-		return ResultNotFound, nil
-	} else if err != nil {
-		return ResultError, err
-	}
-	if _, found := ing.GetAnnotations()[AnnotationStrategy]; !found {
-		return ResultExistsButNotAnnotationFound, nil
-	}
-	return ResultExists, nil
 }
