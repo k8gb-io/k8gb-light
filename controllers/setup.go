@@ -40,14 +40,14 @@ func (r *AnnoReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	ingressHandler := handler.EnqueueRequestsFromMapFunc(
 		func(a client.Object) []reconcile.Request {
-			rs1, err := mapper.NewLoopState(a.(*netv1.Ingress))
+			rs1, err := r.Mapper.FromIngress(a.(*netv1.Ingress))
 			if err != nil {
 				return nil
 			}
 			rs2, result, _ := r.Mapper.Get(rs1.NamespacedName)
 			switch result {
 			case mapper.ResultExists:
-				if !r.Mapper.Equal(rs1, rs2) {
+				if !rs1.Equal(rs2) {
 					return []reconcile.Request{{NamespacedName: rs1.NamespacedName}}
 				}
 			default:

@@ -55,13 +55,12 @@ func (m *MockProviderMapper) EXPECT() *MockProviderMapperMockRecorder {
 }
 
 // FromGatewayAPI mocks base method.
-func (m *MockProviderMapper) FromGatewayAPI() (*mapper.LoopState, mapper.Result, error) {
+func (m *MockProviderMapper) FromGatewayAPI() (*mapper.LoopState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromGatewayAPI")
 	ret0, _ := ret[0].(*mapper.LoopState)
-	ret1, _ := ret[1].(mapper.Result)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromGatewayAPI indicates an expected call of FromGatewayAPI.
@@ -71,13 +70,12 @@ func (mr *MockProviderMapperMockRecorder) FromGatewayAPI() *gomock.Call {
 }
 
 // FromIngress mocks base method.
-func (m *MockProviderMapper) FromIngress(arg0 v1.Ingress) (*mapper.LoopState, mapper.Result, error) {
+func (m *MockProviderMapper) FromIngress(arg0 *v1.Ingress) (*mapper.LoopState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FromIngress", arg0)
 	ret0, _ := ret[0].(*mapper.LoopState)
-	ret1, _ := ret[1].(mapper.Result)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FromIngress indicates an expected call of FromIngress.

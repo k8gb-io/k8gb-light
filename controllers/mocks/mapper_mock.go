@@ -28,7 +28,6 @@ import (
 	mapper "cloud.example.com/annotation-operator/controllers/mapper"
 	metrics "cloud.example.com/annotation-operator/controllers/providers/metrics"
 	gomock "github.com/golang/mock/gomock"
-	types "k8s.io/apimachinery/pkg/types"
 )
 
 // MockMapper is a mock of Mapper interface.
@@ -55,90 +54,101 @@ func (m *MockMapper) EXPECT() *MockMapperMockRecorder {
 }
 
 // Equal mocks base method.
-func (m *MockMapper) Equal(arg0, arg1 *mapper.LoopState) bool {
+func (m *MockMapper) Equal(arg0 *mapper.LoopState) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Equal", arg0, arg1)
+	ret := m.ctrl.Call(m, "Equal", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // Equal indicates an expected call of Equal.
-func (mr *MockMapperMockRecorder) Equal(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockMapperMockRecorder) Equal(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockMapper)(nil).Equal), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Equal", reflect.TypeOf((*MockMapper)(nil).Equal), arg0)
 }
 
-// Get mocks base method.
-func (m *MockMapper) Get(arg0 types.NamespacedName) (*mapper.LoopState, mapper.Result, error) {
+// GetExposedIPs mocks base method.
+func (m *MockMapper) GetExposedIPs() ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0)
-	ret0, _ := ret[0].(*mapper.LoopState)
-	ret1, _ := ret[1].(mapper.Result)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret := m.ctrl.Call(m, "GetExposedIPs")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockMapperMockRecorder) Get(arg0 interface{}) *gomock.Call {
+// GetExposedIPs indicates an expected call of GetExposedIPs.
+func (mr *MockMapperMockRecorder) GetExposedIPs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockMapper)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExposedIPs", reflect.TypeOf((*MockMapper)(nil).GetExposedIPs))
 }
 
 // GetHealthStatus mocks base method.
-func (m *MockMapper) GetHealthStatus(arg0 *mapper.LoopState) (map[string]metrics.HealthStatus, error) {
+func (m *MockMapper) GetHealthStatus() (map[string]metrics.HealthStatus, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHealthStatus", arg0)
+	ret := m.ctrl.Call(m, "GetHealthStatus")
 	ret0, _ := ret[0].(map[string]metrics.HealthStatus)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetHealthStatus indicates an expected call of GetHealthStatus.
-func (mr *MockMapperMockRecorder) GetHealthStatus(arg0 interface{}) *gomock.Call {
+func (mr *MockMapperMockRecorder) GetHealthStatus() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthStatus", reflect.TypeOf((*MockMapper)(nil).GetHealthStatus), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthStatus", reflect.TypeOf((*MockMapper)(nil).GetHealthStatus))
+}
+
+// SetReference mocks base method.
+func (m *MockMapper) SetReference(arg0 *mapper.LoopState) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetReference", arg0)
+}
+
+// SetReference indicates an expected call of SetReference.
+func (mr *MockMapperMockRecorder) SetReference(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetReference", reflect.TypeOf((*MockMapper)(nil).SetReference), arg0)
 }
 
 // TryInjectFinalizer mocks base method.
-func (m *MockMapper) TryInjectFinalizer(arg0 *mapper.LoopState) (mapper.Result, error) {
+func (m *MockMapper) TryInjectFinalizer() (mapper.Result, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TryInjectFinalizer", arg0)
+	ret := m.ctrl.Call(m, "TryInjectFinalizer")
 	ret0, _ := ret[0].(mapper.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TryInjectFinalizer indicates an expected call of TryInjectFinalizer.
-func (mr *MockMapperMockRecorder) TryInjectFinalizer(arg0 interface{}) *gomock.Call {
+func (mr *MockMapperMockRecorder) TryInjectFinalizer() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryInjectFinalizer", reflect.TypeOf((*MockMapper)(nil).TryInjectFinalizer), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryInjectFinalizer", reflect.TypeOf((*MockMapper)(nil).TryInjectFinalizer))
 }
 
 // TryRemoveFinalizer mocks base method.
-func (m *MockMapper) TryRemoveFinalizer(arg0 *mapper.LoopState, arg1 func(*mapper.LoopState) error) (mapper.Result, error) {
+func (m *MockMapper) TryRemoveFinalizer(arg0 func(*mapper.LoopState) error) (mapper.Result, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TryRemoveFinalizer", arg0, arg1)
+	ret := m.ctrl.Call(m, "TryRemoveFinalizer", arg0)
 	ret0, _ := ret[0].(mapper.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TryRemoveFinalizer indicates an expected call of TryRemoveFinalizer.
-func (mr *MockMapperMockRecorder) TryRemoveFinalizer(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockMapperMockRecorder) TryRemoveFinalizer(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryRemoveFinalizer", reflect.TypeOf((*MockMapper)(nil).TryRemoveFinalizer), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryRemoveFinalizer", reflect.TypeOf((*MockMapper)(nil).TryRemoveFinalizer), arg0)
 }
 
 // UpdateStatus mocks base method.
-func (m *MockMapper) UpdateStatus(arg0 *mapper.LoopState) error {
+func (m *MockMapper) UpdateStatus() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus", arg0)
+	ret := m.ctrl.Call(m, "UpdateStatus")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockMapperMockRecorder) UpdateStatus(arg0 interface{}) *gomock.Call {
+func (mr *MockMapperMockRecorder) UpdateStatus() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockMapper)(nil).UpdateStatus), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockMapper)(nil).UpdateStatus))
 }

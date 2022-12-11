@@ -45,7 +45,7 @@ type AnnoReconciler struct {
 	DepResolver      depresolver.GslbResolver
 	DNSProvider      dns.Provider
 	Tracer           trace.Tracer
-	Mapper           mapper.Mapper
+	Mapper           mapper.ProviderMapper
 	ReconcilerResult *utils.ReconcileResultHandler
 	Log              *zerolog.Logger
 	Metrics          metrics.Metrics
@@ -153,13 +153,13 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 func (r *AnnoReconciler) handleFinalizer(rs *mapper.LoopState) (mapper.Result, error) {
 
 	// Inject finalizer if doesn't exists
-	result, err := r.Mapper.TryInjectFinalizer(rs)
+	result, err := rs.TryInjectFinalizer()
 	if result.IsIn(mapper.ResultFinalizerInstalled, mapper.ResultError) {
 		return result, err
 	}
 
 	// Try remove if isMarkedToBeDeleted
-	result, err = r.Mapper.TryRemoveFinalizer(rs, r.DNSProvider.Finalize)
+	result, err = rs.TryRemoveFinalizer(r.DNSProvider.Finalize)
 	if result.IsIn(mapper.ResultFinalizerRemoved, mapper.ResultError) {
 		return result, err
 	}
