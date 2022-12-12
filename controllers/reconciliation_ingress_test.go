@@ -34,7 +34,7 @@ import (
 	controllerruntime "sigs.k8s.io/controller-runtime"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/mocks"
+	mocks "cloud.example.com/annotation-operator/controllers/mocks"
 	"cloud.example.com/annotation-operator/controllers/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -116,9 +116,7 @@ func TestFinalizerInReconciliation(t *testing.T) {
 	// test
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	const (
-		ingressName = "ing"
-	)
+
 	var ferr = fmt.Errorf("finalizer err")
 
 	var tests = []struct {
@@ -138,10 +136,12 @@ func TestFinalizerInReconciliation(t *testing.T) {
 				r.Tracer = mocks.NewMockTracer(ctrl)
 				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), span).Times(2)
 
-				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).Return(nil, mapper.ResultExists, nil).Times(1)
+				m := mocks.NewMockMapper(ctrl)
+				m.EXPECT().TryInjectFinalizer().Return(mapper.ResultContinue, nil).Times(1)
+				m.EXPECT().TryRemoveFinalizer(gomock.Any()).Return(mapper.ResultFinalizerRemoved, nil).Times(1)
+
+				r.Mapper.(*mocks.MockProviderMapper).EXPECT().Get(gomock.Any()).Return(&mapper.LoopState{Mapper: m}, mapper.ResultExists, nil).Times(1)
 				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
-				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultContinue, nil).Times(1)
-				r.Mapper.(*mocks.MockMapper).EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(mapper.ResultFinalizerRemoved, nil).Times(1)
 			},
 		},
 		{
@@ -157,12 +157,13 @@ func TestFinalizerInReconciliation(t *testing.T) {
 				fspan.EXPECT().SetStatus(gomock.Any(), gomock.Any()).Times(1)
 				fspan.EXPECT().End(gomock.Any()).Return().Times(1)
 
+				m := mocks.NewMockMapper(ctrl)
+				m.EXPECT().TryInjectFinalizer().Return(mapper.ResultError, ferr).Times(1)
+
 				r.Tracer = mocks.NewMockTracer(ctrl)
 				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), span).Times(1)
 				r.Tracer.(*mocks.MockTracer).EXPECT().Start(gomock.Any(), gomock.Any()).Return(context.TODO(), fspan).Times(1)
-				r.Mapper.(*mocks.MockMapper).EXPECT().Get(gomock.Any()).
-					Return(&mapper.LoopState{NamespacedName: types.NamespacedName{Namespace: "ns", Name: ingressName}}, mapper.ResultExists, nil).Times(1)
-				r.Mapper.(*mocks.MockMapper).EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultError, ferr).Times(1)
+				r.Mapper.(*mocks.MockProviderMapper).EXPECT().Get(gomock.Any()).Return(&mapper.LoopState{Mapper: m}, mapper.ResultExists, nil).Times(1)
 				r.DNSProvider.(*mocks.MockProvider).EXPECT().RequireFinalizer().Return(true).Times(1)
 			},
 		},
@@ -196,38 +197,38 @@ func TestHandleFinalizer(t *testing.T) {
 			Name:           "Inject Finalizer",
 			ExpectedResult: mapper.ResultFinalizerInstalled,
 			SetMocks: func(c *mocks.MockMapper) {
-				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultFinalizerInstalled, nil).Times(1)
+				c.EXPECT().TryInjectFinalizer().Return(mapper.ResultFinalizerInstalled, nil).Times(1)
 			},
 		},
 		{
 			Name:           "Inject Finalizer Error",
 			ExpectedResult: mapper.ResultError,
 			SetMocks: func(c *mocks.MockMapper) {
-				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultError, ferr).Times(1)
+				c.EXPECT().TryInjectFinalizer().Return(mapper.ResultError, ferr).Times(1)
 			},
 		},
 		{
 			Name:           "Remove Finalizer",
 			ExpectedResult: mapper.ResultFinalizerRemoved,
 			SetMocks: func(c *mocks.MockMapper) {
-				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultContinue, nil).Times(1)
-				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(mapper.ResultFinalizerRemoved, nil).Times(1)
+				c.EXPECT().TryInjectFinalizer().Return(mapper.ResultContinue, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any()).Return(mapper.ResultFinalizerRemoved, nil).Times(1)
 			},
 		},
 		{
 			Name:           "Remove Finalizer Error",
 			ExpectedResult: mapper.ResultError,
 			SetMocks: func(c *mocks.MockMapper) {
-				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultContinue, nil).Times(1)
-				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(mapper.ResultError, ferr).Times(1)
+				c.EXPECT().TryInjectFinalizer().Return(mapper.ResultContinue, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any()).Return(mapper.ResultError, ferr).Times(1)
 			},
 		},
 		{
 			Name:           "Finalizer Skipped",
 			ExpectedResult: mapper.ResultContinue,
 			SetMocks: func(c *mocks.MockMapper) {
-				c.EXPECT().TryInjectFinalizer(gomock.Any()).Return(mapper.ResultContinue, nil).Times(1)
-				c.EXPECT().TryRemoveFinalizer(gomock.Any(), gomock.Any()).Return(mapper.ResultContinue, ferr).Times(1)
+				c.EXPECT().TryInjectFinalizer().Return(mapper.ResultContinue, nil).Times(1)
+				c.EXPECT().TryRemoveFinalizer(gomock.Any()).Return(mapper.ResultContinue, ferr).Times(1)
 			},
 		},
 	}
@@ -237,8 +238,9 @@ func TestHandleFinalizer(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			r := fakeMapper(ctrl)
-			test.SetMocks(r.Mapper.(*mocks.MockMapper))
-			result, err := r.handleFinalizer(nil)
+			m := mocks.NewMockMapper(ctrl)
+			test.SetMocks(m)
+			result, err := r.handleFinalizer(&mapper.LoopState{Mapper: m})
 			assert.Equal(t, test.ExpectedResult, result)
 			if result == mapper.ResultError {
 				assert.Error(t, err)
@@ -252,7 +254,7 @@ func TestHandleFinalizer(t *testing.T) {
 // if you want to mock client use fakeClient
 func fakeClient(ctrl *gomock.Controller, config depresolver.Config) *AnnoReconciler {
 	r := fakeMapper(ctrl)
-	r.Mapper = mapper.NewIngressMapper(r.Client, &config)
+	r.Mapper = mapper.NewCommonProvider(r.Client, &config)
 	return r
 }
 
@@ -263,7 +265,7 @@ func fakeMapper(ctrl *gomock.Controller) *AnnoReconciler {
 	p := mocks.NewMockProvider(ctrl)
 	defaultTracer := mocks.NewMockTracer(ctrl)
 	defaultTracerSpan := mocks.NewMockSpan(ctrl)
-	m := mocks.NewMockMapper(ctrl)
+	m := mocks.NewMockProviderMapper(ctrl)
 	defaultMetrics := mocks.NewMockMetrics(ctrl)
 
 	config := &depresolver.Config{

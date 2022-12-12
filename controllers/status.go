@@ -28,7 +28,7 @@ import (
 )
 
 func (r *AnnoReconciler) updateStatus(rs *mapper.LoopState, ep *externaldns.DNSEndpoint) (err error) {
-	rs.Status.ServiceHealth, err = r.Mapper.GetHealthStatus(rs)
+	rs.Status.ServiceHealth, err = rs.GetHealthStatus()
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (r *AnnoReconciler) updateStatus(rs *mapper.LoopState, ep *externaldns.DNSE
 
 	r.Metrics.UpdateEndpointStatus(ep)
 
-	return r.Mapper.UpdateStatus(rs)
+	return rs.UpdateStatus()
 }
 
 func (r *AnnoReconciler) getHealthyRecords(rs *mapper.LoopState) (map[string][]string, error) {
