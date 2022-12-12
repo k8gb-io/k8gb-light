@@ -26,7 +26,6 @@ import (
 	reflect "reflect"
 
 	mapper "cloud.example.com/annotation-operator/controllers/mapper"
-	metrics "cloud.example.com/annotation-operator/controllers/providers/metrics"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -80,36 +79,6 @@ func (m *MockMapper) GetExposedIPs() ([]string, error) {
 func (mr *MockMapperMockRecorder) GetExposedIPs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExposedIPs", reflect.TypeOf((*MockMapper)(nil).GetExposedIPs))
-}
-
-// GetHealthStatus mocks base method.
-func (m *MockMapper) GetHealthStatus() (map[string]metrics.HealthStatus, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHealthStatus")
-	ret0, _ := ret[0].(map[string]metrics.HealthStatus)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetHealthStatus indicates an expected call of GetHealthStatus.
-func (mr *MockMapperMockRecorder) GetHealthStatus() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthStatus", reflect.TypeOf((*MockMapper)(nil).GetHealthStatus))
-}
-
-// GetHealthyRecords mocks base method.
-func (m *MockMapper) GetHealthyRecords() (map[string][]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHealthyRecords")
-	ret0, _ := ret[0].(map[string][]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetHealthyRecords indicates an expected call of GetHealthyRecords.
-func (mr *MockMapperMockRecorder) GetHealthyRecords() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthyRecords", reflect.TypeOf((*MockMapper)(nil).GetHealthyRecords))
 }
 
 // GetStatus mocks base method.
