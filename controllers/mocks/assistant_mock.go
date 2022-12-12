@@ -26,7 +26,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	mapper "cloud.example.com/annotation-operator/controllers/mapper"
 	assistant "cloud.example.com/annotation-operator/controllers/providers/assistant"
 	gomock "github.com/golang/mock/gomock"
 	endpoint "sigs.k8s.io/external-dns/endpoint"
@@ -82,21 +81,6 @@ func (m *MockAssistant) GetExternalTargets(host string, extClusterNsNames map[st
 func (mr *MockAssistantMockRecorder) GetExternalTargets(host, extClusterNsNames interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockAssistant)(nil).GetExternalTargets), host, extClusterNsNames)
-}
-
-// IngressExposedIPs mocks base method.
-func (m *MockAssistant) IngressExposedIPs(arg0 *mapper.LoopState) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IngressExposedIPs", arg0)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IngressExposedIPs indicates an expected call of IngressExposedIPs.
-func (mr *MockAssistantMockRecorder) IngressExposedIPs(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngressExposedIPs", reflect.TypeOf((*MockAssistant)(nil).IngressExposedIPs), arg0)
 }
 
 // InspectTXTThreshold mocks base method.

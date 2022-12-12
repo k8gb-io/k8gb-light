@@ -96,21 +96,6 @@ func (mr *MockProviderMockRecorder) GetExternalTargets(arg0 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockProvider)(nil).GetExternalTargets), arg0)
 }
 
-// IngressExposedIPs mocks base method.
-func (m *MockProvider) IngressExposedIPs(arg0 *mapper.LoopState) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IngressExposedIPs", arg0)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IngressExposedIPs indicates an expected call of IngressExposedIPs.
-func (mr *MockProviderMockRecorder) IngressExposedIPs(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IngressExposedIPs", reflect.TypeOf((*MockProvider)(nil).IngressExposedIPs), arg0)
-}
-
 // RequireFinalizer mocks base method.
 func (m *MockProvider) RequireFinalizer() bool {
 	m.ctrl.T.Helper()

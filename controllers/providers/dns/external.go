@@ -66,7 +66,7 @@ func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *mapper.Loop
 	if p.config.CoreDNSExposed {
 		NSServerIPs, err = p.assistant.CoreDNSExposedIPs()
 	} else {
-		NSServerIPs, err = p.assistant.IngressExposedIPs(rs)
+		NSServerIPs, err = rs.GetExposedIPs()
 	}
 	if err != nil {
 		return err
@@ -103,10 +103,6 @@ func (p *ExternalDNSProvider) CreateZoneDelegationForExternalDNS(rs *mapper.Loop
 
 func (p *ExternalDNSProvider) GetExternalTargets(host string) (targets assistant2.Targets) {
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
-}
-
-func (p *ExternalDNSProvider) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
-	return p.assistant.IngressExposedIPs(rs)
 }
 
 func (p *ExternalDNSProvider) SaveDNSEndpoint(rs *mapper.LoopState, i *externaldns.DNSEndpoint) error {

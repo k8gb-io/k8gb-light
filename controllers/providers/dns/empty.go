@@ -42,10 +42,6 @@ func (p *EmptyDNSProvider) CreateZoneDelegationForExternalDNS(*mapper.LoopState)
 	return
 }
 
-func (p *EmptyDNSProvider) IngressExposedIPs(gslb *mapper.LoopState) (r []string, err error) {
-	return p.assistant.IngressExposedIPs(gslb)
-}
-
 func (p *EmptyDNSProvider) GetExternalTargets(host string) (targets assistant.Targets) {
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
 }

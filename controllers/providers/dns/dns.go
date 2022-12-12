@@ -27,8 +27,6 @@ import (
 type Provider interface {
 	// CreateZoneDelegationForExternalDNS handles delegated zone in Edge DNS
 	CreateZoneDelegationForExternalDNS(*mapper.LoopState) error
-	// IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-	IngressExposedIPs(*mapper.LoopState) ([]string, error)
 	// GetExternalTargets retrieves list of external targets for specified host
 	GetExternalTargets(string) assistant.Targets
 	// SaveDNSEndpoint update DNS endpoint in gslb or create new one if doesn't exist

@@ -80,7 +80,7 @@ func (p *InfobloxProvider) CreateZoneDelegationForExternalDNS(rs *mapper.LoopSta
 	if p.config.CoreDNSExposed {
 		addresses, err = p.assistant.CoreDNSExposedIPs()
 	} else {
-		addresses, err = p.assistant.IngressExposedIPs(rs)
+		addresses, err = rs.GetExposedIPs()
 	}
 	if err != nil {
 		p.metrics.InfobloxIncrementZoneUpdateError(rs.NamespacedName)
@@ -213,10 +213,6 @@ func (p *InfobloxProvider) Finalize(rs *mapper.LoopState) error {
 
 func (p *InfobloxProvider) GetExternalTargets(host string) (targets assistant.Targets) {
 	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
-}
-
-func (p *InfobloxProvider) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
-	return p.assistant.IngressExposedIPs(rs)
 }
 
 func (p *InfobloxProvider) SaveDNSEndpoint(rs *mapper.LoopState, i *externaldns.DNSEndpoint) error {

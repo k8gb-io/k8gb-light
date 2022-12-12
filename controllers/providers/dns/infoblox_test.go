@@ -44,9 +44,20 @@ var (
 		Ref:        ref,
 	}
 
-	defaultState = &mapper.LoopState{
-		NamespacedName: types.NamespacedName{Namespace: "test-infoblox", Name: "test-infoblox"},
+	defaultRs = func(m ...mapper.Mapper) *mapper.LoopState {
+		var x mapper.Mapper
+		if len(m) > 0 {
+			x = m[0]
+		}
+		return &mapper.LoopState{
+			Mapper: x,
+			Spec: mapper.Spec{
+				DNSTtlSeconds: 30,
+			},
+			NamespacedName: types.NamespacedName{Namespace: "test-infoblox", Name: "test-infoblox"},
+		}
 	}
+
 	ipRange = []string{"10.0.0.1", "10.0.0.2"}
 )
 
@@ -145,7 +156,10 @@ func TestInfobloxCreateZoneDelegationForExternalDNS(t *testing.T) {
 	a := mocks.NewMockAssistant(ctrl)
 	cl := mocks.NewMockInfobloxClient(ctrl)
 	con := mocks.NewMockIBConnector(ctrl)
-	a.EXPECT().IngressExposedIPs(gomock.Any()).Return(ipRange, nil).Times(1)
+
+	mp := mocks.NewMockMapper(ctrl)
+	mp.EXPECT().GetExposedIPs().Return(ipRange, nil).Times(1)
+
 	con.EXPECT().CreateObject(gomock.Any()).Return(ref, nil).AnyTimes()
 	con.EXPECT().UpdateObject(gomock.Any(), gomock.Any()).Return(ref, nil).Times(1)
 	con.EXPECT().GetObject(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(2, []ibclient.ZoneDelegated{defaultDelegatedZone}).Return(nil)
@@ -154,7 +168,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNS(t *testing.T) {
 	provider := NewInfobloxDNS(config, a, cl, log, mx)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultRs(mp))
 	// assert
 	assert.NoError(t, err)
 }
@@ -166,10 +180,11 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabled(t *test
 	a := mocks.NewMockAssistant(ctrl)
 	cl := mocks.NewMockInfobloxClient(ctrl)
 	con := mocks.NewMockIBConnector(ctrl)
-	a.EXPECT().IngressExposedIPs(gomock.Any()).Return(ipRange, nil).Times(1)
 	a.EXPECT().InspectTXTThreshold(gomock.Any(), gomock.Any()).Do(func(fqdn string, arg1 interface{}) {
 		require.Equal(t, "test-infoblox-heartbeat-us-east-1.example.com", fqdn)
 	}).Return(nil).Times(1)
+	mp := mocks.NewMockMapper(ctrl)
+	mp.EXPECT().GetExposedIPs().Return(ipRange, nil).Times(1)
 	con.EXPECT().CreateObject(gomock.Any()).Return(ref, nil).AnyTimes()
 	con.EXPECT().UpdateObject(gomock.Any(), gomock.Any()).Return(ref, nil).Times(2)
 	con.EXPECT().GetObject(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(2, []ibclient.ZoneDelegated{defaultDelegatedZone}).Return(nil)
@@ -183,7 +198,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabled(t *test
 	provider := NewInfobloxDNS(config, a, cl, log, mx)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultRs(mp))
 	// assert
 	assert.NoError(t, err)
 }
@@ -195,8 +210,9 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabledCreating
 	a := mocks.NewMockAssistant(ctrl)
 	cl := mocks.NewMockInfobloxClient(ctrl)
 	con := mocks.NewMockIBConnector(ctrl)
-	a.EXPECT().IngressExposedIPs(gomock.Any()).Return(ipRange, nil).Times(1)
+	mp := mocks.NewMockMapper(ctrl)
 	a.EXPECT().InspectTXTThreshold(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+	mp.EXPECT().GetExposedIPs().Return(ipRange, nil).Times(1)
 	con.EXPECT().CreateObject(gomock.Any()).Return(ref, nil).AnyTimes()
 	con.EXPECT().UpdateObject(gomock.Any(), gomock.Any()).Return(ref, nil).Times(1)
 	con.EXPECT().GetObject(gomock.Any(), gomock.Any(), gomock.Any()).SetArg(2, []ibclient.ZoneDelegated{defaultDelegatedZone}).Return(nil)
@@ -207,7 +223,7 @@ func TestInfobloxCreateZoneDelegationForExternalDNSWithSplitBrainEnabledCreating
 	provider := NewInfobloxDNS(config, a, cl, log, mx)
 
 	// act
-	err := provider.CreateZoneDelegationForExternalDNS(defaultState)
+	err := provider.CreateZoneDelegationForExternalDNS(defaultRs(mp))
 	// assert
 	assert.NoError(t, err)
 }
@@ -233,7 +249,7 @@ func TestInfobloxFinalize(t *testing.T) {
 	provider := NewInfobloxDNS(config, a, cl, log, mx)
 
 	// act
-	err := provider.Finalize(defaultState)
+	err := provider.Finalize(defaultRs())
 
 	// assert
 	assert.NoError(t, err)

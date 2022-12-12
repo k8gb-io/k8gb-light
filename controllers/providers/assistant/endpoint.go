@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"cloud.example.com/annotation-operator/controllers/logging"
-	"cloud.example.com/annotation-operator/controllers/mapper"
 	"cloud.example.com/annotation-operator/controllers/utils"
 
 	"github.com/miekg/dns"
@@ -117,28 +116,6 @@ func extractIPFromLB(lb corev1.LoadBalancerIngress, ns utils.DNSList) (ips []str
 		return []string{lb.IP}, nil
 	}
 	return nil, nil
-}
-
-// IngressExposedIPs retrieves list of IP's exposed by all GSLB ingresses
-func (r *Gslb) IngressExposedIPs(rs *mapper.LoopState) ([]string, error) {
-
-	gslbIngress := rs.Ingress.DeepCopy()
-	var gslbIngressIPs []string
-	for _, ip := range gslbIngress.Status.LoadBalancer.Ingress {
-		if len(ip.IP) > 0 {
-			gslbIngressIPs = append(gslbIngressIPs, ip.IP)
-		}
-		if len(ip.Hostname) > 0 {
-			IPs, err := utils.Dig(ip.Hostname, r.edgeDNSServers...)
-			if err != nil {
-				log.Warn().Err(err).Msg("Dig error")
-				return nil, err
-			}
-			gslbIngressIPs = append(gslbIngressIPs, IPs...)
-		}
-	}
-
-	return gslbIngressIPs, nil
 }
 
 // SaveDNSEndpoint update DNS endpoint or create new one if doesnt exist

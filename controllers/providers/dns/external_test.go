@@ -46,7 +46,7 @@ import (
 // test data
 var a = struct {
 	Config              depresolver.Config
-	State               *mapper.LoopState
+	State               func(m ...mapper.Mapper) *mapper.LoopState
 	TargetIPs           []string
 	TargetNSNamesSorted []string
 }{
@@ -64,15 +64,19 @@ var a = struct {
 		DNSZone:       "cloud.example.com",
 		K8gbNamespace: "k8gb",
 	},
-	State: func() *mapper.LoopState {
-
+	State: func(m ...mapper.Mapper) *mapper.LoopState {
+		var x mapper.Mapper
+		if len(m) > 0 {
+			x = m[0]
+		}
 		return &mapper.LoopState{
+			Mapper: x,
 			Spec: mapper.Spec{
 				DNSTtlSeconds: 30,
 			},
 			NamespacedName: types.NamespacedName{Namespace: "test", Name: "test"},
 		}
-	}(),
+	},
 	TargetIPs: []string{
 		"10.0.1.38",
 		"10.0.1.40",
@@ -117,9 +121,10 @@ func TestCreateZoneDelegationOnExternalDNS(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	m := mocks.NewMockAssistant(ctrl)
+	mp := mocks.NewMockMapper(ctrl)
+	mp.EXPECT().GetExposedIPs().Return(a.TargetIPs, nil).Times(1)
 
 	p := NewExternalDNS(a.Config, m, log)
-	m.EXPECT().IngressExposedIPs(a.State).Return(a.TargetIPs, nil).Times(1)
 	m.EXPECT().SaveDNSEndpoint(a.Config.K8gbNamespace, gomock.Eq(expectedDNSEndpoint)).Return(nil).Times(1).
 		Do(func(ns string, ep *externaldns.DNSEndpoint) {
 			require.True(t, reflect.DeepEqual(ep, expectedDNSEndpoint))
@@ -127,7 +132,7 @@ func TestCreateZoneDelegationOnExternalDNS(t *testing.T) {
 		})
 
 	// act
-	err := p.CreateZoneDelegationForExternalDNS(a.State)
+	err := p.CreateZoneDelegationForExternalDNS(a.State(mp))
 	// assert
 	assert.NoError(t, err)
 }
@@ -145,7 +150,7 @@ func TestSaveNewDNSEndpointOnExternalDNS(t *testing.T) {
 		},
 	}
 	endpointToSave := expectedDNSEndpoint
-	endpointToSave.Namespace = a.State.NamespacedName.Namespace
+	endpointToSave.Namespace = a.State().NamespacedName.Namespace
 
 	runtimeScheme := runtime.NewScheme()
 	schemeBuilder := &scheme.Builder{GroupVersion: schema.GroupVersion{Group: "externaldns.k8s.io", Version: "v1alpha1"}}
@@ -158,14 +163,14 @@ func TestSaveNewDNSEndpointOnExternalDNS(t *testing.T) {
 	assistant := assistant.NewGslbAssistant(cl, a.Config.K8gbNamespace, a.Config.EdgeDNSServers)
 	p := NewExternalDNS(a.Config, assistant, log)
 	// act, assert
-	err := p.SaveDNSEndpoint(a.State, expectedDNSEndpoint)
+	err := p.SaveDNSEndpoint(a.State(), expectedDNSEndpoint)
 	assert.NoError(t, err)
 }
 
 func TestSaveExistingDNSEndpointOnExternalDNS(t *testing.T) {
 	// arrange
 	endpointToSave := expectedDNSEndpoint
-	endpointToSave.Namespace = a.State.NamespacedName.Namespace
+	endpointToSave.Namespace = a.State().NamespacedName.Namespace
 
 	runtimeScheme := runtime.NewScheme()
 	schemeBuilder := &scheme.Builder{GroupVersion: schema.GroupVersion{Group: "externaldns.k8s.io", Version: "v1alpha1"}}
@@ -177,6 +182,6 @@ func TestSaveExistingDNSEndpointOnExternalDNS(t *testing.T) {
 	assistant := assistant.NewGslbAssistant(cl, a.Config.K8gbNamespace, a.Config.EdgeDNSServers)
 	p := NewExternalDNS(a.Config, assistant, log)
 	// act, assert
-	err := p.SaveDNSEndpoint(a.State, endpointToSave)
+	err := p.SaveDNSEndpoint(a.State(), endpointToSave)
 	assert.NoError(t, err)
 }
