@@ -30,6 +30,14 @@ type GatewayAPIMapper struct {
 	// rs     *LoopState
 }
 
+func (g *GatewayAPIMapper) GetStatus() (Status, error) {
+	panic("not implemented")
+}
+
+func (g GatewayAPIMapper) GetHealthyRecords() (map[string][]string, error) {
+	panic("not implemented")
+}
+
 func NewGatewayAPIMapper(c client.Client, config *depresolver.Config) *GatewayAPIMapper {
 	return &GatewayAPIMapper{
 		c:      c,

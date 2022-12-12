@@ -46,7 +46,7 @@ endif
 
 # check integrity
 .PHONY: check
-check: license lint gokart build test ## Check project integrity
+check: mocks lint gokart build test ## Check project integrity
 
 # updates source code with license headers
 .PHONY: license

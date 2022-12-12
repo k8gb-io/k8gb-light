@@ -24,6 +24,8 @@ import (
 
 type Result int
 
+const RecordTypeA = "A"
+
 const (
 	ResultExists Result = 1 << iota
 	ResultNotFound
@@ -46,7 +48,9 @@ func (r Result) IsIn(m ...Result) bool {
 // Mapper is wrapper around resource. Mappers are an only way to access resources
 type Mapper interface {
 	UpdateStatus() error
+	GetStatus() (Status, error)
 	GetHealthStatus() (map[string]metrics.HealthStatus, error)
+	GetHealthyRecords() (map[string][]string, error)
 	Equal(*LoopState) bool
 	TryInjectFinalizer() (Result, error)
 	TryRemoveFinalizer(func(*LoopState) error) (Result, error)

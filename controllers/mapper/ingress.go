@@ -22,6 +22,10 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"regexp"
+	"strings"
+
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 
 	"cloud.example.com/annotation-operator/controllers/depresolver"
 
@@ -59,6 +63,10 @@ func (i *IngressMapper) UpdateStatus() (err error) {
 	case ResultNotFound:
 		// object was deleted
 		return nil
+	}
+	i.rs.Status, err = i.GetStatus()
+	if err != nil {
+		return err
 	}
 	// don't do update if nothing has changed
 	if s.Ingress.Annotations[AnnotationStatus] == i.rs.Status.String() {
@@ -174,6 +182,47 @@ func (i *IngressMapper) GetExposedIPs() ([]string, error) {
 		}
 	}
 	return exposed, nil
+}
+
+func (i *IngressMapper) GetHealthyRecords() (map[string][]string, error) {
+
+	// TODO: make mapper for DNSEndpoint
+	dnsEndpoint := &externaldns.DNSEndpoint{}
+	err := i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	healthyRecords := make(map[string][]string)
+	serviceRegex := regexp.MustCompile("^localtargets")
+	for _, endpoint := range dnsEndpoint.Spec.Endpoints {
+		local := serviceRegex.Match([]byte(endpoint.DNSName))
+		if !local && endpoint.RecordType == RecordTypeA {
+			if len(endpoint.Targets) > 0 {
+				healthyRecords[endpoint.DNSName] = endpoint.Targets
+			}
+		}
+	}
+	return healthyRecords, nil
+}
+
+func (i *IngressMapper) GetStatus() (status Status, err error) {
+	csv := func(rs *LoopState) string {
+		var hosts []string
+		for _, r := range rs.Ingress.Spec.Rules {
+			hosts = append(hosts, r.Host)
+		}
+		return strings.Join(hosts, ", ")
+	}
+	status = Status{}
+	status.GeoTag = i.config.ClusterGeoTag
+	status.Hosts = csv(i.rs)
+	status.ServiceHealth, err = i.GetHealthStatus()
+	if err != nil {
+		return status, err
+	}
+	status.HealthyRecords, err = i.GetHealthyRecords()
+	return status, err
 }
 
 func (i *IngressMapper) SetReference(rs *LoopState) {

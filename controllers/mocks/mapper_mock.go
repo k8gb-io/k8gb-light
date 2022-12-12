@@ -97,6 +97,36 @@ func (mr *MockMapperMockRecorder) GetHealthStatus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthStatus", reflect.TypeOf((*MockMapper)(nil).GetHealthStatus))
 }
 
+// GetHealthyRecords mocks base method.
+func (m *MockMapper) GetHealthyRecords() (map[string][]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHealthyRecords")
+	ret0, _ := ret[0].(map[string][]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHealthyRecords indicates an expected call of GetHealthyRecords.
+func (mr *MockMapperMockRecorder) GetHealthyRecords() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthyRecords", reflect.TypeOf((*MockMapper)(nil).GetHealthyRecords))
+}
+
+// GetStatus mocks base method.
+func (m *MockMapper) GetStatus() (mapper.Status, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatus")
+	ret0, _ := ret[0].(mapper.Status)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatus indicates an expected call of GetStatus.
+func (mr *MockMapperMockRecorder) GetStatus() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockMapper)(nil).GetStatus))
+}
+
 // SetReference mocks base method.
 func (m *MockMapper) SetReference(arg0 *mapper.LoopState) {
 	m.ctrl.T.Helper()
