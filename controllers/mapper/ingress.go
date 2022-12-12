@@ -52,7 +52,7 @@ func NewIngressMapper(c client.Client, config *depresolver.Config) *IngressMappe
 	}
 }
 
-func (i *IngressMapper) UpdateStatus() (err error) {
+func (i *IngressMapper) UpdateStatusAnnotation() (err error) {
 	// check if object has not been deleted
 	var r Result
 	var s *LoopState
@@ -64,10 +64,7 @@ func (i *IngressMapper) UpdateStatus() (err error) {
 		// object was deleted
 		return nil
 	}
-	i.rs.Status, err = i.GetStatus()
-	if err != nil {
-		return err
-	}
+	i.rs.Status = i.GetStatus()
 	// don't do update if nothing has changed
 	if s.Ingress.Annotations[AnnotationStatus] == i.rs.Status.String() {
 		return nil
@@ -129,7 +126,7 @@ func (i *IngressMapper) TryRemoveFinalizer(finalize func(*LoopState) error) (Res
 	return ResultContinue, nil
 }
 
-func (i *IngressMapper) getHealthStatus() (map[string]metrics.HealthStatus, error) {
+func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 	serviceHealth := make(map[string]metrics.HealthStatus)
 	for _, rule := range i.rs.Ingress.Spec.Rules {
 		for _, path := range rule.HTTP.Paths {
@@ -147,14 +144,14 @@ func (i *IngressMapper) getHealthStatus() (map[string]metrics.HealthStatus, erro
 					serviceHealth[rule.Host] = metrics.NotFound
 					continue
 				}
-				return serviceHealth, err
+				return make(map[string]metrics.HealthStatus, 0)
 			}
 
 			// check if service endpoint exists
 			ep := &corev1.Endpoints{}
 			err = i.c.Get(context.TODO(), selector, ep)
 			if err != nil {
-				return serviceHealth, err
+				return serviceHealth
 			}
 			serviceHealth[rule.Host] = metrics.Unhealthy
 			for _, subset := range ep.Subsets {
@@ -164,7 +161,7 @@ func (i *IngressMapper) getHealthStatus() (map[string]metrics.HealthStatus, erro
 			}
 		}
 	}
-	return serviceHealth, nil
+	return serviceHealth
 }
 
 func (i *IngressMapper) GetExposedIPs() ([]string, error) {
@@ -184,16 +181,15 @@ func (i *IngressMapper) GetExposedIPs() ([]string, error) {
 	return exposed, nil
 }
 
-func (i *IngressMapper) getHealthyRecords() (map[string][]string, error) {
-
+func (i *IngressMapper) getHealthyRecords() map[string][]string {
 	// TODO: make mapper for DNSEndpoint
+	healthyRecords := make(map[string][]string)
 	dnsEndpoint := &externaldns.DNSEndpoint{}
 	err := i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
 	if err != nil {
-		return nil, err
+		return healthyRecords
 	}
 
-	healthyRecords := make(map[string][]string)
 	serviceRegex := regexp.MustCompile("^localtargets")
 	for _, endpoint := range dnsEndpoint.Spec.Endpoints {
 		local := serviceRegex.Match([]byte(endpoint.DNSName))
@@ -203,10 +199,10 @@ func (i *IngressMapper) getHealthyRecords() (map[string][]string, error) {
 			}
 		}
 	}
-	return healthyRecords, nil
+	return healthyRecords
 }
 
-func (i *IngressMapper) GetStatus() (status Status, err error) {
+func (i *IngressMapper) GetStatus() (status Status) {
 	csv := func(rs *LoopState) string {
 		var hosts []string
 		for _, r := range rs.Ingress.Spec.Rules {
@@ -215,20 +211,12 @@ func (i *IngressMapper) GetStatus() (status Status, err error) {
 		return strings.Join(hosts, ", ")
 	}
 
-	status = Status{
-		ServiceHealth:  map[string]metrics.HealthStatus{},
-		HealthyRecords: map[string][]string{},
-		GeoTag:         "",
-		Hosts:          "",
+	return Status{
+		ServiceHealth:  i.getHealthStatus(),
+		HealthyRecords: i.getHealthyRecords(),
+		GeoTag:         i.config.ClusterGeoTag,
+		Hosts:          csv(i.rs),
 	}
-	status.GeoTag = i.config.ClusterGeoTag
-	status.Hosts = csv(i.rs)
-	status.ServiceHealth, err = i.getHealthStatus()
-	if err != nil {
-		return status, err
-	}
-	status.HealthyRecords, err = i.getHealthyRecords()
-	return status, err
 }
 
 func (i *IngressMapper) SetReference(rs *LoopState) {

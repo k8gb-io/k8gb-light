@@ -24,12 +24,9 @@ import (
 )
 
 func (r *AnnoReconciler) updateStatus(rs *mapper.LoopState, ep *externaldns.DNSEndpoint) (err error) {
-	status, err := rs.GetStatus()
-	if err != nil {
-		return err
-	}
+	status := rs.GetStatus()
 	r.Metrics.UpdateIngressHostsPerStatusMetric(rs.NamespacedName, status.ServiceHealth)
 	r.Metrics.UpdateHealthyRecordsMetric(rs.NamespacedName, status.HealthyRecords)
 	r.Metrics.UpdateEndpointStatus(ep)
-	return rs.UpdateStatus()
+	return rs.UpdateStatusAnnotation()
 }

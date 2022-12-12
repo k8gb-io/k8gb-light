@@ -29,7 +29,7 @@ type GatewayAPIMapper struct {
 	// rs     *LoopState
 }
 
-func (g *GatewayAPIMapper) GetStatus() (Status, error) {
+func (g *GatewayAPIMapper) GetStatus() Status {
 	panic("not implemented")
 }
 
@@ -40,7 +40,7 @@ func NewGatewayAPIMapper(c client.Client, config *depresolver.Config) *GatewayAP
 	}
 }
 
-func (g GatewayAPIMapper) UpdateStatus() error {
+func (g GatewayAPIMapper) UpdateStatusAnnotation() error {
 	panic("not implemented")
 }
 
