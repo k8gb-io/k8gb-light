@@ -126,6 +126,66 @@ func (i *IngressMapper) TryRemoveFinalizer(finalize func(*LoopState) error) (Res
 	return ResultContinue, nil
 }
 
+func (i *IngressMapper) GetExposedIPs() ([]string, error) {
+	var exposed []string
+	for _, ing := range i.rs.Ingress.Status.LoadBalancer.Ingress {
+		if len(ing.IP) > 0 {
+			exposed = append(exposed, ing.IP)
+		}
+		if len(ing.Hostname) > 0 {
+			ips, err := utils.Dig(ing.Hostname, i.config.EdgeDNSServers...)
+			if err != nil {
+				return nil, err
+			}
+			exposed = append(exposed, ips...)
+		}
+	}
+	return exposed, nil
+}
+
+func (i *IngressMapper) GetStatus() (status Status) {
+	csv := func(rs *LoopState) string {
+		var hosts []string
+		for _, r := range rs.Ingress.Spec.Rules {
+			hosts = append(hosts, r.Host)
+		}
+		return strings.Join(hosts, ", ")
+	}
+
+	return Status{
+		ServiceHealth:  i.getHealthStatus(),
+		HealthyRecords: i.getHealthyRecords(),
+		GeoTag:         i.config.ClusterGeoTag,
+		Hosts:          csv(i.rs),
+	}
+}
+
+func (i *IngressMapper) SetReference(rs *LoopState) {
+	i.rs = rs
+}
+
+func (i *IngressMapper) getHealthyRecords() map[string][]string {
+	// TODO: make mapper for DNSEndpoint
+	healthyRecords := make(map[string][]string)
+	dnsEndpoint := &externaldns.DNSEndpoint{}
+	err := i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
+	if err != nil {
+		// todo: consider to return array with text "error"
+		return healthyRecords
+	}
+
+	serviceRegex := regexp.MustCompile("^localtargets")
+	for _, endpoint := range dnsEndpoint.Spec.Endpoints {
+		local := serviceRegex.Match([]byte(endpoint.DNSName))
+		if !local && endpoint.RecordType == RecordTypeA {
+			if len(endpoint.Targets) > 0 {
+				healthyRecords[endpoint.DNSName] = endpoint.Targets
+			}
+		}
+	}
+	return healthyRecords
+}
+
 func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 	serviceHealth := make(map[string]metrics.HealthStatus)
 	for _, rule := range i.rs.Ingress.Spec.Rules {
@@ -162,63 +222,4 @@ func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 		}
 	}
 	return serviceHealth
-}
-
-func (i *IngressMapper) GetExposedIPs() ([]string, error) {
-	var exposed []string
-	for _, ing := range i.rs.Ingress.Status.LoadBalancer.Ingress {
-		if len(ing.IP) > 0 {
-			exposed = append(exposed, ing.IP)
-		}
-		if len(ing.Hostname) > 0 {
-			ips, err := utils.Dig(ing.Hostname, i.config.EdgeDNSServers...)
-			if err != nil {
-				return nil, err
-			}
-			exposed = append(exposed, ips...)
-		}
-	}
-	return exposed, nil
-}
-
-func (i *IngressMapper) getHealthyRecords() map[string][]string {
-	// TODO: make mapper for DNSEndpoint
-	healthyRecords := make(map[string][]string)
-	dnsEndpoint := &externaldns.DNSEndpoint{}
-	err := i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
-	if err != nil {
-		return healthyRecords
-	}
-
-	serviceRegex := regexp.MustCompile("^localtargets")
-	for _, endpoint := range dnsEndpoint.Spec.Endpoints {
-		local := serviceRegex.Match([]byte(endpoint.DNSName))
-		if !local && endpoint.RecordType == RecordTypeA {
-			if len(endpoint.Targets) > 0 {
-				healthyRecords[endpoint.DNSName] = endpoint.Targets
-			}
-		}
-	}
-	return healthyRecords
-}
-
-func (i *IngressMapper) GetStatus() (status Status) {
-	csv := func(rs *LoopState) string {
-		var hosts []string
-		for _, r := range rs.Ingress.Spec.Rules {
-			hosts = append(hosts, r.Host)
-		}
-		return strings.Join(hosts, ", ")
-	}
-
-	return Status{
-		ServiceHealth:  i.getHealthStatus(),
-		HealthyRecords: i.getHealthyRecords(),
-		GeoTag:         i.config.ClusterGeoTag,
-		Hosts:          csv(i.rs),
-	}
-}
-
-func (i *IngressMapper) SetReference(rs *LoopState) {
-	i.rs = rs
 }
