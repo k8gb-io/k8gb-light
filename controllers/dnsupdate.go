@@ -38,10 +38,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 	var gslbHosts []*externaldns.Endpoint
 	var ttl = externaldns.TTL(rs.Spec.DNSTtlSeconds)
 
-	status, err := rs.GetStatus()
-	if err != nil {
-		return nil, err
-	}
+	status := rs.GetStatus()
 
 	localTargets, err := r.DNSProvider.IngressExposedIPs(rs)
 	if err != nil {

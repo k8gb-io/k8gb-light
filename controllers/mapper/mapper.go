@@ -44,10 +44,10 @@ func (r Result) IsIn(m ...Result) bool {
 // Mapper is wrapper around resource. Mappers are an only way to access resources
 type Mapper interface {
 	Equal(*LoopState) bool
-	GetStatus() (Status, error)
+	GetStatus() Status
 	GetExposedIPs() ([]string, error)
 	TryInjectFinalizer() (Result, error)
 	TryRemoveFinalizer(func(*LoopState) error) (Result, error)
 	SetReference(*LoopState)
-	UpdateStatus() error
+	UpdateStatusAnnotation() error
 }

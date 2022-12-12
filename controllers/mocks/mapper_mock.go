@@ -82,12 +82,11 @@ func (mr *MockMapperMockRecorder) GetExposedIPs() *gomock.Call {
 }
 
 // GetStatus mocks base method.
-func (m *MockMapper) GetStatus() (mapper.Status, error) {
+func (m *MockMapper) GetStatus() mapper.Status {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStatus")
 	ret0, _ := ret[0].(mapper.Status)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // GetStatus indicates an expected call of GetStatus.
@@ -138,16 +137,16 @@ func (mr *MockMapperMockRecorder) TryRemoveFinalizer(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryRemoveFinalizer", reflect.TypeOf((*MockMapper)(nil).TryRemoveFinalizer), arg0)
 }
 
-// UpdateStatus mocks base method.
-func (m *MockMapper) UpdateStatus() error {
+// UpdateStatusAnnotation mocks base method.
+func (m *MockMapper) UpdateStatusAnnotation() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus")
+	ret := m.ctrl.Call(m, "UpdateStatusAnnotation")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockMapperMockRecorder) UpdateStatus() *gomock.Call {
+// UpdateStatusAnnotation indicates an expected call of UpdateStatusAnnotation.
+func (mr *MockMapperMockRecorder) UpdateStatusAnnotation() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockMapper)(nil).UpdateStatus))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatusAnnotation", reflect.TypeOf((*MockMapper)(nil).UpdateStatusAnnotation))
 }
