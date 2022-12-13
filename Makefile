@@ -89,6 +89,7 @@ mocks:
 	go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
 	mockgen -package=mocks -destination=controllers/mocks/assistant_mock.go -source=controllers/providers/assistant/assistant.go Assistant
 	mockgen -package=mocks -destination=controllers/mocks/client_mock.go sigs.k8s.io/controller-runtime/pkg/client Client
+	mockgen -package=mapper -destination=controllers/mapper/client_mock.go sigs.k8s.io/controller-runtime/pkg/client Client
 	mockgen -package=mocks -destination=controllers/mocks/resolver_mock.go -source=controllers/depresolver/resolver.go GslbResolver
 	mockgen -package=mocks -destination=controllers/mocks/provider_mock.go -source=controllers/providers/dns/dns.go Provider
 	mockgen -package=mocks -destination=controllers/mocks/mapper_mock.go -source=controllers/mapper/mapper.go Mapper
