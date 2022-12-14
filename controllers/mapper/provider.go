@@ -57,7 +57,7 @@ func (c *CommonProvider) Get(selector types.NamespacedName) (rs *LoopState, resu
 	}
 	rs, err = c.FromIngress(ing)
 	if err != nil {
-		result = ResultError
+		return nil, ResultError, err
 	}
 	return rs, result, err
 }
