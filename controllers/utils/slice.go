@@ -1,5 +1,7 @@
 package utils
 
+import "sort"
+
 /*
 Copyright 2022 The k8gb Contributors.
 
@@ -36,4 +38,44 @@ func Remove[T comparable](list []T, s T) []T {
 		result = append(result, v)
 	}
 	return result
+}
+
+func EqualItems[T comparable](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	x := make(map[T]bool, len(a))
+	for _, ia := range a {
+		x[ia] = false
+	}
+	for _, ib := range b {
+		if _, found := x[ib]; found {
+			x[ib] = true
+		}
+	}
+
+	for _, v := range x {
+		if !v {
+			return false
+		}
+	}
+	return true
+}
+
+func EqualStringSlices(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	x := make([]string, len(a))
+	y := make([]string, len(b))
+	copy(x, a)
+	copy(y, b)
+	sort.Strings(x)
+	sort.Strings(y)
+	for i, v := range x {
+		if v != y[i] {
+			return false
+		}
+	}
+	return true
 }

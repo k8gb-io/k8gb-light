@@ -87,6 +87,7 @@ type LoopState struct {
 
 func fromIngress(ingress *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
 	rs = &LoopState{Mapper: m}
+	rs.SetReference(rs)
 	if ingress == nil {
 		return rs, fmt.Errorf("nil *ingress")
 	}
@@ -99,7 +100,6 @@ func fromIngress(ingress *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
 	rs.Ingress = ingress
 	rs.Spec, err = rs.asSpec(ingress.GetAnnotations())
 	rs.NamespacedName = types.NamespacedName{Namespace: ingress.Namespace, Name: ingress.Name}
-	rs.SetReference(rs)
 	return rs, err
 }
 
