@@ -1,7 +1,5 @@
 package utils
 
-import "sort"
-
 /*
 Copyright 2022 The k8gb Contributors.
 
@@ -56,24 +54,6 @@ func EqualItems[T comparable](a, b []T) bool {
 
 	for _, v := range x {
 		if !v {
-			return false
-		}
-	}
-	return true
-}
-
-func EqualStringSlices(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	x := make([]string, len(a))
-	y := make([]string, len(b))
-	copy(x, a)
-	copy(y, b)
-	sort.Strings(x)
-	sort.Strings(y)
-	for i, v := range x {
-		if v != y[i] {
 			return false
 		}
 	}
