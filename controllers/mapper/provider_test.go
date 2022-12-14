@@ -74,15 +74,18 @@ func TestGetIngress(t *testing.T) {
 		{name: "Ingress With FO Annotation", nn: types.NamespacedName{Name: name, Namespace: ns},
 			expectedIngress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationStrategy: depresolver.FailoverStrategy,
 				AnnotationPrimaryGeoTag: "eu"}, Name: name}}, expectedResult: ResultExists, err: nil},
-		{name: "Ingress With WRR Having (RR with Weights)", nn: types.NamespacedName{Name: name, Namespace: ns},
+		{name: "Ingress With WRR Annotation", nn: types.NamespacedName{Name: name, Namespace: ns},
 			expectedIngress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationStrategy: depresolver.RoundRobinStrategy,
 				AnnotationWeightJSON: "{\"eu\":5,\"us\":10}"}, Name: name}}, expectedResult: ResultExists, err: nil},
-		{name: "Ingress With WRR Having Invalid Weights", nn: types.NamespacedName{Name: name, Namespace: ns},
+		{name: "Ingress With WRR Invalid Annotation", nn: types.NamespacedName{Name: name, Namespace: ns},
 			expectedIngress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationStrategy: depresolver.RoundRobinStrategy,
 				AnnotationWeightJSON: "{\"eu\":\"a\",\"us\":10}"}, Name: name}}, expectedResult: ResultError, err: nil},
 		{name: "Ingress With GeoIP", nn: types.NamespacedName{Name: name, Namespace: ns},
 			expectedIngress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationStrategy: depresolver.GeoStrategy},
 				Name: name}}, expectedResult: ResultExists, err: nil},
+		{name: "Ingress With NONEXISTING Annotation", nn: types.NamespacedName{Name: name, Namespace: ns},
+			expectedIngress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationStrategy: "NON-EXISTING"},
+				Name: name}}, expectedResult: ResultError, err: nil},
 	}
 
 	for _, test := range tests {
