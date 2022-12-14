@@ -57,13 +57,14 @@ func (c *CommonProvider) Get(selector types.NamespacedName) (rs *LoopState, resu
 	}
 	rs, err = c.FromIngress(ing)
 	if err != nil {
-		result = ResultError
+		return nil, ResultError, err
 	}
 	return rs, result, err
 }
 
 // FromIngress LoopState from Ingress instance
 func (c *CommonProvider) FromIngress(ingress *netv1.Ingress) (*LoopState, error) {
+	// TODO: check here
 	m := NewIngressMapper(c.c, c.config)
 	return fromIngress(ingress, m)
 }
