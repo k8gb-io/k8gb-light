@@ -30,6 +30,83 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func TestIngressMapperRemovingFinalizer(t *testing.T) {
+	var serr = fmt.Errorf("update error")
+	var tx = metav1.Now()
+	var tests = []struct {
+		name                    string
+		expectedResult          Result
+		expectedErr             error
+		expectedFinalizers      []string
+		finalizationLogicCalled bool
+		finalizationLogicError  error
+		updateError             error
+		ingress                 *netv1.Ingress
+	}{
+		{
+			name: "No Finalizers", expectedResult: ResultContinue, expectedErr: nil, expectedFinalizers: nil,
+			finalizationLogicCalled: false, updateError: nil, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: nil}},
+		},
+		{
+			name: "No K8gb Finalizer", expectedResult: ResultContinue, expectedErr: nil, expectedFinalizers: []string{"random.finalizer"},
+			finalizationLogicCalled: false, updateError: nil, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{"random.finalizer"}, DeletionTimestamp: &tx}},
+		},
+		{
+			name: "Remove K8gb Finalizer", expectedResult: ResultFinalizerRemoved, expectedErr: nil, expectedFinalizers: []string{},
+			finalizationLogicCalled: true, updateError: nil, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{Finalizer}, DeletionTimestamp: &tx}},
+		},
+		{
+			name: "Remove K8gb Finalizer With Other Finalizers", expectedResult: ResultFinalizerRemoved, expectedErr: nil,
+			expectedFinalizers: []string{"test"}, finalizationLogicCalled: true, updateError: nil, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{Finalizer, "test"}, DeletionTimestamp: &tx}},
+		},
+		{
+			name: "K8gb Finalizer Removed Without DeletationTimestamp", expectedResult: ResultContinue, expectedErr: nil,
+			expectedFinalizers: []string{Finalizer}, finalizationLogicCalled: false, updateError: nil, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{Finalizer}}},
+		},
+		{
+			name: "Update Error", expectedResult: ResultError, expectedErr: serr, expectedFinalizers: []string{},
+			finalizationLogicCalled: true, updateError: serr, finalizationLogicError: nil,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{Finalizer}, DeletionTimestamp: &tx}},
+		},
+		{
+			name: "Finalize Call Error", expectedResult: ResultError, expectedErr: serr, expectedFinalizers: []string{Finalizer},
+			finalizationLogicCalled: true, updateError: serr, finalizationLogicError: serr,
+			ingress: &netv1.Ingress{ObjectMeta: metav1.ObjectMeta{Finalizers: []string{Finalizer}, DeletionTimestamp: &tx}},
+		},
+		{
+			name: "Nil Ingress", expectedResult: ResultError, expectedErr: serr, expectedFinalizers: nil,
+			finalizationLogicCalled: false, updateError: nil, finalizationLogicError: serr,
+			ingress: nil,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// arrange
+			fainalzationLogicCalled := false
+			m := Client(t)
+			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
+			// act
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
+			result, err := rs.TryRemoveFinalizer(func(state *LoopState) error {
+				fainalzationLogicCalled = true
+				return test.finalizationLogicError
+			})
+			// assert
+			assert.Equal(t, test.expectedResult, result)
+			assert.Equal(t, test.expectedErr != nil, err != nil)
+			assert.Equal(t, test.finalizationLogicCalled, fainalzationLogicCalled)
+			if rs.Ingress != nil {
+				assert.True(t, utils.EqualItems(rs.Ingress.Finalizers, test.expectedFinalizers))
+			}
+		})
+	}
+}
+
 func TestIngressMapperInjectingFinalizer(t *testing.T) {
 	var serr = fmt.Errorf("update error")
 	var tests = []struct {

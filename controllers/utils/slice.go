@@ -39,6 +39,10 @@ func Remove[T comparable](list []T, s T) []T {
 }
 
 func EqualItems[T comparable](a, b []T) bool {
+	// returns false when first slice is empty and second nil
+	if (a == nil && b != nil) || (a != nil && b == nil) {
+		return false
+	}
 	if len(a) != len(b) {
 		return false
 	}
