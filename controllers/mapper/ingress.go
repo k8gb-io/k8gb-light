@@ -204,7 +204,8 @@ func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 					serviceHealth[rule.Host] = metrics.NotFound
 					continue
 				}
-				return make(map[string]metrics.HealthStatus, 0)
+				serviceHealth[rule.Host] = metrics.Unhealthy
+				continue
 			}
 
 			// check if service endpoint exists

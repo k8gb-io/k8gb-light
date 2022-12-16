@@ -102,16 +102,6 @@ mocks:
 	mockgen -package=mocks -destination=controllers/mocks/metrics_mock.go -source=controllers/providers/metrics/provider.go Provider
 	$(MAKEIN) license
 
-watch:
-	@watch -n 1 $(MAKEIN) generation
-
-generation:
-	@echo "DNSEndpoint generation"  `kubectl get dnsendpoint $(KEY) -ojsonpath={.metadata.generation} -n $(NS)`
-	@echo "Ingress generation" `kubectl get ingress $(KEY) -ojsonpath={.metadata.generation} -n $(NS)`
-	@echo
-	@kubectl get dnsendpoint $(KEY) -oyaml -n $(NS) | grep "  endpoints:" -A 23
-	@echo "dig test-gslb2" `dig -p 5054 @localhost demo.cloud.example.com +tcp +nostats +noedns +nocomment;`
-
 ing:
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb1
 	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb2
