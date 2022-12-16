@@ -162,17 +162,23 @@ func TestIngressMapperInjectingFinalizer(t *testing.T) {
 
 func TestGetStatus(t *testing.T) {
 	var serr = fmt.Errorf("error")
+	ingressNoBackend := RRon2().Ingress.DeepCopy()
+	ingressNoBackend.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.Service.Name = ""
+	ingressNoRules := RRon2().Ingress.DeepCopy()
+	ingressNoRules.Spec.Rules = []netv1.IngressRule{}
 	var tests = []struct {
-		name           string
-		ingress        *netv1.Ingress
-		dnsEndpoint    *externaldns.DNSEndpoint
-		service        *corev1.Service
-		endpoint       *corev1.Endpoints
-		config         *depresolver.Config
-		serviceErr     error
-		expectedStatus Status
+		name             string
+		ingress          *netv1.Ingress
+		dnsEndpoint      *externaldns.DNSEndpoint
+		service          *corev1.Service
+		endpoint         *corev1.Endpoints
+		config           *depresolver.Config
+		serviceErr       error
+		endpointError    error
+		dnsEndpointError error
+		expectedStatus   Status
 	}{
-		{name: "RR on TwoClusters", ingress: RRon2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"},
+		{name: "RR on TwoClusters", ingress: RRon2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
 			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
 			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Healthy},
 				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
@@ -184,13 +190,45 @@ func TestGetStatus(t *testing.T) {
 			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Unhealthy},
 				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
 				GeoTag:         "us", Hosts: "demo.cloud.example.com",
-			}},
+			}, endpointError: nil},
 
 		{name: "RR on TwoClusters Service NotFound", ingress: RRon2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"},
 			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service,
-			serviceErr: errors.NewNotFound(schema.GroupResource{}, RRon2().Service.Name),
+			serviceErr: errors.NewNotFound(schema.GroupResource{}, RRon2().Service.Name), endpointError: nil,
 			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.NotFound},
 				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "us", Hosts: "demo.cloud.example.com",
+			}},
+
+		{name: "RR on TwoClusters Missing Rules", ingress: ingressNoRules, config: &depresolver.Config{ClusterGeoTag: "us"},
+			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: nil, service: nil,
+			serviceErr: nil, endpointError: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{},
+				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "us", Hosts: "",
+			}},
+
+		{name: "RR on TwoClusters Ingress Backend Not Specified", ingress: ingressNoBackend, config: &depresolver.Config{ClusterGeoTag: "us"},
+			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service,
+			serviceErr: errors.NewNotFound(schema.GroupResource{}, RRon2().Service.Name), endpointError: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.NotFound},
+				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "us", Hosts: "demo.cloud.example.com",
+			}},
+
+		{name: "RR on TwoClusters Endpoint Error", ingress: RRon2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"},
+			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service,
+			serviceErr: nil, endpointError: serr,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Unhealthy},
+				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "us", Hosts: "demo.cloud.example.com",
+			}},
+
+		{name: "RR on TwoClusters DNSEndpoint Error", ingress: RRon2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"},
+			dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service,
+			serviceErr: nil, endpointError: nil, dnsEndpointError: serr,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Healthy},
+				HealthyRecords: map[string][]string{},
 				GeoTag:         "us", Hosts: "demo.cloud.example.com",
 			}},
 	}
@@ -199,22 +237,22 @@ func TestGetStatus(t *testing.T) {
 
 			// arrange
 			m := Client(t)
-			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Service{})).DoAndReturn(
 				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
 					svc.Spec = test.service.Spec
 					return test.serviceErr
 				})
-			if test.serviceErr == nil {
-				m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
-					func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
-						ep.Subsets = test.endpoint.Subsets
-						return nil
-					})
-			}
-			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Endpoints{})).DoAndReturn(
+				func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
+					ep.Subsets = test.endpoint.Subsets
+					return test.endpointError
+				})
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&externaldns.DNSEndpoint{})).DoAndReturn(
 				func(arg0, arg1 interface{}, ep *externaldns.DNSEndpoint, args ...interface{}) error {
 					ep.Spec = test.dnsEndpoint.Spec
-					return nil
+					return test.dnsEndpointError
 				})
 
 			// act

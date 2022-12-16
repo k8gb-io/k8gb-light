@@ -209,12 +209,13 @@ func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 			}
 
 			// check if service endpoint exists
+			serviceHealth[rule.Host] = metrics.Unhealthy
 			ep := &corev1.Endpoints{}
 			err = i.c.Get(context.TODO(), selector, ep)
 			if err != nil {
-				return serviceHealth
+				continue
 			}
-			serviceHealth[rule.Host] = metrics.Unhealthy
+
 			for _, subset := range ep.Subsets {
 				if len(subset.Addresses) > 0 {
 					serviceHealth[rule.Host] = metrics.Healthy
