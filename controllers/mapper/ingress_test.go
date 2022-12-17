@@ -231,6 +231,26 @@ func TestGetStatus(t *testing.T) {
 				HealthyRecords: map[string][]string{},
 				GeoTag:         "us", Hosts: "demo.cloud.example.com",
 			}},
+
+		{name: "FO on TwoClusters", ingress: FOon2c2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
+			dnsEndpoint: FOon2c2().LocalTargetsDNSEndpoint, endpoint: FOon2c2().Endpoint, service: FOon2c2().Service, serviceErr: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Healthy},
+				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "us", Hosts: "demo.cloud.example.com",
+			}},
+
+		// {name: "RR on TwoClusters With Two Hosts Pointing To Same Service", ingress: RRon2().AddHost("rodeo.cloud.example.com").Ingress,
+		//	config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
+		//	dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
+		//	expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{
+		//		"demo.cloud.example.com": metrics.Healthy, "rodeo.cloud.example.com": metrics.Healthy},
+		//		HealthyRecords: map[string][]string{
+		//			"demo.cloud.example.com":  {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"},
+		//			"rodeo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+		//		GeoTag: "us", Hosts: "demo.cloud.example.com, rodeo.cloud.example.com",
+		//	}},
+
+		// TODO: healthy records jsou ty co nejsou localtargets! , no A records; zadne targety, vice rules v ingressu;  WRR, FO;
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -241,13 +261,13 @@ func TestGetStatus(t *testing.T) {
 				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
 					svc.Spec = test.service.Spec
 					return test.serviceErr
-				})
+				}).Times(len(test.ingress.Spec.Rules))
 
 			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Endpoints{})).DoAndReturn(
 				func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
 					ep.Subsets = test.endpoint.Subsets
 					return test.endpointError
-				})
+				}).Times(len(test.ingress.Spec.Rules))
 
 			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&externaldns.DNSEndpoint{})).DoAndReturn(
 				func(arg0, arg1 interface{}, ep *externaldns.DNSEndpoint, args ...interface{}) error {

@@ -108,17 +108,21 @@ func (d Data) deepCopy() Data {
 	}
 }
 
-func OneClusterFO() Data {
+func FOon2c1() Data {
 	data := testData.deepCopy()
 	data.Ingress.Annotations =
-		map[string]string{AnnotationStrategy: depresolver.FailoverStrategy, AnnotationPrimaryGeoTag: "us"}
+		map[string]string{AnnotationStrategy: depresolver.FailoverStrategy, AnnotationPrimaryGeoTag: "eu"}
+	data.LocalTargetsDNSEndpoint.Spec.Endpoints[0].Targets = []string{"172.18.0.5", "172.18.0.6"}
+	data.LocalTargetsDNSEndpoint.Spec.Endpoints[1].Targets = []string{"172.18.0.3", "172.18.0.4"}
 	return data
 }
 
-func OneClusterWRR() Data {
+func FOon2c2() Data {
 	data := testData.deepCopy()
 	data.Ingress.Annotations =
-		map[string]string{AnnotationStrategy: depresolver.RoundRobinStrategy, AnnotationWeightJSON: "{\"eu\":5,\"us\":10}"}
+		map[string]string{AnnotationStrategy: depresolver.FailoverStrategy, AnnotationPrimaryGeoTag: "eu"}
+	data.LocalTargetsDNSEndpoint.Spec.Endpoints[0].Targets = []string{"172.18.0.3", "172.18.0.4"}
+	data.LocalTargetsDNSEndpoint.Spec.Endpoints[1].Targets = []string{"172.18.0.3", "172.18.0.4"}
 	return data
 }
 
@@ -129,8 +133,25 @@ func RRon2() Data {
 	return data
 }
 
-func OneClusterGeo() Data {
-	data := testData.deepCopy()
-	data.Ingress.Annotations = map[string]string{AnnotationStrategy: depresolver.GeoStrategy}
-	return data
+func (d Data) AddHost(host string) Data {
+	rule := netv1.IngressRule{
+		Host: host,
+		IngressRuleValue: netv1.IngressRuleValue{
+			HTTP: &netv1.HTTPIngressRuleValue{
+				Paths: []netv1.HTTPIngressPath{
+					{Path: "/", PathType: &Prefix, Backend: netv1.IngressBackend{
+						Service: &netv1.IngressServiceBackend{
+							Name: "frontend-podinfo",
+							Port: netv1.ServiceBackendPort{
+								Name:   "http",
+								Number: 9898,
+							},
+						},
+					}},
+				},
+			},
+		},
+	}
+	d.Ingress.Spec.Rules = append(d.Ingress.Spec.Rules, rule)
+	return d
 }
