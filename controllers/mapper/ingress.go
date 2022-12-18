@@ -43,12 +43,14 @@ type IngressMapper struct {
 	c      client.Client
 	config *depresolver.Config
 	rs     *LoopState
+	dig    utils.Digger
 }
 
 func NewIngressMapper(c client.Client, config *depresolver.Config) *IngressMapper {
 	return &IngressMapper{
 		c:      c,
 		config: config,
+		dig:    utils.NewUDPDig(config.EdgeDNSServers),
 	}
 }
 
@@ -133,7 +135,7 @@ func (i *IngressMapper) GetExposedIPs() ([]string, error) {
 			exposed = append(exposed, ing.IP)
 		}
 		if len(ing.Hostname) > 0 {
-			ips, err := utils.Dig(ing.Hostname, i.config.EdgeDNSServers...)
+			ips, err := i.dig.DigA(ing.Hostname)
 			if err != nil {
 				return nil, err
 			}

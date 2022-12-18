@@ -23,6 +23,8 @@ import (
 	"reflect"
 	"testing"
 
+	"cloud.example.com/annotation-operator/controllers/utils"
+
 	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -92,7 +94,7 @@ func TestGetIngress(t *testing.T) {
 
 		// arrange
 		t.Run(test.name, func(t *testing.T) {
-			m := Client(t)
+			m := M(t)
 			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(arg0, arg1 interface{}, ing *netv1.Ingress, args ...interface{}) error {
 					if test.nn.Name == "" || test.nn.Namespace == "" {
@@ -120,12 +122,17 @@ func TestGetIngress(t *testing.T) {
 	}
 }
 
-func Client(t *testing.T) struct{ Client client.Client } {
+func M(t *testing.T) struct {
+	Client client.Client
+	Dig    utils.Digger
+} {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	return struct {
 		Client client.Client
+		Dig    utils.Digger
 	}{
-		NewMockClient(ctrl),
+		Client: NewMockClient(ctrl),
+		Dig:    NewMockDigger(ctrl),
 	}
 }

@@ -130,6 +130,7 @@ func FOon2c2() Data {
 func RRon2() Data {
 	data := testData.deepCopy()
 	data.Ingress.Annotations = map[string]string{AnnotationStrategy: depresolver.RoundRobinStrategy}
+	data.Ingress.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: "172.18.0.5"}, {IP: "172.18.0.6"}}
 	return data
 }
 

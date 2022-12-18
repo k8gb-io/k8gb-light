@@ -95,7 +95,7 @@ func TestIngressMapperRemovingFinalizer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// arrange
 			fainalzationLogicCalled := false
-			m := Client(t)
+			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
 			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
@@ -145,7 +145,7 @@ func TestIngressMapperInjectingFinalizer(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// arrange
-			m := Client(t)
+			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
 			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
@@ -232,11 +232,18 @@ func TestGetStatus(t *testing.T) {
 				GeoTag:         "us", Hosts: "demo.cloud.example.com",
 			}},
 
-		{name: "FO on TwoClusters", ingress: FOon2c2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
+		{name: "FO on TwoClusters US", ingress: FOon2c2().Ingress, config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
 			dnsEndpoint: FOon2c2().LocalTargetsDNSEndpoint, endpoint: FOon2c2().Endpoint, service: FOon2c2().Service, serviceErr: nil,
 			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Healthy},
 				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.3", "172.18.0.4"}},
 				GeoTag:         "us", Hosts: "demo.cloud.example.com",
+			}},
+
+		{name: "FO on TwoClusters EU", ingress: FOon2c1().Ingress, config: &depresolver.Config{ClusterGeoTag: "eu"}, endpointError: nil,
+			dnsEndpoint: FOon2c2().LocalTargetsDNSEndpoint, endpoint: FOon2c1().Endpoint, service: FOon2c1().Service, serviceErr: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{"demo.cloud.example.com": metrics.Healthy},
+				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.3", "172.18.0.4"}},
+				GeoTag:         "eu", Hosts: "demo.cloud.example.com",
 			}},
 
 		// {name: "RR on TwoClusters With Two Hosts Pointing To Same Service", ingress: RRon2().AddHost("rodeo.cloud.example.com").Ingress,
@@ -256,7 +263,7 @@ func TestGetStatus(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 
 			// arrange
-			m := Client(t)
+			m := M(t)
 			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Service{})).DoAndReturn(
 				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
 					svc.Spec = test.service.Spec
@@ -281,6 +288,43 @@ func TestGetStatus(t *testing.T) {
 
 			// assert
 			assert.True(t, reflect.DeepEqual(test.expectedStatus, status))
+		})
+	}
+}
+
+func TestGetExposedIPs(t *testing.T) {
+	const (
+		demo  = "demo.cloud.example.com"
+		rodeo = "rodeo.cloud.example.com"
+	)
+	var tests = []struct {
+		name                 string
+		fqdn                 string
+		ingressStatusRecords []corev1.LoadBalancerIngress
+		expectedErr          error
+		expectedIPs          []string
+	}{
+		{name: "Ingress Status IPs", ingressStatusRecords: []corev1.LoadBalancerIngress{{IP: "172.18.0.5"}, {IP: "172.18.0.6"}},
+			expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6"}},
+		// {name: "Ingress Status Hosts", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: demo}, {Hostname: rodeo}},
+		//	expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6", "172.18.0.7"}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// arrange
+			m := M(t)
+			m.Dig.(*MockDigger).EXPECT().DigA(demo).Times(1).Return([]string{"172.18.0.5", "172.18.0.6"}, nil)
+			m.Dig.(*MockDigger).EXPECT().DigA(rodeo).Times(1).Return([]string{"172.18.0.7"}, nil)
+			ingress := RRon2().Ingress.DeepCopy()
+			ingress.Status.LoadBalancer.Ingress = test.ingressStatusRecords
+
+			// act
+			rs, _ := fromIngress(ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
+			ips, err := rs.GetExposedIPs()
+
+			// assert
+			assert.Equal(t, test.expectedIPs, ips)
+			assert.Equal(t, test.expectedErr != nil, err != nil)
 		})
 	}
 }

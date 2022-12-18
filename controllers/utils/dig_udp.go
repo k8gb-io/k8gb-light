@@ -26,45 +26,24 @@ import (
 	"github.com/miekg/dns"
 )
 
-type DNSServer struct {
-	Host string
-	Port int
+type UDPDig struct {
+	edgeDNSServers []DNSServer
 }
 
-type DNSList []DNSServer
-
-type Digger interface {
-	DigA(fqdn string) (ips []string, err error)
+func NewUDPDig(edgeDNSServers []DNSServer) *UDPDig {
+	return &UDPDig{edgeDNSServers: edgeDNSServers}
 }
 
-func (s DNSServer) String() string {
-	return fmt.Sprintf("%s:%v", s.Host, s.Port)
-}
-
-func (l DNSList) String() string {
-	var aux []string
-	for _, el := range l {
-		aux = append(aux, el.String())
-	}
-	return strings.Join(aux, ",")
-}
-
-// Dig returns a list of IP addresses for a given FQDN by using the dns servers from edgeDNSServers
-// dns servers are tried one by one from the edgeDNSServers and if there is a non-error response it is returned and the rest is not tried
-func Dig(fqdn string, edgeDNSServers ...DNSServer) (ips []string, err error) {
-	if len(edgeDNSServers) == 0 {
-		return nil, fmt.Errorf("empty edgeDNSServers, provide at least one")
-	}
+func (u *UDPDig) DigA(fqdn string) (ips []string, err error) {
 	if len(fqdn) == 0 {
 		return
 	}
-
 	if !strings.HasSuffix(fqdn, ".") {
 		fqdn += "."
 	}
 	msg := new(dns.Msg)
 	msg.SetQuestion(fqdn, dns.TypeA)
-	ack, err := Exchange(msg, edgeDNSServers)
+	ack, err := u.exchange(msg)
 	if err != nil {
 		return nil, fmt.Errorf("dig error: %s", err)
 	}
@@ -75,11 +54,8 @@ func Dig(fqdn string, edgeDNSServers ...DNSServer) (ips []string, err error) {
 	return
 }
 
-func Exchange(m *dns.Msg, edgeDNSServers []DNSServer) (msg *dns.Msg, err error) {
-	if len(edgeDNSServers) == 0 {
-		return nil, fmt.Errorf("empty edgeDNSServers, provide at least one")
-	}
-	for _, ns := range edgeDNSServers {
+func (u *UDPDig) exchange(m *dns.Msg) (msg *dns.Msg, err error) {
+	for _, ns := range u.edgeDNSServers {
 		if ns.Host == "" {
 			return nil, fmt.Errorf("empty edgeDNSServer.Host in the list")
 		}
@@ -89,5 +65,5 @@ func Exchange(m *dns.Msg, edgeDNSServers []DNSServer) (msg *dns.Msg, err error) 
 		}
 		return
 	}
-	return nil, fmt.Errorf("exchange error: all dns servers were tried and none of them were able to resolve, err: %s", err)
+	return nil, fmt.Errorf("exchange error: all dns servers: '%v' were tried and none of them were able to resolve, err: %s", u.edgeDNSServers, err)
 }
