@@ -245,38 +245,25 @@ func TestIngressGetStatus(t *testing.T) {
 				HealthyRecords: map[string][]string{"demo.cloud.example.com": {"172.18.0.3", "172.18.0.4"}},
 				GeoTag:         "eu", Hosts: "demo.cloud.example.com",
 			}},
-
-		// {name: "RR on TwoClusters With Two Hosts Pointing To Same Service", ingress: RRon2().AddHost("rodeo.cloud.example.com").Ingress,
-		//	config: &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
-		//	dnsEndpoint: RRon2().LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
-		//	expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{
-		//		"demo.cloud.example.com": metrics.Healthy, "rodeo.cloud.example.com": metrics.Healthy},
-		//		HealthyRecords: map[string][]string{
-		//			"demo.cloud.example.com":  {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"},
-		//			"rodeo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
-		//		GeoTag: "us", Hosts: "demo.cloud.example.com, rodeo.cloud.example.com",
-		//	}},
-
-		// TODO: healthy records jsou ty co nejsou localtargets! , no A records; zadne targety, vice rules v ingressu;  WRR, FO;
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			// arrange
 			m := M(t)
-			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Service{})).DoAndReturn(
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Service{}}).DoAndReturn(
 				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
 					svc.Spec = test.service.Spec
 					return test.serviceErr
-				}).Times(len(test.ingress.Spec.Rules))
+				})
 
-			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Endpoints{})).DoAndReturn(
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Endpoints{}}).DoAndReturn(
 				func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
 					ep.Subsets = test.endpoint.Subsets
 					return test.endpointError
-				}).Times(len(test.ingress.Spec.Rules))
+				})
 
-			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&externaldns.DNSEndpoint{})).DoAndReturn(
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&externaldns.DNSEndpoint{}}).DoAndReturn(
 				func(arg0, arg1 interface{}, ep *externaldns.DNSEndpoint, args ...interface{}) error {
 					ep.Spec = test.dnsEndpoint.Spec
 					return test.dnsEndpointError
@@ -290,6 +277,116 @@ func TestIngressGetStatus(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(test.expectedStatus, status))
 		})
 	}
+}
+
+func TestIngressGetStatusMulti(t *testing.T) {
+	twoHostsSameService := RRon2().AddHost("rodeo.cloud.example.com",
+		[]string{"172.18.0.5", "172.18.0.6"}, []string{"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"})
+	twoHostsDifferentService := RRon2().AddHost("rodeo.cloud.example.com",
+		[]string{"172.18.0.5", "172.18.0.6"}, []string{"172.20.0.3", "172.20.0.4", "172.20.0.5"})
+	var tests = []struct {
+		name             string
+		ingress          *netv1.Ingress
+		dnsEndpoint      *externaldns.DNSEndpoint
+		service          *corev1.Service
+		endpoint         *corev1.Endpoints
+		config           *depresolver.Config
+		serviceErr       error
+		endpointError    error
+		dnsEndpointError error
+		expectedStatus   Status
+	}{
+		{name: "RR on TwoClusters With Two Hosts Pointing To Same Service",
+			ingress: twoHostsSameService.Ingress,
+			config:  &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
+			dnsEndpoint: twoHostsSameService.LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{
+				"demo.cloud.example.com": metrics.Healthy, "rodeo.cloud.example.com": metrics.Healthy},
+				HealthyRecords: map[string][]string{
+					"demo.cloud.example.com":  {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"},
+					"rodeo.cloud.example.com": {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"}},
+				GeoTag: "us", Hosts: "demo.cloud.example.com, rodeo.cloud.example.com",
+			}},
+		{name: "RR on TwoClusters With Two Hosts Pointing To Different Services",
+			ingress: twoHostsDifferentService.Ingress,
+			config:  &depresolver.Config{ClusterGeoTag: "us"}, endpointError: nil,
+			dnsEndpoint: twoHostsDifferentService.LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{
+				"demo.cloud.example.com": metrics.Healthy, "rodeo.cloud.example.com": metrics.Healthy},
+				HealthyRecords: map[string][]string{
+					"demo.cloud.example.com":  {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"},
+					"rodeo.cloud.example.com": {"172.20.0.3", "172.20.0.4", "172.20.0.5"}},
+				GeoTag: "us", Hosts: "demo.cloud.example.com, rodeo.cloud.example.com",
+			}},
+		{name: "RR on TwoClusters With Two Hosts Pointing To Different Services - Unhealthy",
+			ingress: twoHostsDifferentService.Ingress,
+			config:  &depresolver.Config{ClusterGeoTag: "us"}, endpointError: fmt.Errorf("ep error"),
+			dnsEndpoint: twoHostsDifferentService.LocalTargetsDNSEndpoint, endpoint: RRon2().Endpoint, service: RRon2().Service, serviceErr: nil,
+			expectedStatus: Status{ServiceHealth: map[string]metrics.HealthStatus{
+				"demo.cloud.example.com": metrics.Unhealthy, "rodeo.cloud.example.com": metrics.Unhealthy},
+				HealthyRecords: map[string][]string{
+					"demo.cloud.example.com":  {"172.18.0.5", "172.18.0.6", "172.18.0.3", "172.18.0.4"},
+					"rodeo.cloud.example.com": {"172.20.0.3", "172.20.0.4", "172.20.0.5"}},
+				GeoTag: "us", Hosts: "demo.cloud.example.com, rodeo.cloud.example.com",
+			}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// arrange
+			m := M(t)
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Service{}}).DoAndReturn(
+				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
+					svc.Spec = test.service.Spec
+					return test.serviceErr
+				})
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Endpoints{}}).DoAndReturn(
+				func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
+					ep.Subsets = test.endpoint.Subsets
+					return test.endpointError
+				})
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Service{}}).DoAndReturn(
+				func(arg0, arg1 interface{}, svc *corev1.Service, args ...interface{}) error {
+					svc.Spec = test.service.Spec
+					return test.serviceErr
+				})
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&corev1.Endpoints{}}).DoAndReturn(
+				func(arg0, arg1 interface{}, ep *corev1.Endpoints, args ...interface{}) error {
+					ep.Subsets = test.endpoint.Subsets
+					return test.endpointError
+				})
+
+			m.Client.(*MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), EqTypeMatcher{&externaldns.DNSEndpoint{}}).DoAndReturn(
+				func(arg0, arg1 interface{}, ep *externaldns.DNSEndpoint, args ...interface{}) error {
+					ep.Spec = test.dnsEndpoint.Spec
+					return test.dnsEndpointError
+				})
+
+			// act
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, test.config, utils.NewUDPDig()))
+			status := rs.GetStatus()
+
+			// assert
+			assert.True(t, reflect.DeepEqual(test.expectedStatus, status))
+		})
+	}
+}
+
+type EqTypeMatcher struct {
+	x interface{}
+}
+
+func (e EqTypeMatcher) Matches(x interface{}) bool {
+	b := utils.GetType(x)
+	a := utils.GetType(e.x)
+	return a == b
+}
+
+func (e EqTypeMatcher) String() string {
+	return fmt.Sprintf("is equal to %v", e.x)
 }
 
 func TestIngressGetExposedIPs(t *testing.T) {
@@ -357,7 +454,8 @@ func TestIngressEqual(t *testing.T) {
 		},
 		{name: "Ingress Spec Differ", expectedResult: false,
 			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
-			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().AddHost("host").Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().AddHost("host", []string{}, []string{}).Ingress,
+				Spec: Spec{Type: depresolver.RoundRobinStrategy}},
 		},
 		{name: "Spec Differ", expectedResult: false,
 			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
