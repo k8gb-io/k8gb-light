@@ -141,7 +141,7 @@ func TestEmptyEdgeDNSInTheList(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn, edgeDNSServers...)
+	result, err := NewUDPDig(edgeDNSServers...).DigA(fqdn)
 	// assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -171,7 +171,7 @@ func TestValidEdgeDNSButNonExistingFQDN(t *testing.T) {
 	edgeDNSServer := "localhost"
 	fqdn := "some-valid-ip-fqdn-123"
 	// act
-	result, err := Dig(fqdn, DNSServer{Host: edgeDNSServer, Port: 53})
+	result, err := NewUDPDig(DNSServer{Host: edgeDNSServer, Port: 53}).DigA(fqdn)
 	// assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
