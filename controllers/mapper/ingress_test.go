@@ -98,7 +98,7 @@ func TestIngressMapperRemovingFinalizer(t *testing.T) {
 			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig([]utils.DNSServer{})))
 			result, err := rs.TryRemoveFinalizer(func(state *LoopState) error {
 				fainalzationLogicCalled = true
 				return test.finalizationLogicError
@@ -148,7 +148,7 @@ func TestIngressMapperInjectingFinalizer(t *testing.T) {
 			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig([]utils.DNSServer{})))
 			result, err := rs.TryInjectFinalizer()
 			// assert
 			assert.Equal(t, test.expectedResult, result)
@@ -160,7 +160,7 @@ func TestIngressMapperInjectingFinalizer(t *testing.T) {
 	}
 }
 
-func TestGetStatus(t *testing.T) {
+func TestIngressGetStatus(t *testing.T) {
 	var serr = fmt.Errorf("error")
 	ingressNoBackend := RRon2().Ingress.DeepCopy()
 	ingressNoBackend.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend.Service.Name = ""
@@ -283,7 +283,7 @@ func TestGetStatus(t *testing.T) {
 				})
 
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, test.config))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, test.config, utils.NewUDPDig([]utils.DNSServer{})))
 			status := rs.GetStatus()
 
 			// assert
@@ -292,11 +292,13 @@ func TestGetStatus(t *testing.T) {
 	}
 }
 
-func TestGetExposedIPs(t *testing.T) {
+func TestIngressGetExposedIPs(t *testing.T) {
 	const (
 		demo  = "demo.cloud.example.com"
 		rodeo = "rodeo.cloud.example.com"
+		zulu  = "zulu.cloud.example.com"
 	)
+	serr := fmt.Errorf("some error")
 	var tests = []struct {
 		name                 string
 		fqdn                 string
@@ -306,8 +308,12 @@ func TestGetExposedIPs(t *testing.T) {
 	}{
 		{name: "Ingress Status IPs", ingressStatusRecords: []corev1.LoadBalancerIngress{{IP: "172.18.0.5"}, {IP: "172.18.0.6"}},
 			expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6"}},
-		// {name: "Ingress Status Hosts", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: demo}, {Hostname: rodeo}},
-		//	expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6", "172.18.0.7"}},
+		{name: "Ingress Status Hosts", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: demo}, {Hostname: rodeo}},
+			expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6", "172.18.0.7"}},
+		{name: "Dig produces error", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: zulu}},
+			expectedErr: serr, expectedIPs: []string(nil)},
+		{name: "No records", ingressStatusRecords: []corev1.LoadBalancerIngress{},
+			expectedErr: nil, expectedIPs: []string(nil)},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -315,11 +321,12 @@ func TestGetExposedIPs(t *testing.T) {
 			m := M(t)
 			m.Dig.(*MockDigger).EXPECT().DigA(demo).Times(1).Return([]string{"172.18.0.5", "172.18.0.6"}, nil)
 			m.Dig.(*MockDigger).EXPECT().DigA(rodeo).Times(1).Return([]string{"172.18.0.7"}, nil)
+			m.Dig.(*MockDigger).EXPECT().DigA(zulu).Times(1).Return(nil, serr)
 			ingress := RRon2().Ingress.DeepCopy()
 			ingress.Status.LoadBalancer.Ingress = test.ingressStatusRecords
 
 			// act
-			rs, _ := fromIngress(ingress, NewIngressMapper(m.Client, &depresolver.Config{}))
+			rs, _ := fromIngress(ingress, NewIngressMapper(m.Client, &depresolver.Config{}, m.Dig))
 			ips, err := rs.GetExposedIPs()
 
 			// assert

@@ -46,11 +46,11 @@ type IngressMapper struct {
 	dig    utils.Digger
 }
 
-func NewIngressMapper(c client.Client, config *depresolver.Config) *IngressMapper {
+func NewIngressMapper(c client.Client, config *depresolver.Config, dig utils.Digger) *IngressMapper {
 	return &IngressMapper{
 		c:      c,
 		config: config,
-		dig:    utils.NewUDPDig(config.EdgeDNSServers),
+		dig:    dig,
 	}
 }
 
