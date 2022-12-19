@@ -78,7 +78,7 @@ func (i *IngressMapper) UpdateStatusAnnotation() (err error) {
 
 // Equal compares given ingress annotations and Ingres.Spec. If any of ingresses doesn't exist, returns false
 func (i *IngressMapper) Equal(rs *LoopState) bool {
-	if i.rs == nil || rs == nil {
+	if rs == nil || rs.Ingress == nil {
 		return false
 	}
 	if !reflect.DeepEqual(i.rs.Spec, rs.Spec) {

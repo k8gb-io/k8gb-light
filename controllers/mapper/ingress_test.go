@@ -335,3 +335,56 @@ func TestIngressGetExposedIPs(t *testing.T) {
 		})
 	}
 }
+
+func TestIngressEqual(t *testing.T) {
+	m := M(t)
+	m1 := NewIngressMapper(m.Client, &depresolver.Config{}, m.Dig)
+	m2 := NewIngressMapper(m.Client, &depresolver.Config{}, m.Dig)
+
+	var tests = []struct {
+		name           string
+		expectedResult bool
+		loopStateA     *LoopState
+		loopStateB     *LoopState
+	}{
+		{name: "Ingress Equal", expectedResult: true,
+			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+		},
+		{name: "Compared LoopState is nil", expectedResult: false,
+			loopStateA: &LoopState{Mapper: m2, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: nil,
+		},
+		{name: "Ingress Spec Differ", expectedResult: false,
+			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().AddHost("host").Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+		},
+		{name: "Spec Differ", expectedResult: false,
+			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.FailoverStrategy}},
+		},
+		{name: "Ingress Nil", expectedResult: false,
+			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: nil, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+		},
+		{name: "Status Differ", expectedResult: true,
+			loopStateA: &LoopState{Mapper: m1, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}, Status: Status{GeoTag: "us"}},
+			loopStateB: &LoopState{Mapper: m2, Ingress: RRon2().Ingress, Spec: Spec{Type: depresolver.RoundRobinStrategy}},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// arrange
+			test.loopStateA.SetReference(test.loopStateA)
+			if test.loopStateB != nil {
+				test.loopStateB.SetReference(test.loopStateB)
+			}
+
+			// act
+			b := test.loopStateA.Equal(test.loopStateB)
+
+			// assert
+			assert.Equal(t, test.expectedResult, b)
+		})
+	}
+}

@@ -153,6 +153,7 @@ func (d Data) AddHost(host string) Data {
 			},
 		},
 	}
-	d.Ingress.Spec.Rules = append(d.Ingress.Spec.Rules, rule)
-	return d
+	d1 := d.deepCopy()
+	d1.Ingress.Spec.Rules = append(d1.Ingress.Spec.Rules, rule)
+	return d1
 }
