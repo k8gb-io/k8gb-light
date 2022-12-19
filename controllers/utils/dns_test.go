@@ -43,7 +43,7 @@ func TestValidDigFQDNWithDot(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn+".", defaultEdgeDNSServer)
+	result, err := NewUDPDig(defaultEdgeDNSServer).DigA(fqdn + ".")
 	// assert
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
@@ -57,7 +57,7 @@ func TestValidDig(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn, defaultEdgeDNSServer)
+	result, err := NewUDPDig(defaultEdgeDNSServer).DigA(fqdn)
 	// assert
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
@@ -71,7 +71,7 @@ func TestEmptyFQDNButValidEdgeDNS(t *testing.T) {
 	}
 	fqdn := ""
 	// act
-	result, err := Dig(fqdn, defaultEdgeDNSServer)
+	result, err := NewUDPDig(defaultEdgeDNSServer).DigA(fqdn)
 	// assert
 	assert.NoError(t, err)
 	assert.Nil(t, result)
@@ -81,7 +81,7 @@ func TestEmptyEdgeDNS(t *testing.T) {
 	// arrange
 	fqdn := "whatever"
 	// act
-	result, err := Dig(fqdn, DNSServer{Host: "", Port: 53})
+	result, err := NewUDPDig(DNSServer{Host: "", Port: 53}).DigA(fqdn)
 	// assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -91,7 +91,7 @@ func TestEmptyDNSList(t *testing.T) {
 	// arrange
 	fqdn := "whatever"
 	// act
-	result, err := Dig(fqdn, []DNSServer{}...)
+	result, err := NewUDPDig([]DNSServer{}...).DigA(fqdn)
 	// assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -110,7 +110,7 @@ func TestOneValidEdgeDNSInTheList(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn, edgeDNSServers...)
+	result, err := NewUDPDig(edgeDNSServers...).DigA(fqdn)
 	// assert
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)
@@ -126,7 +126,7 @@ func TestNoValidEdgeDNSInTheList(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn, edgeDNSServers...)
+	result, err := NewUDPDig(edgeDNSServers...).DigA(fqdn)
 	// assert
 	assert.Error(t, err)
 	assert.Nil(t, result)
@@ -159,7 +159,7 @@ func TestMultipleValidEdgeDNSInTheList(t *testing.T) {
 	}
 	fqdn := defaultFqdn
 	// act
-	result, err := Dig(fqdn, edgeDNSServers...)
+	result, err := NewUDPDig(edgeDNSServers...).DigA(fqdn)
 	// assert
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result)

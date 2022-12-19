@@ -98,7 +98,7 @@ func TestIngressMapperRemovingFinalizer(t *testing.T) {
 			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig([]utils.DNSServer{})))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig()))
 			result, err := rs.TryRemoveFinalizer(func(state *LoopState) error {
 				fainalzationLogicCalled = true
 				return test.finalizationLogicError
@@ -148,7 +148,7 @@ func TestIngressMapperInjectingFinalizer(t *testing.T) {
 			m := M(t)
 			m.Client.(*MockClient).EXPECT().Update(gomock.Any(), gomock.Any()).Return(test.updateError).Times(1)
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig([]utils.DNSServer{})))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, &depresolver.Config{}, utils.NewUDPDig()))
 			result, err := rs.TryInjectFinalizer()
 			// assert
 			assert.Equal(t, test.expectedResult, result)
@@ -283,7 +283,7 @@ func TestIngressGetStatus(t *testing.T) {
 				})
 
 			// act
-			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, test.config, utils.NewUDPDig([]utils.DNSServer{})))
+			rs, _ := fromIngress(test.ingress, NewIngressMapper(m.Client, test.config, utils.NewUDPDig()))
 			status := rs.GetStatus()
 
 			// assert

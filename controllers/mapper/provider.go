@@ -67,7 +67,7 @@ func (c *CommonProvider) Get(selector types.NamespacedName) (rs *LoopState, resu
 // FromIngress LoopState from Ingress instance
 func (c *CommonProvider) FromIngress(ingress *netv1.Ingress) (*LoopState, error) {
 	// TODO: check here
-	m := NewIngressMapper(c.c, c.config, utils.NewUDPDig(c.config.EdgeDNSServers))
+	m := NewIngressMapper(c.c, c.config, utils.NewUDPDig(c.config.EdgeDNSServers...))
 	return fromIngress(ingress, m)
 }
 

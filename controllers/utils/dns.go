@@ -34,6 +34,9 @@ type DNSServer struct {
 type DNSList []DNSServer
 
 type Digger interface {
+	// DigA returns a list of IP A-addresses for a given FQDN by using the dns servers from edgeDNSServers
+	// dns servers are tried one by one from the edgeDNSServers and if there is a non-error response it is returned and
+	// the rest is not tried
 	DigA(fqdn string) (ips []string, err error)
 }
 
@@ -59,9 +62,7 @@ func Dig(fqdn string, edgeDNSServers ...DNSServer) (ips []string, err error) {
 		return
 	}
 
-	if !strings.HasSuffix(fqdn, ".") {
-		fqdn += "."
-	}
+	fqdn = dns.Fqdn(fqdn)
 	msg := new(dns.Msg)
 	msg.SetQuestion(fqdn, dns.TypeA)
 	ack, err := Exchange(msg, edgeDNSServers)
