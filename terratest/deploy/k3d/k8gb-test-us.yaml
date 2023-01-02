@@ -1,0 +1,31 @@
+apiVersion: k3d.io/v1alpha4
+kind: Simple
+metadata:
+  name: k8gb-test-us
+image: docker.io/rancher/k3s:v1.25.2-k3s1
+agents: 1
+network: k3d-action-bridge-network
+ports:
+  - port: 91:80
+    nodeFilters:
+      - agent:0:direct
+  - port: 454:443
+    nodeFilters:
+      - agent:0:direct
+  - port: 9091:30090
+    nodeFilters:
+      - agent:0:direct
+  - port: 5064:30053/tcp
+    nodeFilters:
+      - agent:0:direct
+  - port: 5064:53/udp
+    nodeFilters:
+      - agent:0:direct
+options:
+  k3d:
+    disableLoadbalancer: true
+  k3s:
+    extraArgs:
+      - arg: --disable=traefik,servicelb,metrics-server,local-storage
+        nodeFilters:
+          - server:*
