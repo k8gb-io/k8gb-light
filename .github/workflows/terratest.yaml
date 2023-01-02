@@ -43,3 +43,14 @@ jobs:
         with:
           cluster-name: "k8gb-test-za"
           args: -c terratest/deploy/k3d/k8gb-test-za.yaml
+
+      - name: K8GB deployment
+        run: |
+          cd terratest
+          make deploy-full-terratest-setup
+          echo "Cluster EU:"
+          kubectl get no -owide --context=k8gb-test-eu
+          echo "Cluster US:"
+          kubectl get no -owide --context=k8gb-test-us
+          echo "Cluster ZA:"
+          kubectl get no -owide --context=k8gb-test-za

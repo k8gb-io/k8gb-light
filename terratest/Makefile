@@ -34,17 +34,24 @@ NGINX_INGRESS_VALUES_PATH ?= ./deploy/ingress/nginx-ingress-values.yaml
 CLUSTER_GSLB_NETWORK = k3d-action-bridge-network
 CLUSTER_GSLB_GATEWAY = docker network inspect $(CLUSTER_GSLB_NETWORK) -f '{{ (index .IPAM.Config 0).Gateway }}'
 
-deploy-full-local-setup:
-	$(MAKEIN) rebuild-k8gb-image
-	$(MAKEIN) pull-images
+
+create-clusters:
 	$(MAKEIN) prepare-cluster-edge-dns
 	$(MAKEIN) prepare-cluster-k8gb-test-eu
 	$(MAKEIN) prepare-cluster-k8gb-test-us
 	$(MAKEIN) prepare-cluster-k8gb-test-za
+
+deploy-full-terratest-setup:
+	$(MAKEIN) rebuild-k8gb-image
+	$(MAKEIN) pull-images
 	$(MAKEIN) deploy-cluster-k8gb-edge-dns
 	$(MAKEIN) deploy-cluster-k8gb-test-eu CLUSTER_GEOTAG=eu EXT_CLUSTER_GEOTAGS=us\\,za
 	$(MAKEIN) deploy-cluster-k8gb-test-us CLUSTER_GEOTAG=us EXT_CLUSTER_GEOTAGS=eu\\,za
 	$(MAKEIN) deploy-cluster-k8gb-test-za CLUSTER_GEOTAG=za EXT_CLUSTER_GEOTAGS=eu\\,us
+
+deploy-full-local-setup:
+	$(MAKEIN) create-clusters
+	$(MAKEIN) deploy-full-terratest-setup
 
 deploy-clusters:
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'
@@ -116,5 +123,3 @@ rebuild-k8gb-image:
 	@echo -e "\n$(YELLOW)Rebuild Image $(CYAN)$(REPOSITORY)/$(BIN):$(TAG) $(NC)"
 	$(MAKEAWAY) build
 	$(MAKEAWAY) image
-
-include ./Makefile_Proxy

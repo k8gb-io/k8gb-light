@@ -116,3 +116,4 @@ redeploy: build image
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'
 
 
+include ./terratest/Makefile
