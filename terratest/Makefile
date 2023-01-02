@@ -123,3 +123,6 @@ rebuild-k8gb-image:
 	@echo -e "\n$(YELLOW)Rebuild Image $(CYAN)$(REPOSITORY)/$(BIN):$(TAG) $(NC)"
 	$(MAKEAWAY) build
 	$(MAKEAWAY) image
+
+terratest-1:
+	go mod tidy && go test ./1_cluster/ -v -timeout 15m
