@@ -29,6 +29,7 @@ const (
 	ResultExistsButNotAnnotationFound
 	ResultFinalizerRemoved
 	ResultFinalizerInstalled
+	ResultEndpointDeleted
 	ResultContinue
 )
 
@@ -50,5 +51,6 @@ type Mapper interface {
 	TryRemoveFinalizer(func(*LoopState) error) (Result, error)
 	SetReference(*LoopState)
 	UpdateStatusAnnotation() error
-	RemoveDNSEndpoint() (Result, error)
+	// TryRemoveDNSEndpoint removes local DNSEndpoint if exists
+	TryRemoveDNSEndpoint() (Result, error)
 }

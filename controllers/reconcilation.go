@@ -61,7 +61,22 @@ func (r *AnnoReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	rs, rr, err := r.Mapper.Get(req.NamespacedName)
 	switch rr {
-	case mapper.ResultNotFound, mapper.ResultExistsButNotAnnotationFound:
+	case mapper.ResultNotFound:
+		r.Log.Info().
+			Str("Namespace", req.NamespacedName.Namespace).
+			Str("Ingress", req.NamespacedName.Name).
+			Str("Annotation", mapper.AnnotationStrategy).
+			Msg("Ingress or annotation not found. Stop...")
+		return r.ReconcilerResult.Stop()
+	case mapper.ResultExistsButNotAnnotationFound:
+		if rx, _ := rs.TryRemoveDNSEndpoint(); rx == mapper.ResultEndpointDeleted {
+			r.Log.Debug().
+				Str("Namespace", req.NamespacedName.Namespace).
+				Str("Endpoint", req.NamespacedName.Name).
+				Str("Annotation", mapper.AnnotationStrategy).
+				Msg("Ingress annotation removed, DNSEndpoint deleted")
+			return r.ReconcilerResult.Stop()
+		}
 		r.Log.Info().
 			Str("Namespace", req.NamespacedName.Namespace).
 			Str("Ingress", req.NamespacedName.Name).

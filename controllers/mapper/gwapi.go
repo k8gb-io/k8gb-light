@@ -36,7 +36,7 @@ func NewGatewayAPIMapper(c client.Client, config *depresolver.Config) *GatewayAP
 	}
 }
 
-func (g *GatewayAPIMapper) RemoveDNSEndpoint() (Result, error) {
+func (g *GatewayAPIMapper) TryRemoveDNSEndpoint() (Result, error) {
 	panic("not implemented")
 }
 
