@@ -59,7 +59,6 @@ deploy-clusters:
 pull-images:
 	@echo -e "\n$(YELLOW)Pulling Images to be imported into clusters$(NC)"
 	docker pull ghcr.io/stefanprodan/podinfo:5.2.0
-	docker pull ghcr.io/stefanprodan/podinfo:5.1.1
 	docker pull k8s.gcr.io/ingress-nginx/controller:v1.1.1
 	docker pull absaoss/k8s_crd:v0.0.8
 	docker pull absaoss/external-dns:rfc-ns1
