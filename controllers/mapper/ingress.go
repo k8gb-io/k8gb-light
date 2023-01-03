@@ -227,3 +227,27 @@ func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 	}
 	return serviceHealth
 }
+
+func (i *IngressMapper) RemoveDNSEndpoint() (r Result, err error) {
+	dnsEndpoint := &externaldns.DNSEndpoint{}
+	err = i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
+	r, err = i.getConverterResult(err)
+	if r == ResultNotFound || r == ResultError {
+		return r, err
+	}
+	err = i.c.Delete(context.TODO(), dnsEndpoint)
+	r, err = i.getConverterResult(err)
+	if r == ResultExists {
+		return ResultNotFound, nil
+	}
+	return r, err
+}
+
+func (i *IngressMapper) getConverterResult(err error) (Result, error) {
+	if err != nil && errors.IsNotFound(err) {
+		return ResultNotFound, nil
+	} else if err != nil {
+		return ResultError, err
+	}
+	return ResultExists, nil
+}

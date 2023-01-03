@@ -29,15 +29,19 @@ type GatewayAPIMapper struct {
 	// rs     *LoopState
 }
 
-func (g *GatewayAPIMapper) GetStatus() Status {
-	panic("not implemented")
-}
-
 func NewGatewayAPIMapper(c client.Client, config *depresolver.Config) *GatewayAPIMapper {
 	return &GatewayAPIMapper{
 		c:      c,
 		config: config,
 	}
+}
+
+func (g *GatewayAPIMapper) RemoveDNSEndpoint() (Result, error) {
+	panic("not implemented")
+}
+
+func (g *GatewayAPIMapper) GetStatus() Status {
+	panic("not implemented")
 }
 
 func (g GatewayAPIMapper) UpdateStatusAnnotation() error {

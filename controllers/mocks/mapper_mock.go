@@ -95,6 +95,21 @@ func (mr *MockMapperMockRecorder) GetStatus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockMapper)(nil).GetStatus))
 }
 
+// RemoveDNSEndpoint mocks base method.
+func (m *MockMapper) RemoveDNSEndpoint() (mapper.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveDNSEndpoint")
+	ret0, _ := ret[0].(mapper.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveDNSEndpoint indicates an expected call of RemoveDNSEndpoint.
+func (mr *MockMapperMockRecorder) RemoveDNSEndpoint() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDNSEndpoint", reflect.TypeOf((*MockMapper)(nil).RemoveDNSEndpoint))
+}
+
 // SetReference mocks base method.
 func (m *MockMapper) SetReference(arg0 *mapper.LoopState) {
 	m.ctrl.T.Helper()

@@ -50,4 +50,5 @@ type Mapper interface {
 	TryRemoveFinalizer(func(*LoopState) error) (Result, error)
 	SetReference(*LoopState)
 	UpdateStatusAnnotation() error
+	RemoveDNSEndpoint() (Result, error)
 }
