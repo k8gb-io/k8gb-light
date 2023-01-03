@@ -54,17 +54,19 @@ func (dep DNSEndpoint) GetEndpointByName(name string) (Endpoint, error) {
 	return Endpoint{}, fmt.Errorf("not found")
 }
 
-func (dep DNSEndpoint) WaitUntilEndpointHasTargets(host string, targets []string) (err error) {
+func (r *Resources) WaitUntilDNSEndpointContainsTargets(host string, targets []string) (err error) {
 	var ep Endpoint
 	for i := 0; i < defaultRetries; i++ {
-		ep, err = dep.GetEndpointByName(host)
+		ep, err = r.GetLocalDNSEndpoint().GetEndpointByName(host)
 		if err != nil {
 			return err
 		}
 		if EqualItems(ep.Targets, targets) {
+			r.i.w.t.Logf("SUCCEED: DNSEndpoint has expected targets %s for host %s", ep.Targets, host)
 			return nil
 		}
+		r.i.w.t.Logf("Wait until DNSEndpoint has targets. host: %s has targets %s but expect %s", host, ep.Targets, targets)
 		time.Sleep(seconds * time.Second)
 	}
-	return fmt.Errorf("DNSEndpoint has no proper targets. host: %s; targets: %s; expected: %s", host, ep.Targets, targets)
+	return fmt.Errorf("FAIL: DNSEndpoint has no proper targets. host: %s has targets %s but expect %s", host, ep.Targets, targets)
 }

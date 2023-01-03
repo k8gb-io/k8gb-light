@@ -29,8 +29,9 @@ import (
 const ContextEU = "k3d-k8gb-test-eu"
 const PortEU = 5053
 
-func TestIngressCreatesDNSEndpoint(t *testing.T) {
+func TestDNSEndpointLifecycle(t *testing.T) {
 	const ingressPath = "./resources/ingress_rr.yaml"
+	const ingressEmptyPath = "./resources/ingress_empty.yaml"
 	instanceEU, err := utils.NewWorkflow(t, ContextEU, PortEU).
 		WithIngress(ingressPath).
 		WithTestApp("eu").
@@ -39,20 +40,13 @@ func TestIngressCreatesDNSEndpoint(t *testing.T) {
 	defer instanceEU.Kill()
 	expectedIPs := instanceEU.GetNodesIPs()
 	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
-	err = instanceEU.Resources().GetLocalDNSEndpoint().WaitUntilEndpointHasTargets(host, expectedIPs)
-	assert.NoError(t, err)
-}
 
-func TestIngressRemovesDNSEndpoint(t *testing.T) {
-	const ingressPath = "./resources/ingress_rr.yaml"
-	instanceEU, err := utils.NewWorkflow(t, ContextEU, PortEU).
-		WithIngress(ingressPath).
-		WithTestApp("eu").
-		Start()
-	assert.NoError(t, err)
-	defer instanceEU.Kill()
-	expectedIPs := instanceEU.GetNodesIPs()
-	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
-	err = instanceEU.Resources().GetLocalDNSEndpoint().WaitUntilEndpointHasTargets(host, expectedIPs)
-	assert.NoError(t, err)
+	t.Run("Apply ingress with k8gb annotation", func(t *testing.T) {
+		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(host, expectedIPs)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Remove k8gb annotation from ingress", func(t *testing.T) {
+		instanceEU.ReapplyIngress(ingressEmptyPath)
+	})
 }

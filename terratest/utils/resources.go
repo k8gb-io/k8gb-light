@@ -47,8 +47,7 @@ func (r *Resources) GetExternalDNSEndpoint() DNSEndpoint {
 
 func (r *Resources) getDNSEndpoint(epName, ns string) (ep DNSEndpoint, err error) {
 	ep = DNSEndpoint{}
-	opts := k8s.NewKubectlOptions(r.i.w.k8sOptions.ContextName, r.i.w.k8sOptions.ConfigPath, ns)
-	j, err := k8s.RunKubectlAndGetOutputE(r.i.w.t, opts, "get", "dnsendpoints.externaldns.k8s.io", epName, "-ojson")
+	j, err := k8s.RunKubectlAndGetOutputE(r.i.w.t, r.i.w.k8sOptions, "get", "dnsendpoints.externaldns.k8s.io", epName, "-ojson")
 	if err != nil {
 		return ep, err
 	}
