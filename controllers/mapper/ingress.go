@@ -231,7 +231,7 @@ func (i *IngressMapper) getHealthStatus() map[string]metrics.HealthStatus {
 func (i *IngressMapper) TryRemoveDNSEndpoint() (r Result, err error) {
 	dnsEndpoint := &externaldns.DNSEndpoint{}
 	err = i.c.Get(context.TODO(), i.rs.NamespacedName, dnsEndpoint)
-	r, err = i.getConverterResult(err)
+	r, _ = i.getConverterResult(err)
 	if r == ResultNotFound || r == ResultError {
 		return r, nil
 	}

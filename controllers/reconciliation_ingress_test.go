@@ -81,7 +81,12 @@ func TestReconcileRequest(t *testing.T) {
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
 		},
 		{
-			Name:    "Ingress Found Without Annotation",
+			Name:    "Ingress Found Without Annotation and Endpoint",
+			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}},
+			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
+		},
+		{
+			Name:    "Ingress Found Without Annotation with Endpoint ",
 			Request: reconcile.Request{NamespacedName: types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}},
 			Result:  reconcile.Result{Requeue: false, RequeueAfter: 0},
 		},
@@ -94,6 +99,12 @@ func TestReconcileRequest(t *testing.T) {
 	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "error", Name: ingressName}, gomock.Any()).
 		Return(fmt.Errorf("random error")).AnyTimes()
 	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), types.NamespacedName{Namespace: "foundNoAnnotation", Name: ingressName}, gomock.Any()).
+		Return(nil).AnyTimes()
+	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(errors.NewNotFound(schema.GroupResource{}, ingressName)).AnyTimes()
+	cl.Client.(*mocks.MockClient).EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).AnyTimes()
+	cl.Client.(*mocks.MockClient).EXPECT().Delete(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
 
 	for _, test := range tests {

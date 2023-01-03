@@ -95,21 +95,6 @@ func (mr *MockMapperMockRecorder) GetStatus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockMapper)(nil).GetStatus))
 }
 
-// RemoveDNSEndpoint mocks base method.
-func (m *MockMapper) TryRemoveDNSEndpoint() (mapper.Result, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveDNSEndpoint")
-	ret0, _ := ret[0].(mapper.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RemoveDNSEndpoint indicates an expected call of RemoveDNSEndpoint.
-func (mr *MockMapperMockRecorder) RemoveDNSEndpoint() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDNSEndpoint", reflect.TypeOf((*MockMapper)(nil).TryRemoveDNSEndpoint))
-}
-
 // SetReference mocks base method.
 func (m *MockMapper) SetReference(arg0 *mapper.LoopState) {
 	m.ctrl.T.Helper()
@@ -135,6 +120,21 @@ func (m *MockMapper) TryInjectFinalizer() (mapper.Result, error) {
 func (mr *MockMapperMockRecorder) TryInjectFinalizer() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryInjectFinalizer", reflect.TypeOf((*MockMapper)(nil).TryInjectFinalizer))
+}
+
+// TryRemoveDNSEndpoint mocks base method.
+func (m *MockMapper) TryRemoveDNSEndpoint() (mapper.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TryRemoveDNSEndpoint")
+	ret0, _ := ret[0].(mapper.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TryRemoveDNSEndpoint indicates an expected call of TryRemoveDNSEndpoint.
+func (mr *MockMapperMockRecorder) TryRemoveDNSEndpoint() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TryRemoveDNSEndpoint", reflect.TypeOf((*MockMapper)(nil).TryRemoveDNSEndpoint))
 }
 
 // TryRemoveFinalizer mocks base method.
