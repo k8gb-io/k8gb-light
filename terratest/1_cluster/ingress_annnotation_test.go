@@ -37,11 +37,22 @@ func TestIngressCreatesDNSEndpoint(t *testing.T) {
 		Start()
 	assert.NoError(t, err)
 	defer instanceEU.Kill()
-	ep := instanceEU.Resources().GetLocalDNSEndpoint()
+	expectedIPs := instanceEU.GetNodesIPs()
+	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
+	err = instanceEU.Resources().GetLocalDNSEndpoint().WaitUntilEndpointHasTargets(host, expectedIPs)
 	assert.NoError(t, err)
-	assert.NotNil(t, ep.Spec.Endpoints)
 }
 
 func TestIngressRemovesDNSEndpoint(t *testing.T) {
-
+	const ingressPath = "./resources/ingress_rr.yaml"
+	instanceEU, err := utils.NewWorkflow(t, ContextEU, PortEU).
+		WithIngress(ingressPath).
+		WithTestApp("eu").
+		Start()
+	assert.NoError(t, err)
+	defer instanceEU.Kill()
+	expectedIPs := instanceEU.GetNodesIPs()
+	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
+	err = instanceEU.Resources().GetLocalDNSEndpoint().WaitUntilEndpointHasTargets(host, expectedIPs)
+	assert.NoError(t, err)
 }
