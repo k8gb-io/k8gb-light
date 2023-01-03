@@ -41,12 +41,14 @@ func TestDNSEndpointLifecycle(t *testing.T) {
 	expectedIPs := instanceEU.GetNodesIPs()
 	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
 
-	t.Run("Apply ingress with k8gb annotation", func(t *testing.T) {
+	t.Run("Apply ingress with k8gb annotation, DNSEndpoint created", func(t *testing.T) {
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(host, expectedIPs)
 		assert.NoError(t, err)
 	})
 
-	t.Run("Remove k8gb annotation from ingress", func(t *testing.T) {
+	t.Run("Remove k8gb annotation from ingress, DNSEndpoint removed", func(t *testing.T) {
 		instanceEU.ReapplyIngress(ingressEmptyPath)
+		err = instanceEU.Resources().WaitUntilDNSEndpointNotFound()
+		assert.NoError(t, err)
 	})
 }
