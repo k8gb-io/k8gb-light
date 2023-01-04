@@ -58,8 +58,8 @@ type Instance struct {
 	w *Workflow
 }
 
-const defaultRetries = 20
-const seconds = 3
+const defaultRetries = 12
+const defaultSeconds = 5
 
 func NewWorkflow(t *testing.T, cluster string, port int) *Workflow {
 	var err error
@@ -128,21 +128,21 @@ func (w *Workflow) Start() (*Instance, error) {
 		testAppFilter := metav1.ListOptions{
 			LabelSelector: "app.kubernetes.io/name=" + w.testApp.name,
 		}
-		k8s.WaitUntilNumPodsCreated(w.t, w.k8sOptions, testAppFilter, 1, defaultRetries, seconds*time.Second)
+		k8s.WaitUntilNumPodsCreated(w.t, w.k8sOptions, testAppFilter, 1, defaultRetries, defaultSeconds*time.Second)
 		var testAppPods []corev1.Pod
 		testAppPods = k8s.ListPods(w.t, w.k8sOptions, testAppFilter)
 		for _, pod := range testAppPods {
-			k8s.WaitUntilPodAvailable(w.t, w.k8sOptions, pod.Name, defaultRetries, seconds*time.Second)
+			k8s.WaitUntilPodAvailable(w.t, w.k8sOptions, pod.Name, defaultRetries, defaultSeconds*time.Second)
 		}
-		k8s.WaitUntilServiceAvailable(w.t, w.k8sOptions, w.testApp.name, defaultRetries, seconds*time.Second)
+		k8s.WaitUntilServiceAvailable(w.t, w.k8sOptions, w.testApp.name, defaultRetries, defaultSeconds*time.Second)
 		w.testApp.isRunning = true
 	}
 
-	// gslb
+	// ingress
 	if w.ingress.path != "" {
 		w.t.Logf("Create ingress from %s", w.ingress.path)
 		k8s.KubectlApply(w.t, w.k8sOptions, w.ingress.path)
-		k8s.WaitUntilIngressAvailable(w.t, w.k8sOptions, w.ingress.name, 100, seconds*time.Second)
+		k8s.WaitUntilIngressAvailable(w.t, w.k8sOptions, w.ingress.name, defaultRetries, defaultSeconds*time.Second)
 		w.ingress.instance = k8s.GetIngress(w.t, w.k8sOptions, w.ingress.name)
 	}
 

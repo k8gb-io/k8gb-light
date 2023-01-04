@@ -66,8 +66,9 @@ func (r *Resources) WaitUntilDNSEndpointNotFound() error {
 			return nil
 		}
 		r.i.w.t.Logf("Wait until DNSEndpoint %s will be removed", r.i.w.ingress.name)
+		time.Sleep(defaultSeconds * time.Second)
 	}
-	return fmt.Errorf("ERROR: DNSEndpoint %s exists", r.i.w.ingress.name)
+	return fmt.Errorf("ERROR: DNSEndpoint %s exists; but should be removed", r.i.w.ingress.name)
 }
 
 func (r *Resources) WaitUntilDNSEndpointContainsTargets(host string, targets []string) (err error) {
@@ -82,7 +83,7 @@ func (r *Resources) WaitUntilDNSEndpointContainsTargets(host string, targets []s
 			return nil
 		}
 		r.i.w.t.Logf("Wait until DNSEndpoint has targets. host: %s has targets %s but expect %s", host, ep.Targets, targets)
-		time.Sleep(seconds * time.Second)
+		time.Sleep(defaultSeconds * time.Second)
 	}
 	return fmt.Errorf("FAIL: DNSEndpoint has no proper targets. host: %s has targets %s but expect %s", host, ep.Targets, targets)
 }
