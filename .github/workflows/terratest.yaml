@@ -1,4 +1,4 @@
-name: Terraetst
+name: Terratest
 on:
   push:
     tags:
