@@ -125,4 +125,4 @@ rebuild-k8gb-image:
 	$(MAKEAWAY) image
 
 terratest-1:
-	go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 15m
+	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 15m

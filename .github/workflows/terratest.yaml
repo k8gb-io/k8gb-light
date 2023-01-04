@@ -57,5 +57,4 @@ jobs:
 
       - name: Running Terratests against 1 cluster
         run: |
-         cd terratest
          make terratest-1
