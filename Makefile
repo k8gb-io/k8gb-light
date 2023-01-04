@@ -21,15 +21,15 @@ IMG = $(REGISTRY)/$(REPOSITORY)/$(BIN)
 KEY?=ing
 NS?=demo
 
-
-
 GOLIC_VERSION  ?= v0.7.2
 GOKART_VERSION ?= v0.5.1
 GOLANGCI_VERSION ?= v1.50.1
 MOCKGEN_VERSION ?= v1.6.0
 
-MAKEIN =make -C .
 SHELL := bash
+TERRATEST_DIR =$(CURDIR)/terratest
+MAKEIN =make -C .
+MAKEAWAY =make -C .
 
 ifndef NO_COLOR
 YELLOW=\033[0;33m
