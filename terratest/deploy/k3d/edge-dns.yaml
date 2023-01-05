@@ -12,6 +12,7 @@ ports:
 - port: 0.0.0.0:1053:30053/udp
   nodeFilters:
   - server:0:direct
+
 options:
   k3d:
     disableLoadbalancer: true

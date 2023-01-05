@@ -63,3 +63,11 @@ func EqualItems[T comparable](a, b []T) bool {
 	}
 	return true
 }
+
+// Merge multiple slices into one
+func Merge[T any](x ...[]T) (y []T) {
+	for _, v := range x {
+		y = append(y, v...)
+	}
+	return y
+}
