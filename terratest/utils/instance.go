@@ -23,12 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gruntwork-io/terratest/modules/shell"
-
-	v1 "k8s.io/api/core/v1"
-
 	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/stretchr/testify/require"
+	v1 "k8s.io/api/core/v1"
 )
 
 func (i *Instance) Kill() {
@@ -71,15 +69,21 @@ func (i *Instance) GetInfo() Info {
 }
 
 // DigCoreDNS digs CoreDNS for cluster instance
-func (i *Instance) DigCoreDNS() []string {
-	port := fmt.Sprintf("-p %d", i.w.port)
+func (i *Instance) DigCoreDNS() (ips []string) {
+	port := fmt.Sprintf("-p%d", i.w.port)
 	dnsServer := fmt.Sprintf("@%s", "localhost")
 	digApp := shell.Command{
 		Command: "dig",
-		Args:    append([]string{port, dnsServer, i.GetInfo().Host, "+short +tcp"}),
+		Args:    []string{port, dnsServer, i.GetInfo().Host, "+short", "+tcp"},
 	}
 	digAppOut := shell.RunCommandAndGetOutput(i.w.t, digApp)
-	ips := strings.Split(digAppOut, "\n")
+	lines := strings.Split(digAppOut, "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, ";;") {
+			continue
+		}
+		ips = append(ips, line)
+	}
 	return ips
 }
 

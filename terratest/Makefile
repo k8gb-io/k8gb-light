@@ -130,18 +130,4 @@ terratest-1:
 terratest-3:
 	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/3_cluster/ -v -timeout 15m
 
-with-colima:
-	colima delete k8gb && colima start -c 8 -m 12 -p k8gb
-	@echo -e "\n$(YELLOW)Colima certificates$(NC)"
-	colima ssh -p k8gb -- sudo sh -c \
-	"openssl s_client -showcerts -connect pkg-containers.githubusercontent.com:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/pkg-containers.githubusercontent.com.crt && \
-	openssl s_client -showcerts -connect ghcr.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/ghcr.io.crt && \
-	openssl s_client -showcerts -connect k8s.gcr.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/k8s.gcr.io.crt && \
-	openssl s_client -showcerts -connect gcr.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/gcr.io.crt && \
-	openssl s_client -showcerts -connect github.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/github.io.crt && \
-	openssl s_client -showcerts -connect k8gb.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/k8gb.io.crt && \
-	openssl s_client -showcerts -connect docker.io:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > /usr/local/share/ca-certificates/docker.io.crt && \
-	update-ca-certificates"
-	sleep 5
-	colima ssh -p k8gb -- sudo sh -c "cat /var/run/docker.pid | xargs kill"
-	sleep 10
+# include ./colima.mk
