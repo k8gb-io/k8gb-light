@@ -59,6 +59,10 @@ func (t *Tools) Curl() bool {
 	return true
 }
 
+// IPsHasSimilarProbabilityOnPrecision : ip addresses will appear in the map with a certain probability that is away
+// from the average by the deviationPercentage value. For example, we have 400 requests and 4 IP addresses.
+// If deviationPercentage =5%, then one address may have 103, the second 97, the third 105 and the fourth 95. Returns true.
+// If deviationPercentage =5%, then one address may have 106 hits, the function returns false.
 func (f IPCounts) IPsHasSimilarProbabilityOnPrecision(deviationPercentage int) bool {
 	var r float64
 	for _, v := range f {

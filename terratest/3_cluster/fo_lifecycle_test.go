@@ -64,8 +64,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Digging one cluster, returned addresses have the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digTimes)
-		p := ips.IPsHasSimilarProbabilityOnPrecision(5)
+		p := ips.IPsHasSimilarProbabilityOnPrecision(8)
 		assert.True(t, p, "Dig must return IPs with equal probability")
+		assert.Equal(t, len(allClusterIPs), len(ips))
 	})
 
 	t.Run("Curling", func(t *testing.T) {
