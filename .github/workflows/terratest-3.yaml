@@ -1,0 +1,60 @@
+name: Terratest Three Clusters
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+jobs:
+  terratest-3-clusters:
+    name: terratest-3-clusters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install Clusters
+        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f
+        with:
+          go-version: 1.19.1
+
+      - name: Create edgeDNS k3s Cluster
+        uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
+        with:
+          cluster-name: "edge-dns"
+          args: -c terratest/deploy/k3d/edge-dns.yaml
+
+      - name: Create EU k3s Cluster
+        uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
+        with:
+          cluster-name: "k8gb-test-eu"
+          args: -c terratest/deploy/k3d/k8gb-test-eu.yaml
+
+      - name: Create US k3s Cluster
+        uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
+        with:
+          cluster-name: "k8gb-test-us"
+          args: -c terratest/deploy/k3d/k8gb-test-us.yaml
+
+      - name: Create ZA k3s Cluster
+        uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
+        with:
+          cluster-name: "k8gb-test-za"
+          args: -c terratest/deploy/k3d/k8gb-test-za.yaml
+
+      - name: K8GB deployment
+        run: |
+          cd terratest
+          make deploy-full-terratest-setup
+          echo "Cluster EU:"
+          kubectl get no -owide --context=k3d-k8gb-test-eu
+          echo "Cluster US:"
+          kubectl get no -owide --context=k3d-k8gb-test-us
+          echo "Cluster ZA:"
+          kubectl get no -owide --context=k3d-k8gb-test-za
+
+      - name: Running Terratests against 1 cluster
+        run: |
+         make terratest-3

@@ -28,6 +28,7 @@ import (
 
 func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	const ingressPath = "./resources/ingress_rr.yaml"
+	const digTimes = 300
 	instanceEU, err := utils.NewWorkflow(t, terratest.Environment.EUCluster, terratest.Environment.EUClusterPort).
 		WithIngress(ingressPath).
 		WithTestApp(terratest.Environment.EUCluster).
@@ -61,13 +62,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Digging 600x one cluster, returned addresses have the same probability", func(t *testing.T) {
-		ips := instanceEU.DigCoreDNS()
-		t.Logf("%v", ips)
+	t.Run("Digging one cluster, returned addresses have the same probability", func(t *testing.T) {
+		ips := instanceEU.Tools().DigNCoreDNS(digTimes)
+		p := ips.IPsHasSimilarProbabilityOnPrecision(5)
+		assert.True(t, p, "Dig must return IPs with equal probability")
 	})
 
 	t.Run("Curling", func(t *testing.T) {
-
+		_ = instanceEU.Tools().Curl()
 	})
 
 	// killing ZA cluster

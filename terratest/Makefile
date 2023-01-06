@@ -130,4 +130,4 @@ terratest-1:
 terratest-3:
 	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/3_cluster/ -v -timeout 15m
 
-# include ./colima.mk
+# include $(TERRATEST_DIR)/colima.mk
