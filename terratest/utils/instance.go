@@ -67,8 +67,9 @@ func (i *Instance) Tools() (o *Tools) {
 
 func (i *Instance) GetInfo() Info {
 	return Info{
-		IPs:  i.GetNodesIPs(),
-		Host: i.Resources().Ingress().Spec.Rules[0].Host,
+		IPs:           i.GetNodesIPs(),
+		Host:          i.Resources().Ingress().Spec.Rules[0].Host,
+		K8gbCoreDNSIP: i.w.k8gbCoreDNSIP,
 	}
 }
 
@@ -85,4 +86,7 @@ type Info struct {
 	// Ingress Host, the same host and localtargets-host is expected in the localDNSEndpoint.
 	// If ingress has multiple hosts, localDNSEndpoints has multiple hosts and localtargets
 	Host string
+
+	// CoreDNS IP
+	K8gbCoreDNSIP string
 }
