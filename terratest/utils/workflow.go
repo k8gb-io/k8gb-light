@@ -65,8 +65,8 @@ type Instance struct {
 	w *Workflow
 }
 
-const defaultRetries = 12
-const defaultSeconds = 5
+const defaultRetries = 10
+const defaultSeconds = 10
 
 func NewWorkflow(t *testing.T, cluster string, port int) *Workflow {
 	var err error

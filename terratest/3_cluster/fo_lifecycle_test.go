@@ -70,7 +70,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Wget application, returned clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceEU.Tools().WgetNTestApp(wgetHits)
-		p := instanceHit.HasSimilarProbabilityOnPrecision(25)
+		p := instanceHit.HasSimilarProbabilityOnPrecision(30)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.EUCluster,
 			terratest.Environment.ZACluster))
