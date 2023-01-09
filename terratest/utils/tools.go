@@ -76,7 +76,7 @@ func (t *Tools) WgetTestApp() string {
 	host := t.i.GetInfo().Host
 	cmd := shell.Command{
 		Command: "kubectl",
-		Args:    []string{"--context", t.i.w.k8sOptions.ContextName, "-n", t.i.w.namespace, "exec", "-it", "busybox", "--", "wget", "-qO", "-", host},
+		Args:    []string{"--context", t.i.w.k8sOptions.ContextName, "-n", t.i.w.namespace, "exec", "-i", "busybox", "--", "wget", "-qO", "-", host},
 		Env:     t.i.w.k8sOptions.Env,
 	}
 	out, err := shell.RunCommandAndGetOutputE(t.i.w.t, cmd)
