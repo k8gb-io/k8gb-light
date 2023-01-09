@@ -29,6 +29,7 @@ jobs:
       - name: golic
         run: |
           go install github.com/AbsaOSS/golic@v0.7.2
+          golic inject --dry -x -t apache2
 
       - name: Lint
         uses: golangci/golangci-lint-action@v3
