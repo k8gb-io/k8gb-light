@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Clusters
         uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f
