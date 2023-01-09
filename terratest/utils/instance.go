@@ -32,19 +32,6 @@ func (i *Instance) Kill() {
 	k8s.DeleteNamespace(i.w.t, i.w.k8sOptions, i.w.namespace)
 }
 
-func (i *Instance) GetNodesIPs() (addresses []string) {
-	nodes := k8s.GetNodes(i.w.t, i.w.k8sOptions)
-	for _, n := range nodes {
-		for _, a := range n.Status.Addresses {
-			if a.Type == v1.NodeInternalIP {
-				addresses = append(addresses, a.Address)
-				break
-			}
-		}
-	}
-	return addresses
-}
-
 func (i *Instance) ReapplyIngress(path string) {
 	i.w.WithIngress(path)
 	i.w.t.Logf("Applying ingress from %s", i.w.ingress.path)
@@ -71,11 +58,23 @@ func (i *Instance) GetInfo() Info {
 		host = i.Resources().Ingress().Spec.Rules[0].Host
 	}
 	return Info{
-		IPs:           i.GetNodesIPs(),
+		NodeIPs:       i.getNodesIPs(),
 		Host:          host,
 		K8gbCoreDNSIP: i.w.k8gbCoreDNSIP,
 		AppStatus:     i.getAppStatus(),
 	}
+}
+
+type Info struct {
+	// Cluster available IP's.
+	NodeIPs []string
+	// Ingress Host, the same host and localtargets-host is expected in the localDNSEndpoint.
+	// If ingress has multiple hosts, localDNSEndpoints has multiple hosts and localtargets
+	Host string
+	// CoreDNS IP
+	K8gbCoreDNSIP string
+	// App Status
+	AppStatus string
 }
 
 func (i *Instance) continueIfK8sResourceNotFound(err error) {
@@ -85,16 +84,15 @@ func (i *Instance) continueIfK8sResourceNotFound(err error) {
 	require.NoError(i.w.t, err)
 }
 
-type Info struct {
-	// Cluster available IP's.
-	IPs []string
-	// Ingress Host, the same host and localtargets-host is expected in the localDNSEndpoint.
-	// If ingress has multiple hosts, localDNSEndpoints has multiple hosts and localtargets
-	Host string
-
-	// CoreDNS IP
-	K8gbCoreDNSIP string
-
-	// App Status
-	AppStatus string
+func (i *Instance) getNodesIPs() (addresses []string) {
+	nodes := k8s.GetNodes(i.w.t, i.w.k8sOptions)
+	for _, n := range nodes {
+		for _, a := range n.Status.Addresses {
+			if a.Type == v1.NodeInternalIP {
+				addresses = append(addresses, a.Address)
+				break
+			}
+		}
+	}
+	return addresses
 }

@@ -82,7 +82,7 @@ func (t *Tools) WgetTestApp() string {
 	out, err := shell.RunCommandAndGetOutputE(t.i.w.t, cmd)
 	if out == "Error from server: error dialing backend: EOF" {
 		appStatus := t.i.getAppStatus()
-		nodesIPs := t.i.GetNodesIPs()
+		nodesIPs := t.i.getNodesIPs()
 		t.i.w.t.Logf("NodeIPs %v; AppStatus: %v", nodesIPs, appStatus)
 		return "err"
 	}

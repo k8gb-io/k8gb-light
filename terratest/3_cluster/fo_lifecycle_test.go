@@ -56,7 +56,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	assert.NoError(t, err)
 	defer instanceZA.Kill()
 
-	allClusterIPs := utils.Merge(instanceEU.GetInfo().IPs, instanceUS.GetInfo().IPs, instanceZA.GetInfo().IPs)
+	allClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs, instanceUS.GetInfo().NodeIPs, instanceZA.GetInfo().NodeIPs)
 
 	t.Run("Wait until EU, US, ZA clusters are ready", func(t *testing.T) {
 		// waiting untill all localDNSEndpoints has all addresses
@@ -84,6 +84,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	// killing ZA cluster
+	t.Run("Killing ZA App", func(t *testing.T) {
+		//instanceZA.GetNodesIPs()
+	})
 	// waiting
 	// digging
 	// curling

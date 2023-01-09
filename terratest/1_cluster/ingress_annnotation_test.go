@@ -40,7 +40,7 @@ func TestDNSEndpointLifecycle(t *testing.T) {
 		Start()
 	assert.NoError(t, err)
 	defer instanceEU.Kill()
-	expectedIPs := instanceEU.GetNodesIPs()
+	expectedIPs := instanceEU.GetInfo().NodeIPs
 	host := instanceEU.Resources().Ingress().Spec.Rules[0].Host
 
 	t.Run("Apply ingress with k8gb annotation, DNSEndpoint created", func(t *testing.T) {
