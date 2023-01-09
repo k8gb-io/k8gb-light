@@ -71,3 +71,16 @@ func Merge[T any](x ...[]T) (y []T) {
 	}
 	return y
 }
+
+// MapHasOnlyKeys check that map contains all of specidfied keys and nothing else
+func MapHasOnlyKeys[T comparable, U any](m map[T]U, x ...T) bool {
+	if len(m) != len(x) {
+		return false
+	}
+	for _, v := range x {
+		if _, found := m[v]; !found {
+			return false
+		}
+	}
+	return true
+}

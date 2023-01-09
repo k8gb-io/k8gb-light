@@ -66,10 +66,15 @@ func (i *Instance) Tools() (o *Tools) {
 }
 
 func (i *Instance) GetInfo() Info {
+	var host string
+	if len(i.Resources().Ingress().Spec.Rules) > 0 {
+		host = i.Resources().Ingress().Spec.Rules[0].Host
+	}
 	return Info{
 		IPs:           i.GetNodesIPs(),
-		Host:          i.Resources().Ingress().Spec.Rules[0].Host,
+		Host:          host,
 		K8gbCoreDNSIP: i.w.k8gbCoreDNSIP,
+		AppStatus:     i.getAppStatus(),
 	}
 }
 
@@ -89,4 +94,7 @@ type Info struct {
 
 	// CoreDNS IP
 	K8gbCoreDNSIP string
+
+	// App Status
+	AppStatus string
 }
