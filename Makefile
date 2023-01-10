@@ -45,8 +45,12 @@ GOBIN=$(shell go env GOPATH)/bin
 endif
 
 # check integrity
+.PHONY: quick-check
+quick-check: lint test ## Check project integrity
+
+
 .PHONY: check
-check: mocks lint gokart build test ## Check project integrity
+check: mocks gokart build quick-check  ## Check project integrity
 
 # updates source code with license headers
 .PHONY: license

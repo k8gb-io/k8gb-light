@@ -28,8 +28,12 @@ import (
 )
 
 func (i *Instance) Kill() {
-	i.w.t.Logf("killing %s", i.w.namespace)
-	k8s.DeleteNamespace(i.w.t, i.w.k8sOptions, i.w.namespace)
+	if i.w.isRunning {
+		i.w.t.Logf("killing %s", i.w.namespace)
+		k8s.DeleteNamespace(i.w.t, i.w.k8sOptions, i.w.namespace)
+		return
+	}
+	i.w.t.Logf("%s is already killed", i.w.namespace)
 }
 
 func (i *Instance) ReapplyIngress(path string) {
@@ -49,6 +53,12 @@ func (i *Instance) Resources() (o *Resources) {
 func (i *Instance) Tools() (o *Tools) {
 	return &Tools{
 		i,
+	}
+}
+
+func (i *Instance) App() *App {
+	return &App{
+		i: i,
 	}
 }
 

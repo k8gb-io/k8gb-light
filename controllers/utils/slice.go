@@ -72,13 +72,26 @@ func Merge[T any](x ...[]T) (y []T) {
 	return y
 }
 
-// MapHasOnlyKeys check that map contains all of specidfied keys and nothing else
+// MapHasOnlyKeys check that keys of map are identical to values in slice. If slice has different value than map
+// or slice doesn't have item which exists in map (or vice versa), the program exits
 func MapHasOnlyKeys[T comparable, U any](m map[T]U, x ...T) bool {
 	if len(m) != len(x) {
 		return false
 	}
+	mm := make(map[T]bool, len(m))
+	for k := range m {
+		mm[k] = false
+	}
+
 	for _, v := range x {
 		if _, found := m[v]; !found {
+			return false
+		}
+		mm[v] = true
+	}
+
+	for _, b := range mm {
+		if !b {
 			return false
 		}
 	}

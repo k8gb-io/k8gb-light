@@ -44,6 +44,7 @@ type Workflow struct {
 	k8gbCoreDNSIP string
 	k8sOptions    *k8s.KubectlOptions
 	t             *testing.T
+	isRunning     bool
 	ingress       struct {
 		path     string
 		name     string
@@ -151,6 +152,7 @@ func (w *Workflow) Start() (*Instance, error) {
 		}
 		k8s.WaitUntilServiceAvailable(w.t, w.k8sOptions, w.testApp.name, defaultRetries, defaultSeconds*time.Second)
 		w.testApp.isRunning = true
+		w.isRunning = true
 	}
 
 	// busybox

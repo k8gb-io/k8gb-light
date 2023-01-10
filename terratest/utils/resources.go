@@ -32,8 +32,27 @@ type Resources struct {
 	i *Instance
 }
 
+type IngressStatus struct {
+	// Associated Service status
+	ServiceHealth map[string]string `json:"serviceHealth"`
+	// Current Healthy DNS record structure
+	HealthyRecords map[string][]string `json:"healthyRecords"`
+	// Cluster Geo Tag
+	GeoTag string `json:"geoTag"`
+	// Comma-separated list of hosts. Duplicating the value from range .spec.ingress.rules[*].host for printer column
+	Hosts string `json:"hosts,omitempty"`
+}
+
 func (r *Resources) Ingress() *networkingv1.Ingress {
 	return k8s.GetIngress(r.i.w.t, r.i.w.k8sOptions, r.i.w.ingress.name)
+}
+
+func (r *Resources) IngressStatus() (IngressStatus, error) {
+	const statusAnnotation = "k8gb.io/status"
+	status := IngressStatus{}
+	js := r.Ingress().Annotations[statusAnnotation]
+	err := json.Unmarshal([]byte(js), &status)
+	return status, err
 }
 
 func (r *Resources) GetLocalDNSEndpoint() DNSEndpoint {
