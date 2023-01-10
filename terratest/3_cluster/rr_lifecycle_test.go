@@ -64,11 +64,11 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("Wait until EU, US, ZA clusters are ready", func(t *testing.T) {
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Logf("All clusters are running 🚜💨! \n🇪🇺 %s;\n🇺🇲 %s;\n🇿🇦 %s",
@@ -79,7 +79,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
-		assert.True(t, p, "Dig must return IPs with equal probability")
+		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -96,17 +96,17 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		instanceZA.App().StopTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Digging one cluster, returned IPs of EU, US with the same probability", func(t *testing.T) {
 		ips := instanceUS.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
-		assert.True(t, p, "Dig must return IPs with equal probability")
+		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -121,9 +121,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Digging one cluster, returns IPs of US cluster", func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 		// US dns endpoint not found now
 		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Logf("All is broken!🧨 \n🇪🇺 %s is removed;\n🇺🇲 %s has no k8gb annotation;\n🇿🇦 %s has stopped app",
@@ -156,9 +156,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		instanceZA.App().StartTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Digging one cluster, returns IPs of ZA cluster", func(t *testing.T) {
@@ -178,22 +178,22 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 			WithTestApp(terratest.Environment.EUCluster).
 			WithBusybox().
 			Start()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		allClusterIPs = utils.Merge(instanceZA.GetInfo().NodeIPs, instanceUS.GetInfo().NodeIPs, instanceEU.GetInfo().NodeIPs)
 		// US dns endpoint not found now
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceZA.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
-		assert.True(t, p, "Dig must return IPs with equal probability")
+		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
