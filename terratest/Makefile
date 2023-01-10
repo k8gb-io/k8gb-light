@@ -125,9 +125,9 @@ rebuild-k8gb-image:
 	$(MAKEAWAY) image
 
 terratest-1:
-	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 15m
+	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 40m
 
 terratest-3:
-	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/3_cluster/ -v -timeout 15m
+	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/3_cluster/ -v -timeout 40m
 
 # include $(TERRATEST_DIR)/colima.mk

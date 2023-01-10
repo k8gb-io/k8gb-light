@@ -121,7 +121,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		require.NoError(t, err)
+		require.NoError(t, err, "READ: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
 		require.NoError(t, err)
 	})
