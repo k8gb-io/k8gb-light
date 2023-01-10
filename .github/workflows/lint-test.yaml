@@ -19,7 +19,7 @@ on:
   pull_request:
 jobs:
   lint:
-    name: golangci-lint
+    name: lint-test
     runs-on: ubuntu-latest
 
     steps:

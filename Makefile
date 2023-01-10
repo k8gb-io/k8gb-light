@@ -107,17 +107,7 @@ mocks:
 	mockgen -package=mapper -destination=controllers/mapper/client_mock.go sigs.k8s.io/controller-runtime/pkg/client Client
 	$(MAKEIN) license
 
-ing:
-	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb1
-	kubectl -n demo apply -f ing.yaml --context=k3d-test-gslb2
-
 image:
 	docker build . -t ${IMG}:${TAG}
-
-redeploy: build image
-	k3d image import ${REPOSITORY}/${BIN}:${TAG} -c test-gslb2
-	k3d image import ${REPOSITORY}/${BIN}:${TAG} -c test-gslb1
-	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'
-
 
 include ./terratest/Makefile
