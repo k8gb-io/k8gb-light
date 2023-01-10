@@ -164,9 +164,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application US clusters have similar probability", func(t *testing.T) {
+	t.Run("Wget application ZA clusters ", func(t *testing.T) {
 		instanceHit := instanceZA.Tools().WgetNTestApp(10)
-		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.USCluster))
+		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.ZACluster))
 	})
 
 	t.Run("Reapply US ingress(add K8gb annotation) and recreate EU namespace", func(t *testing.T) {
