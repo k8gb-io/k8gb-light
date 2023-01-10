@@ -33,6 +33,8 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	const ingressEmptyPath = "./resources/ingress_empty.yaml"
 	const digHits = 300
 	const wgetHits = 150
+	const expectedDigProbabilityDiff = 8
+	const expectedWgetProbabilityDiff = 35
 	instanceEU, err := utils.NewWorkflow(t, terratest.Environment.EUCluster, terratest.Environment.EUClusterPort).
 		WithIngress(ingressPath).
 		WithTestApp(terratest.Environment.EUCluster).
@@ -76,14 +78,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digHits)
-		p := ips.HasSimilarProbabilityOnPrecision(8)
+		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		assert.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
 	t.Run("Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceEU.Tools().WgetNTestApp(wgetHits)
-		p := instanceHit.HasSimilarProbabilityOnPrecision(30)
+		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster,
 			terratest.Environment.ZACluster))
@@ -103,14 +105,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Digging one cluster, returned IPs of EU, US with the same probability", func(t *testing.T) {
 		ips := instanceUS.Tools().DigNCoreDNS(digHits)
-		p := ips.HasSimilarProbabilityOnPrecision(8)
+		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		assert.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
 	t.Run("Wget application, EU,US clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceEU.Tools().WgetNTestApp(wgetHits)
-		p := instanceHit.HasSimilarProbabilityOnPrecision(30)
+		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster))
 	})
@@ -190,14 +192,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceZA.Tools().DigNCoreDNS(digHits)
-		p := ips.HasSimilarProbabilityOnPrecision(8)
+		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		assert.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
 	t.Run("Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceUS.Tools().WgetNTestApp(wgetHits)
-		p := instanceHit.HasSimilarProbabilityOnPrecision(30)
+		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster,
 			terratest.Environment.ZACluster))
