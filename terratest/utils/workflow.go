@@ -152,7 +152,6 @@ func (w *Workflow) Start() (*Instance, error) {
 		}
 		k8s.WaitUntilServiceAvailable(w.t, w.k8sOptions, w.testApp.name, defaultRetries, defaultSeconds*time.Second)
 		w.testApp.isRunning = true
-		w.isRunning = true
 	}
 
 	// busybox
@@ -175,7 +174,7 @@ func (w *Workflow) Start() (*Instance, error) {
 		k8s.WaitUntilIngressAvailable(w.t, w.k8sOptions, w.ingress.name, defaultRetries, defaultSeconds*time.Second)
 		w.ingress.instance = k8s.GetIngress(w.t, w.k8sOptions, w.ingress.name)
 	}
-
+	w.isRunning = true
 	return &Instance{
 		w: w,
 	}, nil
