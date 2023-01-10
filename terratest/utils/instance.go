@@ -30,6 +30,7 @@ import (
 func (i *Instance) Kill() {
 	if i.w.isRunning {
 		i.w.t.Logf("killing %s", i.w.namespace)
+		i.w.isRunning = false
 		k8s.DeleteNamespace(i.w.t, i.w.k8sOptions, i.w.namespace)
 		return
 	}
