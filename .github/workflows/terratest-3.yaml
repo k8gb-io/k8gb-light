@@ -55,6 +55,6 @@ jobs:
           echo "Cluster ZA:"
           kubectl get no -owide --context=k3d-k8gb-test-za
 
-      - name: Running Terratests against 1 cluster
+      - name: Running Terratests against 3 clusters
         run: |
          make terratest-3

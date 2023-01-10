@@ -138,10 +138,6 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("ReApply US ingress, remove K8gb annotation", func(t *testing.T) {
 		instanceUS.ReapplyIngress(ingressEmptyPath)
 
-		// only Endpoint in ZA still exists (app is down) but it is empty
-		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		assert.NoError(t, err)
-
 		// US dns endpoint not found now
 		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
 		assert.NoError(t, err)
@@ -151,4 +147,60 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		terratest.Environment.EUCluster,
 		terratest.Environment.USCluster,
 		terratest.Environment.ZACluster)
+
+	t.Logf("Spinnig all of them back! 🎩🍀")
+	allClusterIPs = utils.Merge(instanceZA.GetInfo().NodeIPs)
+	t.Run("Starting ZA App, ZA ingress status is Healthy", func(t *testing.T) {
+		instanceZA.App().StartTestApp()
+		// waiting until all localDNSEndpoints has all addresses
+		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
+		assert.NoError(t, err)
+		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Digging one cluster, returns IPs of ZA cluster", func(t *testing.T) {
+		ips := instanceZA.Tools().DigNCoreDNS(20)
+		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
+	})
+
+	t.Run("Wget application US clusters have similar probability", func(t *testing.T) {
+		instanceHit := instanceZA.Tools().WgetNTestApp(10)
+		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.USCluster))
+	})
+
+	t.Run("Reapply US ingress(add K8gb annotation) and recreate EU namespace", func(t *testing.T) {
+		instanceUS.ReapplyIngress(ingressPath)
+		instanceEU, err = utils.NewWorkflow(t, terratest.Environment.EUCluster, terratest.Environment.EUClusterPort).
+			WithIngress(ingressPath).
+			WithTestApp(terratest.Environment.EUCluster).
+			WithBusybox().
+			Start()
+		assert.NoError(t, err)
+
+		allClusterIPs = utils.Merge(instanceZA.GetInfo().NodeIPs, instanceUS.GetInfo().NodeIPs, instanceEU.GetInfo().NodeIPs)
+		// US dns endpoint not found now
+		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
+		assert.NoError(t, err)
+		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
+		assert.NoError(t, err)
+		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
+		ips := instanceZA.Tools().DigNCoreDNS(digHits)
+		p := ips.HasSimilarProbabilityOnPrecision(8)
+		assert.True(t, p, "Dig must return IPs with equal probability")
+		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
+	})
+
+	t.Run("Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
+		instanceHit := instanceUS.Tools().WgetNTestApp(wgetHits)
+		p := instanceHit.HasSimilarProbabilityOnPrecision(30)
+		require.True(t, p, "Instance Hit must return clusters with similar probability")
+		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster,
+			terratest.Environment.ZACluster))
+	})
+
 }
