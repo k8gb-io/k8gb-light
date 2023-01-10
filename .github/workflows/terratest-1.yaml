@@ -1,4 +1,4 @@
-name: Terratest
+name: Terratest One Cluster
 on:
   push:
     tags:
@@ -7,8 +7,8 @@ on:
       - main
   pull_request:
 jobs:
-  terratest:
-    name: terratest
+  terratest-1-cluster:
+    name: terratest-1-cluster
     runs-on: ubuntu-latest
 
     steps:

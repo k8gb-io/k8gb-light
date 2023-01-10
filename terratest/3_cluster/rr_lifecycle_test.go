@@ -30,6 +30,7 @@ import (
 
 func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	const ingressPath = "./resources/ingress_rr.yaml"
+	const ingressEmptyPath = "./resources/ingress_empty.yaml"
 	const digHits = 300
 	const wgetHits = 150
 	instanceEU, err := utils.NewWorkflow(t, terratest.Environment.EUCluster, terratest.Environment.EUClusterPort).
@@ -67,6 +68,11 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
 		assert.NoError(t, err)
 	})
+
+	t.Logf("All clusters are running 🚜💨! \n🇪🇺 %s;\n🇺🇲 %s;\n🇿🇦 %s",
+		terratest.Environment.EUCluster,
+		terratest.Environment.USCluster,
+		terratest.Environment.ZACluster)
 
 	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digHits)
@@ -112,7 +118,6 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	allClusterIPs = utils.Merge(instanceUS.GetInfo().NodeIPs)
 	t.Run("Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
-		// waiting until all localDNSEndpoints has all addresses. EU namespace doesn't exists anymore
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
 		assert.NoError(t, err)
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
@@ -129,10 +134,21 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.USCluster))
 	})
 
-	// digging
-	// curling
-	// killing US cluster
-	// waiting
-	// digging
-	// curling
+	allClusterIPs = []string{}
+	t.Run("ReApply US ingress, remove K8gb annotation", func(t *testing.T) {
+		instanceUS.ReapplyIngress(ingressEmptyPath)
+
+		// only Endpoint in ZA still exists (app is down) but it is empty
+		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
+		assert.NoError(t, err)
+
+		// US dns endpoint not found now
+		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
+		assert.NoError(t, err)
+	})
+
+	t.Logf("All is broken!🧨 \n🇪🇺 %s is removed;\n🇺🇲 %s has no k8gb annotation;\n🇿🇦 %s has stopped app",
+		terratest.Environment.EUCluster,
+		terratest.Environment.USCluster,
+		terratest.Environment.ZACluster)
 }
