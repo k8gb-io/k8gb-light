@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    k8gb.io/strategy: roundRobin
+    k8gb.io/weights: '{"eu":4,"us":5, "za":2}'
+  name: ing
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: demo.cloud.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend-podinfo
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+

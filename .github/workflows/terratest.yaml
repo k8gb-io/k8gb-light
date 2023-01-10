@@ -1,4 +1,4 @@
-name: Terratest One Cluster
+name: Terratest
 on:
   push:
     tags:
@@ -7,10 +7,12 @@ on:
       - main
   pull_request:
 jobs:
-  terratest-1-cluster:
-    name: terratest-1-cluster
+  terratest:
+    name: terratest
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        test-file: ["fo_lifecycle_test.go", "rr_lifecycle_test.go", "wrr_lifecycle_test.go"]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -55,6 +57,8 @@ jobs:
           echo "Cluster ZA:"
           kubectl get no -owide --context=k3d-k8gb-test-za
 
-      - name: Running Terratests against 1 cluster
+      - name: Running Terratests
         run: |
-         make terratest-1
+         cd terratest
+         go mod tidy && go test 3_cluster/${{ matrix.test-file }} -v -timeout 40m
+         make terratest-3

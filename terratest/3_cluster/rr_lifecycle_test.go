@@ -25,7 +25,6 @@ import (
 
 	"github.com/kuritka/annotation-operator/terratest"
 	"github.com/kuritka/annotation-operator/terratest/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
@@ -40,7 +39,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		WithTestApp(terratest.Environment.EUCluster).
 		WithBusybox().
 		Start()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer instanceEU.Kill()
 
 	instanceUS, err := utils.NewWorkflow(t, terratest.Environment.USCluster, terratest.Environment.USClusterPort).
@@ -48,7 +47,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		WithTestApp(terratest.Environment.USCluster).
 		WithBusybox().
 		Start()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer instanceUS.Kill()
 
 	instanceZA, err := utils.NewWorkflow(t, terratest.Environment.ZACluster, terratest.Environment.ZAClusterPort).
@@ -56,7 +55,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		WithTestApp(terratest.Environment.ZACluster).
 		WithBusybox().
 		Start()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer instanceZA.Kill()
 
 	allClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs, instanceUS.GetInfo().NodeIPs, instanceZA.GetInfo().NodeIPs)
@@ -121,9 +120,9 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		require.NoError(t, err, "READ: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
+		require.NoError(t, err, "WARNING: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		require.NoError(t, err)
+		require.NoError(t, err, "WARNING: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
 	})
 
 	t.Run("Digging one cluster, returns IPs of US cluster", func(t *testing.T) {
