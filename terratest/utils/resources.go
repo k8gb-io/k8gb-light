@@ -93,10 +93,7 @@ func (r *Resources) WaitUntilDNSEndpointNotFound() error {
 func (r *Resources) WaitUntilDNSEndpointContainsTargets(host string, targets []string) (err error) {
 	var ep Endpoint
 	for i := 0; i < defaultRetries; i++ {
-		ep, err = r.GetLocalDNSEndpoint().GetEndpointByName(host)
-		if err != nil {
-			return err
-		}
+		ep = r.GetLocalDNSEndpoint().GetEndpointByName(host)
 		if EqualItems(ep.Targets, targets) {
 			r.i.w.t.Logf("SUCCEED: DNSEndpoint has expected targets %s for host %s", ep.Targets, host)
 			return nil

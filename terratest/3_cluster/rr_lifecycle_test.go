@@ -75,14 +75,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		terratest.Environment.USCluster,
 		terratest.Environment.ZACluster)
 
-	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲🇿🇦 Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceEU.Tools().WgetNTestApp(wgetHits)
 		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
@@ -91,7 +91,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	allClusterIPs = utils.Merge(instanceEU.GetInfo().NodeIPs, instanceUS.GetInfo().NodeIPs)
-	t.Run("Killing ZA App, ZA ingress status is Unhealthy", func(t *testing.T) {
+	t.Run("💀🇿🇦 Killing ZA App, ZA ingress status is Unhealthy", func(t *testing.T) {
 		instanceZA.App().StopTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, allClusterIPs)
@@ -102,14 +102,14 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Digging one cluster, returned IPs of EU, US with the same probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲 Digging one cluster, returned IPs of EU, US with the same probability", func(t *testing.T) {
 		ips := instanceUS.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application, EU,US clusters have similar probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲 Wget application, EU,US clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceEU.Tools().WgetNTestApp(wgetHits)
 		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
@@ -117,26 +117,26 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	allClusterIPs = utils.Merge(instanceUS.GetInfo().NodeIPs)
-	t.Run("Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
+	t.Run("💀🇪🇺 Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
-		require.NoError(t, err, "WARNING: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
+		require.NoError(t, err, "WARNING: If you running test locally, ensure the App with same host IS NOT running in forgotten namespaces")
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)
-		require.NoError(t, err, "WARNING: If you running test locally, ensure the App IS NOT running in forgotten namespaces")
+		require.NoError(t, err, "WARNING: If you running test locally, ensure the App with same host IS NOT running in forgotten namespaces")
 	})
 
-	t.Run("Digging one cluster, returns IPs of US cluster", func(t *testing.T) {
+	t.Run("🇺🇲 Digging one cluster, returns IPs of US cluster", func(t *testing.T) {
 		ips := instanceUS.Tools().DigNCoreDNS(20)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application US clusters have similar probability", func(t *testing.T) {
+	t.Run("🇺🇲 Wget application US clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceUS.Tools().WgetNTestApp(10)
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.USCluster))
 	})
 
 	allClusterIPs = []string{}
-	t.Run("ReApply US ingress, remove K8gb annotation", func(t *testing.T) {
+	t.Run("💀🇺🇲 ReApply US ingress, remove K8gb annotation", func(t *testing.T) {
 		instanceUS.ReapplyIngress(ingressEmptyPath)
 
 		// US dns endpoint not found now
@@ -151,7 +151,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Logf("Spinnig all of them back! 🎩🍀")
 	allClusterIPs = utils.Merge(instanceZA.GetInfo().NodeIPs)
-	t.Run("Starting ZA App, ZA ingress status is Healthy", func(t *testing.T) {
+	t.Run("🇿🇦 Starting ZA App, ZA ingress status is Healthy", func(t *testing.T) {
 		instanceZA.App().StartTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceUS.Resources().WaitUntilDNSEndpointNotFound()
@@ -160,17 +160,17 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Digging one cluster, returns IPs of ZA cluster", func(t *testing.T) {
+	t.Run("🇿🇦 Digging one cluster, returns IPs of ZA cluster", func(t *testing.T) {
 		ips := instanceZA.Tools().DigNCoreDNS(20)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application ZA clusters ", func(t *testing.T) {
+	t.Run("🇿🇦 Wget application ZA clusters ", func(t *testing.T) {
 		instanceHit := instanceZA.Tools().WgetNTestApp(10)
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.ZACluster))
 	})
 
-	t.Run("Reapply US ingress(add K8gb annotation) and recreate EU namespace", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲🇿🇦 Reapply US ingress(add K8gb annotation) and recreate EU namespace", func(t *testing.T) {
 		instanceUS.ReapplyIngress(ingressPath)
 		instanceEU, err = utils.NewWorkflow(t, terratest.Environment.EUCluster, terratest.Environment.EUClusterPort).
 			WithIngress(ingressPath).
@@ -189,19 +189,18 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceZA.Tools().DigNCoreDNS(digHits)
 		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
 		require.True(t, p, "Dig must return IPs with equal probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲🇿🇦 Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
 		instanceHit := instanceUS.Tools().WgetNTestApp(wgetHits)
 		p := instanceHit.HasSimilarProbabilityOnPrecision(expectedWgetProbabilityDiff)
 		require.True(t, p, "Instance Hit must return clusters with similar probability")
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster,
 			terratest.Environment.ZACluster))
 	})
-
 }

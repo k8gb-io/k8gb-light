@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: demo.cloud.example.com
+  - host: terratest.cloud.example.com
     http:
       paths:
       - backend:
