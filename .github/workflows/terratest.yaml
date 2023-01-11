@@ -61,7 +61,6 @@ jobs:
         run: |
          cd terratest
          go mod tidy && go test 3_cluster/${{ matrix.test-file }} -v -timeout 60m
-         make terratest-3
 
   terratest-kube-version:
     needs: terratest
