@@ -46,7 +46,7 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 	require.NoError(t, err)
 	defer instanceUS.Kill()
 
-	t.Run("Wait until EU, US clusters are ready", func(t *testing.T) {
+	t.Run("Wait until EU, US, ZA clusters are ready", func(t *testing.T) {
 		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, euClusterIPs)
 		require.NoError(t, err)
@@ -54,9 +54,18 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Logf("All clusters are running 🚜💨! \n🇪🇺 %s;\n🇺🇲 %s",
+	t.Logf("All clusters are running 🚜💨! 🇪🇺 %s;🇺🇲 %s; 🇿🇦 %s;",
 		terratest.Environment.EUCluster,
-		terratest.Environment.USCluster)
+		terratest.Environment.USCluster,
+		terratest.Environment.ZACluster)
+
+	t.Run("🇪🇺 Digging US,EU,ZA cluster, IPs of EU are returned", func(t *testing.T) {
+		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
+		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
+		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
+	})
 
 	t.Run("🇪🇺 Digging US,EU cluster, IPs of EU are returned", func(t *testing.T) {
 		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)

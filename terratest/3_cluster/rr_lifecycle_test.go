@@ -104,7 +104,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("🇪🇺🇺🇲 Digging one cluster, returned IPs of EU, US with the same probability", func(t *testing.T) {
+	t.Run("🇪🇺🇺🇲 Digging one cluster, returned IPs of EU, US", func(t *testing.T) {
 		ips := instanceUS.Tools().DigNCoreDNS(shortDigHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
@@ -128,7 +128,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("🇺🇲 Wget application US clusters have similar probability", func(t *testing.T) {
+	t.Run("🇺🇲 Wget application US ", func(t *testing.T) {
 		instanceHit := instanceUS.Tools().WgetNTestApp(shortWgetHits)
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.USCluster))
 	})
@@ -187,13 +187,13 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
-		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits)
+	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA", func(t *testing.T) {
+		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits * 3)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
-	t.Run("🇪🇺🇺🇲🇿🇦 Wget application, EU,US,ZA clusters have similar probability", func(t *testing.T) {
-		instanceHit := instanceUS.Tools().WgetNTestApp(shortWgetHits)
+	t.Run("🇪🇺🇺🇲🇿🇦 Wget application, EU,US,ZA ", func(t *testing.T) {
+		instanceHit := instanceUS.Tools().WgetNTestApp(shortWgetHits * 3)
 		require.True(t, utils.MapHasOnlyKeys(instanceHit, terratest.Environment.EUCluster, terratest.Environment.USCluster,
 			terratest.Environment.ZACluster))
 	})
