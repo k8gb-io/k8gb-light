@@ -157,7 +157,7 @@ func (w *Workflow) Start() (*Instance, error) {
 	// busybox
 	if w.busybox.isInstalled {
 		w.t.Log("Installing busybox")
-		command := fmt.Sprintf(`echo 'nameserver %s' > /etc/resolv.conf && sleep 1000`, w.k8gbCoreDNSIP)
+		command := fmt.Sprintf(`echo 'nameserver %s' > /etc/resolv.conf && sleep 7200`, w.k8gbCoreDNSIP)
 		kubectlRunBusybox := shell.Command{
 			Command: "kubectl",
 			Args: []string{"--context", w.k8sOptions.ContextName, "-n", w.k8sOptions.Namespace, "run", "busybox",
