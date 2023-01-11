@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test-file: ["fo_lifecycle_test.go", "rr_lifecycle_test.go", "wrr_lifecycle_test.go"]
+        test-file: ["fo_lifecycle_2_clusters_test.go", "fo_lifecycle_3_clusters_test.go", "rr_lifecycle_test.go", "wrr_lifecycle_test.go"]
     steps:
       - name: Check out code
         uses: actions/checkout@v3

@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    k8gb.io/strategy: failover
+    k8gb.io/primary-geotag: us
+  name: ing
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: terratest-fo.cloud.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend-podinfo
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+
