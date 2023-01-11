@@ -7,8 +7,8 @@ on:
       - main
   pull_request:
 jobs:
-  kube-version:
-    name: kube-version
+  terratest-kube-version:
+    name: terratest-kube-version
     runs-on: ubuntu-latest
     strategy:
       matrix:

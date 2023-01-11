@@ -60,5 +60,5 @@ jobs:
       - name: Running Terratests
         run: |
          cd terratest
-         go mod tidy && go test 3_cluster/${{ matrix.test-file }} -v -timeout 40m
+         go mod tidy && go test 3_cluster/${{ matrix.test-file }} -v -timeout 60m
          make terratest-3

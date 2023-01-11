@@ -48,7 +48,6 @@ endif
 .PHONY: quick-check
 quick-check: lint test ## Check project integrity
 
-
 .PHONY: check
 check: mocks gokart build quick-check  ## Check project integrity
 
@@ -59,7 +58,6 @@ license:
 	@go install github.com/AbsaOSS/golic@$(GOLIC_VERSION)
 	$(GOBIN)/golic inject -t apache2
 
-
 # runs golangci-lint aggregated linter; see .golangci.yaml for linter list
 .PHONY: lint
 lint:
@@ -67,7 +65,6 @@ lint:
 	goimports -w ./
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_VERSION)
 	$(GOBIN)/golangci-lint run
-
 
 .PHONY: build
 build:
@@ -86,7 +83,6 @@ test:
 gokart:
 	@go install github.com/praetorian-inc/gokart@$(GOKART_VERSION)
 	$(GOBIN)/gokart scan --globalsTainted --verbose
-
 
 .PHONY: mocks
 mocks:

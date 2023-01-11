@@ -50,9 +50,29 @@ deploy-full-terratest-setup:
 	$(MAKEIN) deploy-cluster-k8gb-test-us CLUSTER_GEOTAG=us EXT_CLUSTER_GEOTAGS=eu\\,za
 	$(MAKEIN) deploy-cluster-k8gb-test-za CLUSTER_GEOTAG=za EXT_CLUSTER_GEOTAGS=eu\\,us
 
+
+deploy-demo:
+	$(MAKEIN) deploy-demo-k8gb-test-eu
+	$(MAKEIN) deploy-demo-k8gb-test-us
+	$(MAKEIN) deploy-demo-k8gb-test-za
+	kubectl config set-context --current --namespace=demo
+	kubectl config use-context k3d-k8gb-test-eu
+
+deploy-demo-%:
+	kubectl delete namespace demo --context=k3d-$(*) --ignore-not-found=true
+	kubectl create namespace demo --dry-run=client -o yaml | kubectl apply --force -f - --context=k3d-$(*)
+	helm upgrade --install frontend podinfo/podinfo \
+		--set ui.message="k3d-$(*)" \
+		--set ui.color="#34577c"\
+		--set image.repository=ghcr.io/stefanprodan/podinfo \
+		--version 5.2.0 \
+		--kube-context k3d-$(*)  \
+		--namespace demo
+
 deploy-full-local-setup:
 	$(MAKEIN) create-clusters
 	$(MAKEIN) deploy-full-terratest-setup
+	$(MAKEIN) deploy-demo
 
 deploy-clusters:
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'

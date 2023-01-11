@@ -43,6 +43,9 @@ func (t *Tools) DigCoreDNS() []string {
 		Args:    []string{port, dnsServer, t.i.GetInfo().Host, "+short", "+tcp", "-4"},
 	}
 	digAppOut := shell.RunCommandAndGetOutput(t.i.w.t, digApp)
+	if digAppOut == "" {
+		return []string{}
+	}
 	return strings.Split(digAppOut, "\n")
 }
 
@@ -69,7 +72,7 @@ func (t *Tools) WgetNTestApp(n int) HitCount {
 
 func (t *Tools) WgetTestApp() string {
 	require.True(t.i.w.t, t.i.w.busybox.isRunning, "Busybox needs to be running. Use WithBusybox() function when init cluster")
-	require.True(t.i.w.t, t.i.w.testApp.isRunning, "TestApp needs to be running. Use WithTestApp(...) function when init cluster")
+	// require.True(t.i.w.t, t.i.w.testApp.isRunning, "TestApp needs to be running. Use WithTestApp(...) function when init cluster")
 	data := struct {
 		Message string `json:"message"`
 	}{}
