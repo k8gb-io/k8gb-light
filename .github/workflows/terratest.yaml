@@ -64,6 +64,7 @@ jobs:
          make terratest-3
 
   terratest-kube-version:
+    needs: terratest
     name: terratest-kube-version
     runs-on: ubuntu-latest
     strategy:
