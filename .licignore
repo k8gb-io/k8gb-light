@@ -3,7 +3,6 @@
 
 # But inject license into these files...
 !Makefile
-!demo.mk
 !*.go
 !Dockerfile*
 !hack/boilerplate.go.txt

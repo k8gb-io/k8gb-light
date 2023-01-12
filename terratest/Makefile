@@ -37,31 +37,12 @@ create-clusters:
 	$(MAKEIN) prepare-cluster-k8gb-test-za
 
 deploy-full-terratest-setup:
-	$(MAKEIN) rebuild-k8gb-image
 	$(MAKEIN) pull-images
+	$(MAKEIN) rebuild-k8gb-image
 	$(MAKEIN) deploy-cluster-k8gb-edge-dns
 	$(MAKEIN) deploy-cluster-k8gb-test-eu CLUSTER_GEOTAG=eu EXT_CLUSTER_GEOTAGS=us\\,za
 	$(MAKEIN) deploy-cluster-k8gb-test-us CLUSTER_GEOTAG=us EXT_CLUSTER_GEOTAGS=eu\\,za
 	$(MAKEIN) deploy-cluster-k8gb-test-za CLUSTER_GEOTAG=za EXT_CLUSTER_GEOTAGS=eu\\,us
-
-
-deploy-demo:
-	$(MAKEIN) deploy-demo-k8gb-test-eu
-	$(MAKEIN) deploy-demo-k8gb-test-us
-	$(MAKEIN) deploy-demo-k8gb-test-za
-	kubectl config set-context --current --namespace=demo
-	kubectl config use-context k3d-k8gb-test-eu
-
-deploy-demo-%:
-	kubectl delete namespace demo --context=k3d-$(*) --ignore-not-found=true
-	kubectl create namespace demo --dry-run=client -o yaml | kubectl apply --force -f - --context=k3d-$(*)
-	helm upgrade --install frontend podinfo/podinfo \
-		--set ui.message="k3d-$(*)" \
-		--set ui.color="#34577c"\
-		--set image.repository=ghcr.io/stefanprodan/podinfo \
-		--version 5.2.0 \
-		--kube-context k3d-$(*)  \
-		--namespace demo
 
 deploy-full-local-setup:
 	$(MAKEIN) create-clusters
@@ -137,6 +118,14 @@ rebuild-k8gb-image:
 	@echo -e "\n$(YELLOW)Rebuild Image $(CYAN)$(REPOSITORY)/$(BIN):$(TAG) $(NC)"
 	$(MAKEAWAY) build
 	$(MAKEAWAY) image
+
+
+clean-namespaces:
+	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-eu
+	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-us
+	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-za
+	# kubectl get namespace --no-headers=true | awk '{print $1}' | grep keyword | xargs kubectl delete ns
+
 
 terratest-1:
 	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 40m
