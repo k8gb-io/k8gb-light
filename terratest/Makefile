@@ -38,16 +38,19 @@ create-clusters:
 
 deploy-full-terratest-setup:
 	$(MAKEIN) pull-images
-	$(MAKEIN) rebuild-k8gb-image
 	$(MAKEIN) deploy-cluster-k8gb-edge-dns
-	$(MAKEIN) deploy-cluster-k8gb-test-eu CLUSTER_GEOTAG=eu EXT_CLUSTER_GEOTAGS=us\\,za
-	$(MAKEIN) deploy-cluster-k8gb-test-us CLUSTER_GEOTAG=us EXT_CLUSTER_GEOTAGS=eu\\,za
-	$(MAKEIN) deploy-cluster-k8gb-test-za CLUSTER_GEOTAG=za EXT_CLUSTER_GEOTAGS=eu\\,us
+	$(MAKEIN) redeploy-clusters
 
 deploy-full-local-setup:
 	$(MAKEIN) create-clusters
 	$(MAKEIN) deploy-full-terratest-setup
 	$(MAKEIN) deploy-demo
+
+redeploy-clusters:
+	$(MAKEIN) rebuild-k8gb-image
+	$(MAKEIN) deploy-cluster-k8gb-test-eu CLUSTER_GEOTAG=eu EXT_CLUSTER_GEOTAGS=us\\,za
+	$(MAKEIN) deploy-cluster-k8gb-test-us CLUSTER_GEOTAG=us EXT_CLUSTER_GEOTAGS=eu\\,za
+	$(MAKEIN) deploy-cluster-k8gb-test-za CLUSTER_GEOTAG=za EXT_CLUSTER_GEOTAGS=eu\\,us
 
 deploy-clusters:
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}'

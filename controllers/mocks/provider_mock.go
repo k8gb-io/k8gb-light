@@ -83,17 +83,17 @@ func (mr *MockProviderMockRecorder) Finalize(arg0 interface{}) *gomock.Call {
 }
 
 // GetExternalTargets mocks base method.
-func (m *MockProvider) GetExternalTargets(arg0 string) assistant.Targets {
+func (m *MockProvider) GetExternalTargets(arg0, arg1 string) assistant.Targets {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetExternalTargets", arg0)
+	ret := m.ctrl.Call(m, "GetExternalTargets", arg0, arg1)
 	ret0, _ := ret[0].(assistant.Targets)
 	return ret0
 }
 
 // GetExternalTargets indicates an expected call of GetExternalTargets.
-func (mr *MockProviderMockRecorder) GetExternalTargets(arg0 interface{}) *gomock.Call {
+func (mr *MockProviderMockRecorder) GetExternalTargets(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockProvider)(nil).GetExternalTargets), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockProvider)(nil).GetExternalTargets), arg0, arg1)
 }
 
 // RequireFinalizer mocks base method.

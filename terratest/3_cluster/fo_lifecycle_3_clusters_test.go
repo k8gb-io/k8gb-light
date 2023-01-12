@@ -56,14 +56,11 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("Wait until EU, US, ZA clusters are ready", func(t *testing.T) {
 		usClusterIPs := instanceUS.GetInfo().NodeIPs
-		euClusterIPs := instanceEU.GetInfo().NodeIPs
-		zaClusterIPs := instanceZA.GetInfo().NodeIPs
-
-		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, utils.Merge(zaClusterIPs, usClusterIPs))
+		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, usClusterIPs)
 		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, usClusterIPs)
 		require.NoError(t, err)
-		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, utils.Merge(euClusterIPs, usClusterIPs))
+		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, usClusterIPs)
 		require.NoError(t, err)
 	})
 

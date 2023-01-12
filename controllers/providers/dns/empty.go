@@ -42,8 +42,8 @@ func (p *EmptyDNSProvider) CreateZoneDelegationForExternalDNS(*mapper.LoopState)
 	return
 }
 
-func (p *EmptyDNSProvider) GetExternalTargets(host string) (targets assistant.Targets) {
-	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
+func (p *EmptyDNSProvider) GetExternalTargets(host, primaryGeoTag string) (targets assistant.Targets) {
+	return p.assistant.GetExternalTargets(host, primaryGeoTag, p.config.GetExternalClusterNSNames())
 }
 
 func (p *EmptyDNSProvider) SaveDNSEndpoint(gslb *mapper.LoopState, i *externaldns.DNSEndpoint) error {

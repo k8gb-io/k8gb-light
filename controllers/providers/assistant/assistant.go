@@ -28,7 +28,7 @@ type Assistant interface {
 	// CoreDNSExposedIPs retrieves list of exposed IP by CoreDNS
 	CoreDNSExposedIPs() ([]string, error)
 	// GetExternalTargets retrieves slice of targets from external clusters
-	GetExternalTargets(host string, extClusterNsNames map[string]string) (targets Targets)
+	GetExternalTargets(host, primaryGeoTag string, extClusterNsNames map[string]string) (targets Targets)
 	// SaveDNSEndpoint update DNS endpoint or create new one if doesnt exist
 	SaveDNSEndpoint(namespace string, i *externaldns.DNSEndpoint) error
 	// RemoveEndpoint removes endpoint

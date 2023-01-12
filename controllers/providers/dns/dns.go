@@ -28,7 +28,7 @@ type Provider interface {
 	// CreateZoneDelegationForExternalDNS handles delegated zone in Edge DNS
 	CreateZoneDelegationForExternalDNS(*mapper.LoopState) error
 	// GetExternalTargets retrieves list of external targets for specified host
-	GetExternalTargets(string) assistant.Targets
+	GetExternalTargets(string, string) assistant.Targets
 	// SaveDNSEndpoint update DNS endpoint in gslb or create new one if doesn't exist
 	SaveDNSEndpoint(*mapper.LoopState, *externaldns.DNSEndpoint) error
 	// String see: Stringer interface

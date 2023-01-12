@@ -211,8 +211,8 @@ func (p *InfobloxProvider) Finalize(rs *mapper.LoopState) error {
 	return nil
 }
 
-func (p *InfobloxProvider) GetExternalTargets(host string) (targets assistant.Targets) {
-	return p.assistant.GetExternalTargets(host, p.config.GetExternalClusterNSNames())
+func (p *InfobloxProvider) GetExternalTargets(host, primaryGeoTag string) (targets assistant.Targets) {
+	return p.assistant.GetExternalTargets(host, primaryGeoTag, p.config.GetExternalClusterNSNames())
 }
 
 func (p *InfobloxProvider) SaveDNSEndpoint(rs *mapper.LoopState, i *externaldns.DNSEndpoint) error {

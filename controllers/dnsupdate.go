@@ -55,7 +55,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 		isHealthy := health == metrics.Healthy
 
 		if isHealthy {
-			finalTargets.Append(r.Config.ClusterGeoTag, localTargets)
+			finalTargets.Append(r.Config.ClusterGeoTag, localTargets, isPrimary)
 			localTargetsHost := fmt.Sprintf("localtargets-%s", host)
 			dnsRecord := &externaldns.Endpoint{
 				DNSName:    localTargetsHost,
@@ -67,20 +67,19 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 		}
 
 		// Check if host is alive on external Gslb
-		externalTargets := r.DNSProvider.GetExternalTargets(host)
-		externalTargets.Sort()
-
+		externalTargets := r.DNSProvider.GetExternalTargets(host, rs.Spec.PrimaryGeoTag)
 		if len(externalTargets) > 0 {
 			switch rs.Spec.Type {
 			case depresolver.RoundRobinStrategy, depresolver.GeoStrategy:
+				externalTargets.Sort()
 				finalTargets.AppendTargets(externalTargets)
 			case depresolver.FailoverStrategy:
-				// If cluster is Primary
+				// If cluster is Primary and Healthy return only own targets
+				// If cluster is Primary and Unhealthy return first Secondary Healthy cluster
+				finalTargets.AppendTargets(externalTargets)
+				finalTargets = finalTargets.FailoverProjection()
 				if isPrimary {
-					// If cluster is Primary and Healthy return only own targets
-					// If cluster is Primary and Unhealthy return Secondary external targets
 					if !isHealthy {
-						finalTargets = externalTargets
 						r.Log.Info().
 							Str("gslb", rs.NamespacedName.Name).
 							Str("cluster", rs.Spec.PrimaryGeoTag).
@@ -89,10 +88,6 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 							Msg("Executing failover strategy for primary cluster")
 					}
 				} else {
-					// If cluster is Secondary and Primary external cluster is Healthy
-					// then return Primary external targets.
-					// Return own targets by default.
-					finalTargets = externalTargets
 					r.Log.Info().
 						Str("gslb", rs.NamespacedName.Name).
 						Str("cluster", rs.Spec.PrimaryGeoTag).
