@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     k8gb.io/strategy: failover
-    k8gb.io/primary-geotag: eu
+    k8gb.io/primary-geotag: us
   name: ing
 spec:
   ingressClassName: nginx
