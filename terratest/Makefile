@@ -25,12 +25,6 @@ CYAN=\033[1;36m
 NC=\033[0m
 endif
 
-BIN := k8gb
-REGISTRY = docker.io
-REPOSITORY = kuritka
-TAG = 932-fix-3
-IMG = $(REGISTRY)/$(REPOSITORY)/$(BIN)
-
 NGINX_INGRESS_VALUES_PATH ?= $(TERRATEST_DIR)/deploy/ingress/nginx-ingress-values.yaml
 CLUSTER_GSLB_NETWORK = k3d-action-bridge-network
 CLUSTER_GSLB_GATEWAY = docker network inspect $(CLUSTER_GSLB_NETWORK) -f '{{ (index .IPAM.Config 0).Gateway }}'
