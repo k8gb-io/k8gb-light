@@ -119,13 +119,10 @@ rebuild-k8gb-image:
 	$(MAKEAWAY) build
 	$(MAKEAWAY) image
 
-
 clean-namespaces:
-	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-eu
-	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-us
-	kubectl get namespace --no-headers=true | awk /${k8gb-test-*}/'{print $1}' --context=k3d-k8gb-test-za
-	# kubectl get namespace --no-headers=true | awk '{print $1}' | grep keyword | xargs kubectl delete ns
-
+	kubectl get namespace --no-headers=true -o custom-columns=NAME:metadata.name --context=k3d-k8gb-test-eu  | grep k8gb-test | xargs kubectl delete ns --context=k3d-k8gb-test-eu
+	kubectl get namespace --no-headers=true -o custom-columns=NAME:metadata.name --context=k3d-k8gb-test-us  | grep k8gb-test | xargs kubectl delete ns --context=k3d-k8gb-test-us
+	kubectl get namespace --no-headers=true -o custom-columns=NAME:metadata.name --context=k3d-k8gb-test-za  | grep k8gb-test | xargs kubectl delete ns --context=k3d-k8gb-test-za
 
 terratest-1:
 	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/1_cluster/ -v -timeout 40m
