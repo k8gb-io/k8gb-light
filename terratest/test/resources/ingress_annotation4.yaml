@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    k8gb.io/strategy: rpundrobin
+    k8gb.io/primary-geotag: eu
+    k8gb.io/dns-ttl-seconds: 222
+    k8gb.io/splitbrain-threshold-seconds: 180
+    xxx: "xxx"
+  name: ing
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: terratest-annotation.cloud.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend-podinfo
+            port:
+              name: http
+        path: /
+        pathType: Prefix

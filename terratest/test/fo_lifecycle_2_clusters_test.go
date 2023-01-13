@@ -47,7 +47,7 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 	defer instanceUS.Kill()
 
 	t.Run("Wait until EU, US, ZA clusters are ready", func(t *testing.T) {
-		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
+		euClusterIPs := instanceEU.GetInfo().NodeIPs
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, euClusterIPs)
 		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, euClusterIPs)
