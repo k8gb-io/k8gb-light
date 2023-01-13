@@ -103,7 +103,6 @@ jobs:
 
       - name: K8GB deployment
         run: |
-          cd terratest
           make deploy-full-terratest-setup
           echo "Cluster EU:"
           kubectl get no -owide --context=k3d-k8gb-test-eu
