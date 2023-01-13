@@ -2,11 +2,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    k8gb.io/strategy: failover
-    k8gb.io/primary-geotag: eu
-    k8gb.io/dns-ttl-seconds: 222
-    k8gb.io/splitbrain-threshold-seconds: 180
-    xxx: "xxx"
+    k8gb.io/strategy: "roundRobin"
+    k8gb.io/primary-geotag: "eu"
+    k8gb.io/dns-ttl-seconds: "222"
+    k8gb.io/splitbrain-threshold-seconds: "180"
+    xxx: "annotation-test3"
   name: ing
 spec:
   ingressClassName: nginx
