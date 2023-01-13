@@ -34,19 +34,24 @@ type Tools struct {
 	i *Instance
 }
 
-// DigCoreDNS digs CoreDNS for cluster instance
-func (t *Tools) DigCoreDNS() []string {
+// DigCoreDNSHost digs CoreDNS for cluster instance
+func (t *Tools) DigCoreDNSHost(host string) []string {
 	port := fmt.Sprintf("-p%d", t.i.w.port)
 	dnsServer := fmt.Sprintf("@%s", "localhost")
 	digApp := shell.Command{
 		Command: "dig",
-		Args:    []string{port, dnsServer, t.i.GetInfo().Host, "+short", "+tcp", "-4"},
+		Args:    []string{port, dnsServer, host, "+short", "+tcp", "-4"},
 	}
 	digAppOut := shell.RunCommandAndGetOutput(t.i.w.t, digApp)
 	if digAppOut == "" {
 		return []string{}
 	}
 	return strings.Split(digAppOut, "\n")
+}
+
+// DigCoreDNS digs CoreDNS for cluster instance
+func (t *Tools) DigCoreDNS() []string {
+	return t.DigCoreDNSHost(t.i.GetInfo().Host)
 }
 
 // DigNCoreDNS digs CoreDNS for cluster instance
