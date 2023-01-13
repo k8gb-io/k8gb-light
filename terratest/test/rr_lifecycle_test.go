@@ -1,4 +1,4 @@
-package terratest
+package test
 
 /*
 Copyright 2022 The k8gb Contributors.

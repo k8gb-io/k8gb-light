@@ -59,7 +59,7 @@ jobs:
       - name: Running Terratests
         run: |
          cd terratest
-         go mod tidy && go test 3_cluster/${{ matrix.test-file }} -v -timeout 60m
+         go mod tidy && go test test/${{ matrix.test-file }} -v -timeout 60m
 
   terratest-kube-version:
     needs: terratest
@@ -113,4 +113,5 @@ jobs:
 
       - name: Running Terratests against 1 cluster
         run: |
-         make terratest-1
+          cd terratest
+          go mod tidy && go test test/ep_lifecycle_test.go -v -timeout 60m

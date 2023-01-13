@@ -1,4 +1,4 @@
-package terratest
+package test
 
 /*
 Copyright 2022 The k8gb Contributors.
@@ -31,9 +31,9 @@ const ContextEU = "k3d-k8gb-test-eu"
 const PortEU = 5053
 
 func TestDNSEndpointLifecycle(t *testing.T) {
-	const ingressPath = "./resources/ingress_rr.yaml"
-	const ingressEmptyPath = "./resources/ingress_empty.yaml"
-	const ingressInvalidPath = "./resources/ingress_invalid.yaml"
+	const ingressPath = "./resources/ingress_rr_ep_lifecycle.yaml"
+	const ingressEmptyPath = "./resources/ingress_empty_ep_lifecycle.yaml"
+	const ingressInvalidPath = "./resources/ingress_invalid_ep_lifecycle.yaml"
 	instanceEU, err := utils.NewWorkflow(t, ContextEU, PortEU).
 		WithIngress(ingressPath).
 		WithTestApp("eu").
