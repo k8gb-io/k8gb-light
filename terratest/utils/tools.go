@@ -59,9 +59,12 @@ func (t *Tools) DigNCoreDNS(n int) HitCount {
 	m := make(HitCount, 0)
 	for i := 0; i < n; i++ {
 		ips := t.DigCoreDNS()
-		for _, ip := range ips {
-			m[ip]++
+		if len(ips) > 0 {
+			m[ips[0]]++
 		}
+		//for _, ip := range ips {
+		//	m[ip]++
+		//}
 	}
 	return m
 }
@@ -132,4 +135,21 @@ func (f HitCount) Append(hitCount HitCount) (h HitCount) {
 		h[k] += v
 	}
 	return h
+}
+
+func (f HitCount) HasExpectedProbabilityWithPrecision(i *Instance, expectedProbabilityPercentage, deviationPercentage int) bool {
+	ips := i.GetInfo().NodeIPs
+	var total, hits int
+	for _, v := range ips {
+		hits += f[v]
+	}
+	for _, v := range f {
+		total += v
+	}
+	ratio := hits * 100 / total
+
+	dl := expectedProbabilityPercentage - deviationPercentage
+	dh := expectedProbabilityPercentage + deviationPercentage
+
+	return ratio < dh && ratio > dl
 }
