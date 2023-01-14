@@ -54,7 +54,7 @@ func (t *Tools) DigCoreDNS() []string {
 	return t.DigCoreDNSHost(t.i.GetInfo().Host)
 }
 
-// DigNCoreDNS digs CoreDNS for cluster instance
+// DigNCoreDNS digs CoreDNS for cluster instance and returns count of first returned IPs
 func (t *Tools) DigNCoreDNS(n int) HitCount {
 	m := make(HitCount, 0)
 	for i := 0; i < n; i++ {
@@ -62,9 +62,18 @@ func (t *Tools) DigNCoreDNS(n int) HitCount {
 		if len(ips) > 0 {
 			m[ips[0]]++
 		}
-		//for _, ip := range ips {
-		//	m[ip]++
-		//}
+	}
+	return m
+}
+
+// DigNCoreDNSAll digs CoreDNS for cluster instance and returns count of all returned IPs
+func (t *Tools) DigNCoreDNSAll(n int) HitCount {
+	m := make(HitCount, 0)
+	for i := 0; i < n; i++ {
+		ips := t.DigCoreDNS()
+		for _, ip := range ips {
+			m[ip]++
+		}
 	}
 	return m
 }

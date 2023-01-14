@@ -61,17 +61,17 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 
 	t.Run("🇪🇺 Digging US,EU,ZA cluster, IPs of EU are returned", func(t *testing.T) {
 		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
 	})
 
 	t.Run("🇪🇺 Digging US,EU cluster, IPs of EU are returned", func(t *testing.T) {
 		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
 	})
 
@@ -93,9 +93,9 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 
 	t.Run("🇺🇸 Digging US,EU cluster, IPs of US are returned", func(t *testing.T) {
 		usClusterIPs := utils.Merge(instanceUS.GetInfo().NodeIPs)
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
 	})
 
@@ -113,9 +113,9 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 	})
 
 	t.Run("💀💀 Digging US,EU cluster, empty IPs are returned", func(t *testing.T) {
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips))
 	})
 
@@ -130,9 +130,9 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 
 	t.Run("🇪🇺 Digging US,EU cluster, IPs of US are returned", func(t *testing.T) {
 		euClusterIPs := utils.Merge(instanceEU.GetInfo().NodeIPs)
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
-		ips = instanceEU.Tools().DigNCoreDNS(digHits)
+		ips = instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
 	})
 
@@ -154,9 +154,9 @@ func TestFailoverLifecycleOnTwoClusters(t *testing.T) {
 
 	t.Run("🇪🇺 Digging US,EU cluster, IPs of Primary EU are returned", func(t *testing.T) {
 		euClusterIPs := instanceEU.GetInfo().NodeIPs
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
-		ips = instanceEU.Tools().DigNCoreDNS(digHits)
+		ips = instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
 	})
 

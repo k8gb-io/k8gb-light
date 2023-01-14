@@ -71,11 +71,11 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("🇺🇸 Digging US,EU,ZA cluster, IPs of US are returned", func(t *testing.T) {
 		usClusterIPs := instanceUS.GetInfo().NodeIPs
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
 	})
 
@@ -100,9 +100,9 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("🇪🇺 Digging EU,ZA cluster, IPs of EU are returned", func(t *testing.T) {
 		euClusterIPs := instanceEU.GetInfo().NodeIPs
 		host := instanceEU.GetInfo().Host
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, euClusterIPs...))
 		// US namespace doesn't exists, no Ingress, no DNS record
 		r := instanceUS.Tools().DigCoreDNSHost(host)
@@ -130,9 +130,9 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("🇿🇦 Digging EU,ZA cluster, IPs of EU are returned", func(t *testing.T) {
 		zaClusterIPs := instanceZA.GetInfo().NodeIPs
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, zaClusterIPs...))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, zaClusterIPs...))
 		r := instanceUS.Tools().DigCoreDNSHost(instanceZA.GetInfo().Host)
 		require.True(t, utils.EqualItems(r, []string{}))
@@ -154,9 +154,9 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("💀💀 Digging US,EU,ZA cluster, empty IPs are returned", func(t *testing.T) {
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips))
 		r := instanceUS.Tools().DigCoreDNSHost(instanceZA.GetInfo().Host)
 		require.True(t, utils.EqualItems(r, []string{}))
@@ -180,11 +180,11 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("🇺🇸 Digging US,EU,ZA cluster, IPs of US are returned", func(t *testing.T) {
 		usClusterIPs := instanceUS.GetInfo().NodeIPs
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
 	})
 
@@ -211,11 +211,11 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("🇺🇸 Digging US,EU,ZA cluster, IPs of US are returned", func(t *testing.T) {
 		usClusterIPs := instanceUS.GetInfo().NodeIPs
-		ips := instanceEU.Tools().DigNCoreDNS(digHits)
+		ips := instanceEU.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceUS.Tools().DigNCoreDNS(digHits)
+		ips = instanceUS.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
-		ips = instanceZA.Tools().DigNCoreDNS(digHits)
+		ips = instanceZA.Tools().DigNCoreDNSAll(digHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, usClusterIPs...))
 	})
 

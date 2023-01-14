@@ -95,7 +95,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("🇪🇺🇺🇲 Digging one cluster, returned IPs of EU, US", func(t *testing.T) {
+	t.Run("🇪🇺🇿🇦 Digging one cluster, returned IPs of EU, ZA", func(t *testing.T) {
 		// "eu":4,"us":5,"za":2
 		ips := instanceUS.Tools().DigNCoreDNS(digHits)
 		peu := ips.HasExpectedProbabilityWithPrecision(instanceEU, 65, 10)
@@ -106,7 +106,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	allClusterIPs = instanceEU.GetInfo().NodeIPs
-	t.Run("💀🇺🇸 Killing ZA App, ZA ingress status is Unhealthy", func(t *testing.T) {
+	t.Run("💀🇿🇦 Killing ZA App, ZA ingress status is Unhealthy", func(t *testing.T) {
 		instanceZA.App().StopTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, allClusterIPs)
@@ -125,7 +125,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	allClusterIPs = []string{}
 	t.Run("💀🇪🇺 Killing EU App, EU ingress status is Unhealthy", func(t *testing.T) {
-		instanceZA.App().StopTestApp()
+		instanceEU.App().StopTestApp()
 		// waiting until all localDNSEndpoints has all addresses
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, allClusterIPs)
 		require.NoError(t, err)
