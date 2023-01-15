@@ -79,8 +79,12 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 
 	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA with the same probability", func(t *testing.T) {
 		ips := instanceEU.Tools().DigNCoreDNS(digHits)
-		p := ips.HasSimilarProbabilityOnPrecision(expectedDigProbabilityDiff)
-		require.True(t, p, "Dig must return IPs with equal probability")
+		p := ips.HasExpectedProbabilityWithPrecision(instanceEU, 33, expectedDigProbabilityDiff)
+		require.True(t, p, "Dig must return IPs with expected probability")
+		p = ips.HasExpectedProbabilityWithPrecision(instanceUS, 33, expectedDigProbabilityDiff)
+		require.True(t, p, "Dig must return IPs with expected probability")
+		p = ips.HasExpectedProbabilityWithPrecision(instanceZA, 33, expectedDigProbabilityDiff)
+		require.True(t, p, "Dig must return IPs with expected probability")
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -105,7 +109,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇪🇺🇺🇲 Digging one cluster, returned IPs of EU, US", func(t *testing.T) {
-		ips := instanceUS.Tools().DigNCoreDNS(shortDigHits)
+		ips := instanceUS.Tools().DigNCoreDNSAll(shortDigHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -124,7 +128,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇺🇲 Digging one cluster, returns IPs of US cluster", func(t *testing.T) {
-		ips := instanceUS.Tools().DigNCoreDNS(shortDigHits)
+		ips := instanceUS.Tools().DigNCoreDNSAll(shortDigHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -159,7 +163,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇿🇦 Digging one cluster, returns IPs of ZA cluster", func(t *testing.T) {
-		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits)
+		ips := instanceZA.Tools().DigNCoreDNSAll(shortDigHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 
@@ -188,7 +192,7 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇪🇺🇺🇲🇿🇦 Digging one cluster, returned IPs of EU,US,ZA", func(t *testing.T) {
-		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits * 3)
+		ips := instanceZA.Tools().DigNCoreDNSAll(shortDigHits * 3)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
 	})
 

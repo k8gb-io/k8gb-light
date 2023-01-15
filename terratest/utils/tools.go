@@ -55,6 +55,7 @@ func (t *Tools) DigCoreDNS() []string {
 }
 
 // DigNCoreDNS digs CoreDNS for cluster instance and returns count of first returned IPs
+// use this if you going to count probability of occurence of IP
 func (t *Tools) DigNCoreDNS(n int) HitCount {
 	m := make(HitCount, 0)
 	for i := 0; i < n; i++ {
@@ -66,7 +67,8 @@ func (t *Tools) DigNCoreDNS(n int) HitCount {
 	return m
 }
 
-// DigNCoreDNSAll digs CoreDNS for cluster instance and returns count of all returned IPs
+// DigNCoreDNSAll digs CoreDNS for cluster instance and increase all returned IPs
+// use this if you going to check whether IP has been hit
 func (t *Tools) DigNCoreDNSAll(n int) HitCount {
 	m := make(HitCount, 0)
 	for i := 0; i < n; i++ {
