@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     k8gb.io/strategy: roundRobin
-    k8gb.io/weights: '{"eu":4,"us":5, "za":2}'
+    k8gb.io/weights: "eu:4,us:5,za:2"
   name: ing
 spec:
   ingressClassName: nginx

@@ -25,7 +25,8 @@ If k8gb is successfully installed, you only need to add the annotation to ingres
 `k8gb.io/strategy` is mandatory
 `k8gb.io/status` is out only information written by controller back to ingress. The value represents the state of the host application on each cluster.
 `k8gb.io/primary-geotag` is used if `k8gb.io/strategy` is `failover`
-`k8gb.io/weights` is currently JSON containing key-values for the weights of the individual regions. Only used if `k8gb.io/strategy` is `roundRobin`
+`k8gb.io/weights` is list containing key-values for the weights of the individual regions e.g: `k8gb.io/weights: "eu:4,us:5,za:2"`. 
+ Weights are applied if `k8gb.io/strategy` is `roundRobin`.
 
 Other annotations are `k8gb.io/splitbrain-threshold-seconds` and `k8gb.io/dns-ttl-seconds`
 
