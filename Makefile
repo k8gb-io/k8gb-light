@@ -106,4 +106,4 @@ mocks:
 image:
 	docker build . -t ${IMG}:${TAG}
 
-include ./terratest/Makefile
+include ./terratest/terratest.mk

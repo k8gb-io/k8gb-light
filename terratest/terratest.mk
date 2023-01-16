@@ -17,14 +17,6 @@ TERRATEST_DIR ?=$(CURDIR)
 MAKEAWAY ?=make -C ../.
 MAKEIN ?=make -C .
 
-SHELL := bash
-ifndef NO_COLOR
-YELLOW=\033[0;33m
-CYAN=\033[1;36m
-# no color
-NC=\033[0m
-endif
-
 NGINX_INGRESS_VALUES_PATH ?= $(TERRATEST_DIR)/deploy/ingress/nginx-ingress-values.yaml
 CLUSTER_GSLB_NETWORK = k3d-action-bridge-network
 CLUSTER_GSLB_GATEWAY = docker network inspect $(CLUSTER_GSLB_NETWORK) -f '{{ (index .IPAM.Config 0).Gateway }}'

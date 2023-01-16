@@ -9,6 +9,7 @@
 !go.mod
 !Makefile
 !demo.mk
+!terratest.mk
 !Dockerfile
 
 !README.md
