@@ -1,6 +1,7 @@
 KEY?=ing
 NS?=demo
-CTX?=k3d-$(CTX1)
+
+CTX?=k3d-k8gb-test-eu
 watch:
 	@watch -n 1 $(MAKEIN) generation
 

@@ -48,7 +48,9 @@ func (a *App) waitForAppStatus(status, host string) error {
 	for i := 0; i < defaultRetries; i++ {
 		is, err := a.i.Resources().IngressStatus()
 		if err != nil {
-			return fmt.Errorf("cant read ingress status %s.%s (%s)", a.i.w.namespace, a.i.w.ingress.name, err)
+			a.i.w.t.Logf("cant read ingress status %s.%s; status: %v; (%s)", a.i.w.namespace, a.i.w.ingress.name, is, err)
+			time.Sleep(defaultSeconds * time.Second)
+			continue
 		}
 		a.i.w.t.Logf("Wait until ingress host %s has status %s (currently: %s)", host, status, is.HealthyRecords[host])
 		if is.ServiceHealth[host] == status {

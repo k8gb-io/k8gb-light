@@ -22,10 +22,14 @@ deploy-demo-%:
 		--namespace demo
 
 init-failover:
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
 
 init-wrr:
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
 
 kill-local-k8gb:
 	kubectl config use-context $(DEFAULT_CONTEXT)
@@ -36,3 +40,7 @@ start-local-k8gb:
 	kubectl config use-context $(DEFAULT_CONTEXT)
 	kubectl config set-context --current --namespace=demo
 	kubectl -n k8gb scale deployment k8gb --replicas=1 --context=$(DEFAULT_CONTEXT)
+
+I ?=1
+dig:
+	@for run in {1..$(I)}; do dig -p 5063 @localhost demo.cloud.example.com -4 +tcp +short; done
