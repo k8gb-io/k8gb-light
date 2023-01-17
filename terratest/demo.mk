@@ -24,6 +24,9 @@ deploy-demo-%:
 init-failover:
 	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml
 
+init-wrr:
+	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml
+
 kill-local-k8gb:
 	kubectl config use-context $(DEFAULT_CONTEXT)
 	kubectl config set-context --current --namespace=demo
@@ -32,4 +35,4 @@ kill-local-k8gb:
 start-local-k8gb:
 	kubectl config use-context $(DEFAULT_CONTEXT)
 	kubectl config set-context --current --namespace=demo
-	kubectl -n k8gb scale deployment k8gb --replicas=0 --context=$(DEFAULT_CONTEXT)
+	kubectl -n k8gb scale deployment k8gb --replicas=1 --context=$(DEFAULT_CONTEXT)

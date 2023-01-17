@@ -10,6 +10,7 @@
 !Makefile
 !demo.mk
 !terratest.mk
+!watch.mk
 !Dockerfile
 
 !README.md

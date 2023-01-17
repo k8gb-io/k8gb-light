@@ -123,4 +123,5 @@ terratest:
 	cd $(TERRATEST_DIR) && go mod tidy && go test $(TERRATEST_DIR)/test/ -v -timeout 40m
 
 include $(TERRATEST_DIR)/demo.mk
+include $(TERRATEST_DIR)/watch.mk
 # include $(TERRATEST_DIR)/colima.mk
