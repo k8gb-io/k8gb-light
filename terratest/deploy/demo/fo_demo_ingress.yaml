@@ -4,6 +4,7 @@ metadata:
   annotations:
     k8gb.io/strategy: failover
     k8gb.io/primary-geotag: eu
+    k8gb.io/primary-geotag-order: eu,us,za
   name: ing
 spec:
   ingressClassName: nginx
