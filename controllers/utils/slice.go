@@ -64,6 +64,22 @@ func EqualItems[T comparable](a, b []T) bool {
 	return true
 }
 
+// EqualItemsHasSameOrder two slices must have same values and order
+func EqualItemsHasSameOrder[T comparable](a, b []T) bool {
+	if (a == nil && b != nil) || (a != nil && b == nil) {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if b[i] != v {
+			return false
+		}
+	}
+	return true
+}
+
 // Merge multiple slices into one
 func Merge[T any](x ...[]T) (y []T) {
 	for _, v := range x {
@@ -96,4 +112,13 @@ func MapHasOnlyKeys[T comparable, U any](m map[T]U, x ...T) bool {
 		}
 	}
 	return true
+}
+
+// AsMap converts slice to map[T]int, where value is an index
+func AsMap[T comparable](s []T) map[T]bool {
+	m := make(map[T]bool, len(s))
+	for _, v := range s {
+		m[v] = true
+	}
+	return m
 }

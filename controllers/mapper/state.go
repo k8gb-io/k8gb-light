@@ -135,6 +135,8 @@ func (rs *LoopState) asSpec(annotations map[string]string) (result Spec, err err
 	}
 
 	if value, found := annotations[AnnotationPrimaryGeoTag]; found {
+		value = strings.TrimRight(value, ",; ")
+
 		result.PrimaryGeoTag = value
 	}
 	if value, found := annotations[AnnotationSplitBrainThresholdSeconds]; found {
