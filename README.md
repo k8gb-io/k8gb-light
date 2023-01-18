@@ -22,10 +22,12 @@ If you need to reset the environment, use the commands `make clean-namespaces`, 
 
 If k8gb is successfully installed, you only need to add the annotation to ingress and load-balancing will be enabled.
 
-`k8gb.io/strategy` is mandatory
-`k8gb.io/status` is out only information written by controller back to ingress. The value represents the state of the host application on each cluster.
-`k8gb.io/primary-geotag` is used if `k8gb.io/strategy` is `failover`
-`k8gb.io/weights` is list containing key-values for the weights of the individual regions e.g: `k8gb.io/weights: "eu:4,us:5,za:2"`. 
+ - `k8gb.io/strategy` is mandatory
+ - `k8gb.io/status` is out only information written by controller back to ingress. The value represents the state of the host application on each cluster.
+ - `k8gb.io/primary-geotag` is used if `k8gb.io/strategy` is `failover`. Defines primary cluster and all substitutes within the list.
+Substitutes that are not defined are automatically ordered alphabetically
+e.g:  for clusters `us`,`uk`,`za`,`cn`,`eu`,`k8gb.io/primary-geotag: us,eu` the clusters are selected in the following order `us,eu,cn,uk,za`
+ - `k8gb.io/weights` is list containing key-values for the weights of the individual regions e.g: `k8gb.io/weights: "eu:4,us:5,za:2"`. 
  Weights are applied if `k8gb.io/strategy` is `roundRobin`.
 
 Other annotations are `k8gb.io/splitbrain-threshold-seconds` and `k8gb.io/dns-ttl-seconds`
