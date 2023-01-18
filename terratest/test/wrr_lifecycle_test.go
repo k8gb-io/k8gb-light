@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kuritka/annotation-operator/terratest"
@@ -80,7 +81,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		require.True(t, peu)
 		require.True(t, pus)
 		require.True(t, pza)
-		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
+		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...), fmt.Sprintf("expecting '%v', returned '%v'", allClusterIPs, ips))
 	})
 
 	allClusterIPs = utils.Merge(instanceEU.GetInfo().NodeIPs, instanceZA.GetInfo().NodeIPs)
@@ -102,7 +103,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 		pza := ips.HasExpectedProbabilityWithPrecision(instanceZA, 35, 10)
 		require.True(t, peu)
 		require.True(t, pza)
-		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
+		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...), fmt.Sprintf("expecting '%v', returned '%v'", allClusterIPs, ips))
 	})
 
 	allClusterIPs = instanceEU.GetInfo().NodeIPs
@@ -118,9 +119,8 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇪🇺 Digging one cluster, returned IPs of EU", func(t *testing.T) {
-		// "eu":4,"us":5,"za":2
 		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits)
-		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...))
+		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...), fmt.Sprintf("expecting '%v', returned '%v'", allClusterIPs, ips))
 	})
 
 	allClusterIPs = []string{}
