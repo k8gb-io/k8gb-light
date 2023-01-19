@@ -22,12 +22,11 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/mapper"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/assistant"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
 
-	"cloud.example.com/annotation-operator/controllers/mapper"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/providers/assistant"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	externaldns "sigs.k8s.io/external-dns/endpoint"

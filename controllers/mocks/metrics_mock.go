@@ -26,8 +26,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	metrics "cloud.example.com/annotation-operator/controllers/providers/metrics"
 	gomock "github.com/golang/mock/gomock"
+	metrics "github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
 	types "k8s.io/apimachinery/pkg/types"
 	endpoint "sigs.k8s.io/external-dns/endpoint"
 )

@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	"github.com/AbsaOSS/env-binder/env"
 	"github.com/rs/zerolog"

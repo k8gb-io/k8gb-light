@@ -24,8 +24,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/kuritka/annotation-operator/terratest"
-	"github.com/kuritka/annotation-operator/terratest/utils"
+	"github.com/k8gb-io/k8gb-light/terratest"
+	"github.com/k8gb-io/k8gb-light/terratest/utils"
 )
 
 func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {

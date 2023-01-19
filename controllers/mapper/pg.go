@@ -22,7 +22,7 @@ import (
 	"sort"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 )
 
 type PrimaryGeotag []string

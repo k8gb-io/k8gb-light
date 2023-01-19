@@ -23,7 +23,8 @@ import (
 	"reflect"
 	"testing"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+
 	"github.com/stretchr/testify/assert"
 )
 

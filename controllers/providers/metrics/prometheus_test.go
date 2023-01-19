@@ -25,7 +25,7 @@ import (
 	"runtime"
 	"testing"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"

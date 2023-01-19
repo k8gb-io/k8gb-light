@@ -1,4 +1,4 @@
-module github.com/kuritka/annotation-operator/terratest
+module github.com/k8gb-io/k8gb-light/terratest
 
 go 1.19
 

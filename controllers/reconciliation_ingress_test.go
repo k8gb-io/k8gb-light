@@ -24,12 +24,12 @@ import (
 	"testing"
 	"time"
 
-	"cloud.example.com/annotation-operator/controllers/logging"
-	"cloud.example.com/annotation-operator/controllers/mapper"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/logging"
+	"github.com/k8gb-io/k8gb-light/controllers/mapper"
+	mocks "github.com/k8gb-io/k8gb-light/controllers/mocks"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	mocks "cloud.example.com/annotation-operator/controllers/mocks"
-	"cloud.example.com/annotation-operator/controllers/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

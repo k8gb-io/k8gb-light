@@ -22,29 +22,23 @@ import (
 	"context"
 	"os"
 
-	"cloud.example.com/annotation-operator/controllers/mapper"
-	"cloud.example.com/annotation-operator/controllers/utils"
-
-	externaldns "sigs.k8s.io/external-dns/endpoint"
+	"github.com/k8gb-io/k8gb-light/controllers"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/logging"
+	"github.com/k8gb-io/k8gb-light/controllers/mapper"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/dns"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/tracing"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	sch "sigs.k8s.io/controller-runtime/pkg/scheme"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/logging"
-	"cloud.example.com/annotation-operator/controllers/providers/dns"
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-	"cloud.example.com/annotation-operator/controllers/tracing"
-
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-
-	"cloud.example.com/annotation-operator/controllers"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
+	sch "sigs.k8s.io/controller-runtime/pkg/scheme"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 var (

@@ -23,7 +23,7 @@ import (
 	"regexp"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 )
 
 const (

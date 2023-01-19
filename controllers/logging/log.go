@@ -25,7 +25,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
 )
 
 // loggerFactory creates new logger

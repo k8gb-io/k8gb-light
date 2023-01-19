@@ -25,17 +25,15 @@ import (
 	"regexp"
 	"strings"
 
-	externaldns "sigs.k8s.io/external-dns/endpoint"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
 	corev1 "k8s.io/api/core/v1"
-
-	"cloud.example.com/annotation-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 // IngressMapper provides API for working with ingress

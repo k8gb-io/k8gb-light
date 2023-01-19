@@ -22,9 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kuritka/annotation-operator/terratest"
-
-	"github.com/kuritka/annotation-operator/terratest/utils"
+	"github.com/k8gb-io/k8gb-light/terratest"
+	"github.com/k8gb-io/k8gb-light/terratest/utils"
 
 	"github.com/stretchr/testify/assert"
 )

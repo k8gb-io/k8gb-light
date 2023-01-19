@@ -23,15 +23,14 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/rs/zerolog"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/mapper"
-	"cloud.example.com/annotation-operator/controllers/providers/assistant"
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-	externaldns "sigs.k8s.io/external-dns/endpoint"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/mapper"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/assistant"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
 
 	ibcl "github.com/infobloxopen/infoblox-go-client"
+	"github.com/rs/zerolog"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 type InfobloxProvider struct {

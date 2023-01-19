@@ -23,11 +23,9 @@ import (
 	"strconv"
 	"strings"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
-
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	netv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/types"

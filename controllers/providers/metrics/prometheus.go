@@ -27,8 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/types"
 	crm "sigs.k8s.io/controller-runtime/pkg/metrics"

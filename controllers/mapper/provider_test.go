@@ -23,21 +23,17 @@ import (
 	"reflect"
 	"testing"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
-
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/stretchr/testify/assert"
-	netv1 "k8s.io/api/networking/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"cloud.example.com/annotation-operator/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	netv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

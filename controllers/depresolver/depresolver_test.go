@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"

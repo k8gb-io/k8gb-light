@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"cloud.example.com/annotation-operator/controllers/logging"
-	"cloud.example.com/annotation-operator/controllers/utils"
+	"github.com/k8gb-io/k8gb-light/controllers/logging"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
 	"github.com/miekg/dns"
 	corev1 "k8s.io/api/core/v1"

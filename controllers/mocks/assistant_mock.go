@@ -26,8 +26,8 @@ import (
 	reflect "reflect"
 	time "time"
 
-	assistant "cloud.example.com/annotation-operator/controllers/providers/assistant"
 	gomock "github.com/golang/mock/gomock"
+	assistant "github.com/k8gb-io/k8gb-light/controllers/providers/assistant"
 	endpoint "sigs.k8s.io/external-dns/endpoint"
 )
 

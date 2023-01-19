@@ -25,9 +25,9 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/mapper"
-	assistant2 "cloud.example.com/annotation-operator/controllers/providers/assistant"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/mapper"
+	assistant2 "github.com/k8gb-io/k8gb-light/controllers/providers/assistant"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	externaldns "sigs.k8s.io/external-dns/endpoint"

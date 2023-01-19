@@ -1,4 +1,4 @@
-module cloud.example.com/annotation-operator
+module github.com/k8gb-io/k8gb-light
 
 go 1.19
 

@@ -23,18 +23,18 @@ import (
 	"reflect"
 	"testing"
 
-	"cloud.example.com/annotation-operator/controllers/providers/metrics"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	externaldns "sigs.k8s.io/external-dns/endpoint"
+	"github.com/k8gb-io/k8gb-light/controllers/depresolver"
+	"github.com/k8gb-io/k8gb-light/controllers/providers/metrics"
+	"github.com/k8gb-io/k8gb-light/controllers/utils"
 
-	"cloud.example.com/annotation-operator/controllers/depresolver"
-	"cloud.example.com/annotation-operator/controllers/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	netv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	externaldns "sigs.k8s.io/external-dns/endpoint"
 )
 
 func TestIngressMapperRemovingFinalizer(t *testing.T) {
