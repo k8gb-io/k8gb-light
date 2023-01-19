@@ -48,7 +48,8 @@ func TestNewPrimaryGeoTag(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// arrange
 			// act
-			r := NewPrimaryGeotag(test.primaryGeoTag, test.extClusterGeoTags)
+			rs := LoopState{Spec: Spec{PrimaryGeoTag: test.primaryGeoTag}}
+			r := rs.GetFailoverOrderedGeotagList(test.extClusterGeoTags)
 			// assert
 			b := utils.EqualItemsHasSameOrder(test.expected, r)
 			assert.True(t, b)
