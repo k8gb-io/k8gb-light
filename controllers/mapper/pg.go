@@ -27,12 +27,12 @@ import (
 
 type PrimaryGeotag []string
 
-// NewPrimaryGeotag returns regions sorted by priority as they will be used in failover.
+// GetFailoverOrderedGeotagList returns regions sorted by priority as they will be used in failover.
 // It takes geotags as they are defined in annotation followed by the rest of ExtGEoTags sorted alphabetically
 // for primaryGeoTag "us, eu" with extClusterGeotags = []{"za","cz","us","uk","eu"} returns
 // []{"us","eu","cz","uk","za"}
-func NewPrimaryGeotag(primaryGeoTagList string, extClusterGeoTags []string) PrimaryGeotag {
-	sort := func(tags []string) []string {
+func (rs *LoopState) GetFailoverOrderedGeotagList(extClusterGeoTags []string) PrimaryGeotag {
+	sortTags := func(tags []string) []string {
 		sort.Slice(tags, func(i, j int) bool {
 			return tags[i] < tags[j]
 		})
@@ -40,10 +40,10 @@ func NewPrimaryGeotag(primaryGeoTagList string, extClusterGeoTags []string) Prim
 	}
 	var pg []string
 	existsInPrimaryGeoTagList := utils.AsMap(extClusterGeoTags)
-	extClusterGeoTagsSorted := sort(extClusterGeoTags)
+	extClusterGeoTagsSorted := sortTags(extClusterGeoTags)
 
-	if primaryGeoTagList != "" {
-		for _, v := range strings.Split(primaryGeoTagList, ",") {
+	if rs.Spec.PrimaryGeoTag != "" {
+		for _, v := range strings.Split(rs.Spec.PrimaryGeoTag, ",") {
 			v = strings.TrimLeft(strings.TrimRight(v, " "), " ")
 			pg = append(pg, v)
 			existsInPrimaryGeoTagList[v] = false
@@ -56,8 +56,4 @@ func NewPrimaryGeotag(primaryGeoTagList string, extClusterGeoTags []string) Prim
 	}
 
 	return pg
-}
-
-func (pg PrimaryGeotag) String() string {
-	return strings.Join(pg, ",")
 }
