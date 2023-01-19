@@ -119,7 +119,7 @@ func TestWeightRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	})
 
 	t.Run("🇪🇺 Digging one cluster, returned IPs of EU", func(t *testing.T) {
-		ips := instanceZA.Tools().DigNCoreDNS(shortDigHits)
+		ips := instanceZA.Tools().DigNCoreDNSAll(shortDigHits)
 		require.True(t, utils.MapHasOnlyKeys(ips, allClusterIPs...), fmt.Sprintf("expecting '%v', returned '%v'", allClusterIPs, ips))
 	})
 
