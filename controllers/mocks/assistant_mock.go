@@ -70,17 +70,17 @@ func (mr *MockAssistantMockRecorder) CoreDNSExposedIPs() *gomock.Call {
 }
 
 // GetExternalTargets mocks base method.
-func (m *MockAssistant) GetExternalTargets(host, primaryGeoTag string, extClusterNsNames map[string]string) assistant.Targets {
+func (m *MockAssistant) GetExternalTargets(host string, extClusterNsNames map[string]string) assistant.Targets {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetExternalTargets", host, primaryGeoTag, extClusterNsNames)
+	ret := m.ctrl.Call(m, "GetExternalTargets", host, extClusterNsNames)
 	ret0, _ := ret[0].(assistant.Targets)
 	return ret0
 }
 
 // GetExternalTargets indicates an expected call of GetExternalTargets.
-func (mr *MockAssistantMockRecorder) GetExternalTargets(host, primaryGeoTag, extClusterNsNames interface{}) *gomock.Call {
+func (mr *MockAssistantMockRecorder) GetExternalTargets(host, extClusterNsNames interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockAssistant)(nil).GetExternalTargets), host, primaryGeoTag, extClusterNsNames)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExternalTargets", reflect.TypeOf((*MockAssistant)(nil).GetExternalTargets), host, extClusterNsNames)
 }
 
 // InspectTXTThreshold mocks base method.

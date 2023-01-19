@@ -50,11 +50,11 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 			return nil, fmt.Errorf("ingress host %s does not match delegated zone %s", host, r.Config.EdgeDNSZone)
 		}
 
-		isPrimary := rs.Spec.PrimaryGeoTag == r.Config.ClusterGeoTag
+		isPrimary := false
 		isHealthy := health == metrics.Healthy
 
 		if isHealthy {
-			finalTargets.Append(r.Config.ClusterGeoTag, localTargets, isPrimary)
+			finalTargets.Append(r.Config.ClusterGeoTag, localTargets)
 			localTargetsHost := fmt.Sprintf("localtargets-%s", host)
 			dnsRecord := &externaldns.Endpoint{
 				DNSName:    localTargetsHost,
@@ -66,7 +66,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 		}
 
 		// Check if host is alive on external Gslb
-		externalTargets := r.DNSProvider.GetExternalTargets(host, rs.Spec.PrimaryGeoTag)
+		externalTargets := r.DNSProvider.GetExternalTargets(host)
 		if len(externalTargets) > 0 {
 			switch rs.Spec.Type {
 			case depresolver.RoundRobinStrategy, depresolver.GeoStrategy:
@@ -75,8 +75,11 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 			case depresolver.FailoverStrategy:
 				// If cluster is Primary and Healthy return only own targets
 				// If cluster is Primary and Unhealthy return first Secondary Healthy cluster
+				var topGeoTag string
 				finalTargets.AppendTargets(externalTargets)
-				finalTargets = finalTargets.FailoverProjection()
+				primaryGeoTagList := rs.GetFailoverOrderedGeotagList(r.Config.ExtClustersGeoTags)
+				finalTargets, topGeoTag = finalTargets.FailoverProjection(primaryGeoTagList)
+				isPrimary = topGeoTag == r.Config.ClusterGeoTag
 				if isPrimary {
 					if !isHealthy {
 						r.Log.Info().
