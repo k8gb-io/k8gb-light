@@ -142,10 +142,14 @@ func TestFailoverLifecycleOnThreeClustersOrdered(t *testing.T) {
 		require.True(t, utils.EqualItems(r, []string{}))
 	})
 
-	t.Run("🇺🇸🇪🇺🇿🇦 Reapply Ingresses", func(t *testing.T) {
+	t.Run("🇺🇸🇪🇺🇿🇦 Reapply Ingresses, starting test apps", func(t *testing.T) {
 		instanceEU.ReapplyIngress(ingressPath2)
+		instanceEU.App().StartTestApp()
 		instanceUS.ReapplyIngress(ingressPath2)
+		instanceUS.App().StartTestApp()
 		instanceZA.ReapplyIngress(ingressPath2)
+		instanceZA.App().StartTestApp()
+
 		zaClusterIPs := instanceZA.GetInfo().NodeIPs
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, zaClusterIPs)
 		require.NoError(t, err)

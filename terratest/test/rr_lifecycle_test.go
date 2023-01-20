@@ -30,7 +30,7 @@ import (
 
 func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	const ingressPath = "./resources/ingress_rr.yaml"
-	const ingressEmptyPath = "./resources/ingress_empty.yaml"
+	const ingressEmptyPath = "./resources/ingress_rr_empty.yaml"
 	const digHits = 300
 	const wgetHits = 200
 	const shortDigHits = 10
