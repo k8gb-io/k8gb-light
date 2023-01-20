@@ -12,7 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test-file: ["annotation_test.go","ep_lifecycle_test.go","fo_lifecycle_2_clusters_test.go", "fo_lifecycle_3_clusters_test.go","rr_lifecycle_test.go", "wrr_lifecycle_test.go"]
+        test-file: [
+        "annotation_test.go",
+        "ep_lifecycle_test.go",
+        "fo_lifecycle_2_clusters_test.go",
+        "fo_lifecycle_3_clusters_test.go",
+        "fo_lifecycle_3_clusters_ordered_test.go",
+        "rr_lifecycle_test.go",
+        "wrr_lifecycle_test.go"
+        ]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
