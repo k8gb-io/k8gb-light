@@ -79,7 +79,7 @@ func NewWorkflow(t *testing.T, cluster string, port int) *Workflow {
 	}
 	w := new(Workflow)
 	w.cluster = cluster
-	w.namespace = fmt.Sprintf("k8gb-test-%s", strings.ToLower(random.UniqueId()))
+	w.namespace = fmt.Sprintf("k8gb-test-%s-%s", cluster, strings.ToLower(random.UniqueId()))
 	w.k8sOptions = k8s.NewKubectlOptions(cluster, "", w.namespace)
 	w.t = t
 	w.port = port

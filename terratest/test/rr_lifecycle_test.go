@@ -122,6 +122,8 @@ func TestRoundRobinLifecycleOnThreeClusters(t *testing.T) {
 	allClusterIPs = utils.Merge(instanceUS.GetInfo().NodeIPs)
 	t.Run("💀🇪🇺 Killing EU Namespace, EU ingress and App doesnt exists", func(t *testing.T) {
 		instanceEU.Kill()
+		err = instanceEU.WaitUntilNamespaceNotFound()
+		require.NoError(t, err)
 		err = instanceUS.Resources().WaitUntilDNSEndpointContainsTargets(instanceUS.GetInfo().Host, allClusterIPs)
 		require.NoError(t, err, "WARNING: If you running test locally, ensure the App with same host IS NOT running in forgotten namespaces")
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, allClusterIPs)

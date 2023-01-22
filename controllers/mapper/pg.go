@@ -31,16 +31,17 @@ type PrimaryGeotag []string
 // It takes geotags as they are defined in annotation followed by the rest of ExtGEoTags sorted alphabetically
 // for primaryGeoTag "us, eu" with extClusterGeotags = []{"za","cz","us","uk","eu"} returns
 // []{"us","eu","cz","uk","za"}
-func (rs *LoopState) GetFailoverOrderedGeotagList(extClusterGeoTags []string) PrimaryGeotag {
+func (rs *LoopState) GetFailoverOrderedGeotagList(clusterGeoTag string, extClusterGeoTags []string) PrimaryGeotag {
 	sortTags := func(tags []string) []string {
 		sort.Slice(tags, func(i, j int) bool {
 			return tags[i] < tags[j]
 		})
 		return tags
 	}
+	allGeoTags := utils.MergeWithSlice(extClusterGeoTags, clusterGeoTag)
 	var pg []string
-	existsInPrimaryGeoTagList := utils.AsMap(extClusterGeoTags)
-	extClusterGeoTagsSorted := sortTags(extClusterGeoTags)
+	existsInPrimaryGeoTagList := utils.AsMap(allGeoTags)
+	extClusterGeoTagsSorted := sortTags(allGeoTags)
 
 	if rs.Spec.PrimaryGeoTag != "" {
 		for _, v := range strings.Split(rs.Spec.PrimaryGeoTag, ",") {

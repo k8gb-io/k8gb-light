@@ -31,25 +31,30 @@ func TestNewPrimaryGeoTag(t *testing.T) {
 		name              string
 		primaryGeoTag     string
 		extClusterGeoTags []string
+		clusterGeoTag     string
 		expected          PrimaryGeotag
 	}{
 		{name: "US,EU from US EU ZA UK CZ", primaryGeoTag: "us, eu", extClusterGeoTags: []string{"us", "eu", "za", "uk", "cz"},
-			expected: PrimaryGeotag{"us", "eu", "cz", "uk", "za"}},
+			clusterGeoTag: "us", expected: PrimaryGeotag{"us", "eu", "cz", "uk", "za"}},
 		{name: "US,EU from EU US", primaryGeoTag: "us, eu", extClusterGeoTags: []string{"eu", "us"},
-			expected: PrimaryGeotag{"us", "eu"}},
+			clusterGeoTag: "us", expected: PrimaryGeotag{"us", "eu"}},
 		{name: "US from US", primaryGeoTag: "us", extClusterGeoTags: []string{"us"},
-			expected: PrimaryGeotag{"us"}},
+			clusterGeoTag: "us", expected: PrimaryGeotag{"us"}},
 		{name: "EMPTY of US, EU", primaryGeoTag: "", extClusterGeoTags: []string{"us", "eu"},
-			expected: PrimaryGeotag{"eu", "us"}},
+			clusterGeoTag: "us", expected: PrimaryGeotag{"eu", "us"}},
 		{name: "ZA of US, EU", primaryGeoTag: "za", extClusterGeoTags: []string{"us", "eu"},
-			expected: PrimaryGeotag{"za", "eu", "us"}},
+			clusterGeoTag: "us", expected: PrimaryGeotag{"za", "eu", "us"}},
+		{name: "ZA of US, EU and DE", primaryGeoTag: "za", extClusterGeoTags: []string{"us", "eu"},
+			clusterGeoTag: "de", expected: PrimaryGeotag{"za", "de", "eu", "us"}},
+		{name: "DE,US of EU,US,ZA and DE", primaryGeoTag: "de, us", extClusterGeoTags: []string{"us", "eu", "za"},
+			clusterGeoTag: "de", expected: PrimaryGeotag{"de", "us", "eu", "za"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// arrange
 			// act
 			rs := LoopState{Spec: Spec{PrimaryGeoTag: test.primaryGeoTag}}
-			r := rs.GetFailoverOrderedGeotagList(test.extClusterGeoTags)
+			r := rs.GetFailoverOrderedGeotagList(test.clusterGeoTag, test.extClusterGeoTags)
 			// assert
 			b := utils.EqualItemsHasSameOrder(test.expected, r)
 			assert.True(t, b)

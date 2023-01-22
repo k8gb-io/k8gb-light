@@ -77,7 +77,7 @@ func (r *AnnoReconciler) getDNSEndpoint(rs *mapper.LoopState) (*externaldns.DNSE
 				// If cluster is Primary and Unhealthy return first Secondary Healthy cluster
 				var topGeoTag string
 				finalTargets.AppendTargets(externalTargets)
-				primaryGeoTagList := rs.GetFailoverOrderedGeotagList(r.Config.ExtClustersGeoTags)
+				primaryGeoTagList := rs.GetFailoverOrderedGeotagList(r.Config.ClusterGeoTag, r.Config.ExtClustersGeoTags)
 				finalTargets, topGeoTag = finalTargets.FailoverProjection(primaryGeoTagList)
 				isPrimary = topGeoTag == r.Config.ClusterGeoTag
 				if isPrimary {

@@ -92,6 +92,8 @@ func TestFailoverLifecycleOnThreeClusters(t *testing.T) {
 	t.Run("💀🇺🇸 Killing namespace on Primary US cluster", func(t *testing.T) {
 		euClusterIPs := instanceEU.GetInfo().NodeIPs
 		instanceUS.Kill()
+		err = instanceUS.WaitUntilNamespaceNotFound()
+		require.NoError(t, err)
 		err = instanceEU.Resources().WaitUntilDNSEndpointContainsTargets(instanceEU.GetInfo().Host, euClusterIPs)
 		require.NoError(t, err, "WARNING: If you running test locally, ensure the App with same host IS NOT running in forgotten namespaces")
 		err = instanceZA.Resources().WaitUntilDNSEndpointContainsTargets(instanceZA.GetInfo().Host, euClusterIPs)

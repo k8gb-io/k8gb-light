@@ -36,6 +36,7 @@ func TestFailoverProjection(t *testing.T) {
 	tus := &Target{IPs: []string{"10.10.10.4", "10.10.10.5"}}
 	tza := &Target{IPs: []string{"10.10.10.6", "10.10.10.7"}}
 	tuk := &Target{IPs: []string{"10.10.10.8", "10.10.10.9"}}
+	tde := &Target{IPs: []string{"10.10.10.10", "10.10.10.11"}}
 	var tests = []struct {
 		name            string
 		targets         Targets
@@ -45,37 +46,42 @@ func TestFailoverProjection(t *testing.T) {
 	}{
 		{
 			name: "[us,eu,za,uk] of [eu,us,uk,za]=us", targets: Targets{"eu": teu, "us": tus, "uk": tuk, "za": tza},
-			pgs:         init("us,eu,za,uk").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("us,eu,za,uk").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "us", expectedTargets: Targets{"us": tuk},
 		},
 		{
 			name: "[za] of [eu,us,uk,za]=za", targets: Targets{"eu": teu, "us": tus, "uk": tuk, "za": tza},
-			pgs:         init("za").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("za").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "za", expectedTargets: Targets{"za": tza},
 		},
 		{
 			name: "[za,us] of [eu,us]=us", targets: Targets{"eu": teu, "us": tus},
-			pgs:         init("za, us").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("za, us").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "us", expectedTargets: Targets{"us": tus},
 		},
 		{
 			name: "[za] of [eu,us]=eu", targets: Targets{"eu": teu, "us": tus},
-			pgs:         init("za").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("za").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "eu", expectedTargets: Targets{"eu": teu},
 		},
 		{
+			name: "[za] of [eu,us and de]=de", targets: Targets{"eu": teu, "us": tus, "de": tde},
+			pgs:         init("za").GetFailoverOrderedGeotagList("de", []string{"eu", "za", "uk", "us"}),
+			expectedTag: "de", expectedTargets: Targets{"de": tde},
+		},
+		{
 			name: "[] of [eu,us]=eu", targets: Targets{"eu": teu, "us": tus},
-			pgs:         init("").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "eu", expectedTargets: Targets{"eu": teu},
 		},
 		{
 			name: "[blah] of [uk,eu,us]=eu", targets: Targets{"eu": teu, "us": tus, "uk": tuk},
-			pgs:         init("blah").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("blah").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "eu", expectedTargets: Targets{"eu": teu},
 		},
 		{
 			name: "[eu] of [uk,eu,us]={}", targets: Targets{},
-			pgs:         init("eu").GetFailoverOrderedGeotagList([]string{"eu", "za", "uk", "us"}),
+			pgs:         init("eu").GetFailoverOrderedGeotagList("us", []string{"eu", "za", "uk", "us"}),
 			expectedTag: "", expectedTargets: Targets{},
 		},
 	}

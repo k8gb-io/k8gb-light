@@ -88,6 +88,19 @@ func Merge[T any](x ...[]T) (y []T) {
 	return y
 }
 
+// MergeWithSlice appends element y if doesn't exist in the x
+func MergeWithSlice[T comparable](x []T, y ...T) (z []T) {
+	m := AsMap(x)
+	z = make([]T, len(x))
+	copy(z, x)
+	for _, v := range y {
+		if !m[v] {
+			z = append(z, v)
+		}
+	}
+	return z
+}
+
 // MapHasOnlyKeys check that keys of map are identical to values in slice. If slice has different value than map
 // or slice doesn't have item which exists in map (or vice versa), the program exits
 func MapHasOnlyKeys[T comparable, U any](m map[T]U, x ...T) bool {
