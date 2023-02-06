@@ -399,17 +399,17 @@ func TestIngressGetExposedIPs(t *testing.T) {
 	var tests = []struct {
 		name                 string
 		fqdn                 string
-		ingressStatusRecords []corev1.LoadBalancerIngress
+		ingressStatusRecords []netv1.IngressLoadBalancerIngress
 		expectedErr          error
 		expectedIPs          []string
 	}{
-		{name: "Ingress Status IPs", ingressStatusRecords: []corev1.LoadBalancerIngress{{IP: "172.18.0.5"}, {IP: "172.18.0.6"}},
+		{name: "Ingress Status IPs", ingressStatusRecords: []netv1.IngressLoadBalancerIngress{{IP: "172.18.0.5"}, {IP: "172.18.0.6"}},
 			expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6"}},
-		{name: "Ingress Status Hosts", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: demo}, {Hostname: rodeo}},
+		{name: "Ingress Status Hosts", ingressStatusRecords: []netv1.IngressLoadBalancerIngress{{Hostname: demo}, {Hostname: rodeo}},
 			expectedErr: nil, expectedIPs: []string{"172.18.0.5", "172.18.0.6", "172.18.0.7"}},
-		{name: "Dig produces error", ingressStatusRecords: []corev1.LoadBalancerIngress{{Hostname: zulu}},
+		{name: "Dig produces error", ingressStatusRecords: []netv1.IngressLoadBalancerIngress{{Hostname: zulu}},
 			expectedErr: serr, expectedIPs: []string(nil)},
-		{name: "No records", ingressStatusRecords: []corev1.LoadBalancerIngress{},
+		{name: "No records", ingressStatusRecords: []netv1.IngressLoadBalancerIngress{},
 			expectedErr: nil, expectedIPs: []string(nil)},
 	}
 	for _, test := range tests {
