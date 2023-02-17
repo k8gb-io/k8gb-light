@@ -48,11 +48,11 @@ deploy-clusters:
 
 pull-images:
 	@echo -e "\n$(YELLOW)Pulling Images to be imported into clusters$(NC)"
-	docker pull k8s.gcr.io/ingress-nginx/controller:v1.1.1
+	docker pull registry.k8s.io/ingress-nginx/controller:v1.1.1
 	docker pull ghcr.io/stefanprodan/podinfo:5.2.0
 	docker pull absaoss/k8s_crd:v0.0.8
 	docker pull absaoss/external-dns:rfc-ns1
-	docker pull k8s.gcr.io/ingress-nginx/controller:v1.1.1
+	docker pull registry.k8s.io/ingress-nginx/controller:v1.1.1
 	docker pull docker.io/kuritka/k8s_crd:latest-alpha14
 
 prepare-cluster-%:
@@ -72,10 +72,10 @@ deploy-cluster-%:
 
 	@echo -e "\n$(YELLOW)Import Images $(CYAN)$(*)$(NC)"
 	k3d image import ghcr.io/stefanprodan/podinfo:5.2.0 -c $(*)
-	k3d image import k8s.gcr.io/ingress-nginx/controller:v1.1.1 -c $(*)
+	k3d image import registry.k8s.io/ingress-nginx/controller:v1.1.1 -c $(*)
 	k3d image import absaoss/k8s_crd:v0.0.8 -c $(*)
 	k3d image import absaoss/external-dns:rfc-ns1 -c $(*)
-	k3d image import k8s.gcr.io/ingress-nginx/controller:v1.1.1 -c $(*)
+	k3d image import registry.k8s.io/ingress-nginx/controller:v1.1.1 -c $(*)
 	k3d image import kuritka/k8s_crd:latest-alpha14 -c $(*)
 	k3d image import ${REPOSITORY}/${BIN}:${TAG} -c $(*)
 
