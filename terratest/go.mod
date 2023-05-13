@@ -3,11 +3,11 @@ module github.com/k8gb-io/k8gb-light/terratest
 go 1.19
 
 require (
-	github.com/gruntwork-io/terratest v0.41.7
+	github.com/gruntwork-io/terratest v0.41.24
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	k8s.io/api v0.20.6
-	k8s.io/apimachinery v0.20.6
+	k8s.io/api v0.26.4
+	k8s.io/apimachinery v0.26.4
 )
 
 require (
