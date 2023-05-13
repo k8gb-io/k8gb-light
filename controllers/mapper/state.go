@@ -102,7 +102,7 @@ func fromIngress(ingress *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
 	return rs, err
 }
 
-func fromGatewayAPI(gw *netv1.Ingress, m Mapper) (rs *LoopState, err error) {
+func fromGatewayAPI(_ *netv1.Ingress, _ Mapper) (rs *LoopState, err error) {
 	panic("not implemented")
 }
 

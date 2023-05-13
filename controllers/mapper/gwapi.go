@@ -57,7 +57,7 @@ func (g GatewayAPIMapper) TryInjectFinalizer() (Result, error) {
 	panic("not implemented")
 }
 
-func (g GatewayAPIMapper) TryRemoveFinalizer(f func(*LoopState) error) (Result, error) {
+func (g GatewayAPIMapper) TryRemoveFinalizer(_ func(*LoopState) error) (Result, error) {
 	panic("not implemented")
 }
 
@@ -65,7 +65,7 @@ func (g GatewayAPIMapper) GetExposedIPs() ([]string, error) {
 	panic("not implemented")
 }
 
-func (g GatewayAPIMapper) SetReference(rs *LoopState) {
+func (g GatewayAPIMapper) SetReference(_ *LoopState) {
 	panic("not implemented")
 	// g.rs = rs
 }

@@ -42,7 +42,11 @@ var testSettings = FakeDNSSettings{
 
 func TestFakeDNSPortIsAlreadyInUse(t *testing.T) {
 	s := &dns.Server{Addr: fmt.Sprintf("[::]:%v", port), Net: "udp", TsigSecret: nil, ReusePort: false}
-	defer func() { require.NoError(t, s.Shutdown(), "can't shutdown listener") }()
+	defer func() {
+		require.NoError(t, s.Shutdown(), "can't shutdown listener")
+		// wait until server is shutdown
+		time.Sleep(100 * time.Millisecond)
+	}()
 	go func() { _ = s.ListenAndServe() }()
 	// wait until listener starts on concurrent thread
 	time.Sleep(100 * time.Millisecond)

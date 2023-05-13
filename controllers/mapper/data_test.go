@@ -137,7 +137,7 @@ func RRon2() Data {
 	return data
 }
 
-func (d Data) AddHost(host string, localtargets []string, targets []string) Data {
+func (d Data) AddHost(host string, _ []string, targets []string) Data {
 	rule := netv1.IngressRule{
 		Host: host,
 		IngressRuleValue: netv1.IngressRuleValue{
