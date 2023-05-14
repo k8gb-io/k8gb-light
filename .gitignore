@@ -8,9 +8,8 @@
 !go.sum
 !go.mod
 !Makefile
-!demo.mk
-!terratest.mk
-!watch.mk
+!/make/*.mk
+/make/custom.mk
 !Dockerfile
 
 !README.md
