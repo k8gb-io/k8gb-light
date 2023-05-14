@@ -1,3 +1,5 @@
+# integrity.mk contains targets designed to maintain code integrity. Linters , builders etc.
+
 GOLIC_VERSION  ?= v0.7.2
 GOKART_VERSION ?= v0.5.1
 GOLANGCI_VERSION ?= v1.52.2

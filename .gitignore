@@ -23,7 +23,7 @@
 !.gitkeep
 !NOTES.md
 
-!/terratest/deploy/chart/k8gb/**
+!/make/deploy/chart/k8gb/**
 
 # ...even if they are in subdirectories
 !*/
