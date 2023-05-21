@@ -9,8 +9,11 @@
 !go.mod
 !Makefile
 !/make/*.mk
-/make/custom.mk
 !Dockerfile
+
+# Custromized
+/make/custom.mk
+custom.Dockerfile
 
 !README.md
 !PROJECT

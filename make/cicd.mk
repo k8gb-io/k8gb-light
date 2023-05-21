@@ -4,6 +4,7 @@ REGISTRY = docker.io
 REPOSITORY = kuritka
 TAG = 932-fix-3
 IMG = $(REGISTRY)/$(REPOSITORY)/$(BIN)
+OPTIONAL_DOCKERFILE_PATH ?= .
 
 image: build
-	docker build . -t ${IMG}:${TAG}
+	docker build . $(OPTIONAL_DOCKERFILE_PATH) -t ${IMG}:${TAG}
