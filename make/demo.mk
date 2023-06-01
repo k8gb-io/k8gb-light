@@ -1,5 +1,3 @@
-TERRATEST_DIR ?=$(CURDIR)
-
 DEFAULT_CONTEXT ?=k3d-k8gb-test-eu
 
 deploy-demo:

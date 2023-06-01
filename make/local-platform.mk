@@ -15,7 +15,7 @@ CLUSTER_GSLB_GATEWAY = docker network inspect $(CLUSTER_GSLB_NETWORK) -f '{{ (in
 deploy-full-local-setup:
 	$(MAKEIN) create-clusters
 	$(MAKEIN) deploy-full-terratest-setup
-#	$(MAKEIN) deploy-demo
+	$(MAKEIN) deploy-demo
 
 
 deploy-full-terratest-setup: image

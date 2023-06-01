@@ -12,7 +12,7 @@
 !Dockerfile
 
 # Custromized
-/make/custom.mk
+/make/*custom.mk
 custom.Dockerfile
 
 !README.md
