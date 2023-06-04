@@ -40,6 +40,8 @@ deploy-cluster-k8gb-edge-dns:
 	kubectl --context k3d-edge-dns apply -f $(TERRATEST_DIR)/deploy/edge/
 
 deploy-cluster-%:
+	@echo -e "\n$(YELLOW)Import $(IMG):$(TAG) to $(CYAN)$(*)$(NC)"
+	k3d image import $(IMG):$(TAG) -c $(*)
 	@echo -e "\n$(YELLOW)Deploy k8gb on cluster $(CYAN)$(*)$(NC)"
 	@echo -e "\n$(YELLOW)Create namespace $(NC)"
 	kubectl delete namespace k8gb --context=k3d-$(*) --ignore-not-found
@@ -60,7 +62,8 @@ deploy-cluster-%:
 		--set k8gb.extGslbClustersGeoTags='$(EXT_CLUSTER_GEOTAGS)' \
 		--set k8gb.reconcileRequeueSeconds=10 \
 		--set k8gb.dnsZoneNegTTL=10 \
-		--set k8gb.imageTag=${VERSION:"stable"=""} \
+		--set k8gb.imageRepo=$(REPOSITORY)/$(BIN) \
+		--set k8gb.imageTag=$(TAG) \
 		--set k8gb.log.format=simple \
 		--set k8gb.log.level=debug \
 		--set rfc2136.enabled=true \
