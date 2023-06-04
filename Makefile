@@ -17,7 +17,7 @@ SHELL := bash
 KEY?=ing
 NS?=demo
 
-TERRATEST_DIR =$(CURDIR)/make
+TERRATEST_DIR =$(CURDIR)/terratest
 MAKEIN =make -C .
 
 
