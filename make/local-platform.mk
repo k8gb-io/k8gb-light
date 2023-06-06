@@ -41,7 +41,7 @@ deploy-cluster-k8gb-edge-dns:
 
 deploy-cluster-%:
 	@echo -e "\n$(YELLOW)Import $(IMG):$(TAG) to $(CYAN)$(*)$(NC)"
-	k3d image import $(IMG):$(TAG) -c $(*)
+	k3d image import $(REPOSITORY)/$(BIN):$(TAG) -c $(*)
 	@echo -e "\n$(YELLOW)Deploy k8gb on cluster $(CYAN)$(*)$(NC)"
 	@echo -e "\n$(YELLOW)Create namespace $(NC)"
 	kubectl delete namespace k8gb --context=k3d-$(*) --ignore-not-found
