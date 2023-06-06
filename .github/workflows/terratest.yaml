@@ -34,25 +34,25 @@ jobs:
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "edge-dns"
-          args: -c terratest/deploy/k3d/edge-dns.yaml
+          args: -c make/deploy/k3d/edge-dns.yaml
 
       - name: Create EU k3s Cluster
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-eu"
-          args: -c terratest/deploy/k3d/k8gb-test-eu.yaml
+          args: -c make/deploy/k3d/k8gb-test-eu.yaml
 
       - name: Create US k3s Cluster
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-us"
-          args: -c terratest/deploy/k3d/k8gb-test-us.yaml
+          args: -c make/deploy/k3d/k8gb-test-us.yaml
 
       - name: Create ZA k3s Cluster
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-za"
-          args: -c terratest/deploy/k3d/k8gb-test-za.yaml
+          args: -c make/deploy/k3d/k8gb-test-za.yaml
 
       - name: K8GB deployment
         run: |
@@ -89,25 +89,25 @@ jobs:
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "edge-dns"
-          args: -c terratest/deploy/k3d/edge-dns.yaml
+          args: -c make/deploy/k3d/edge-dns.yaml
 
       - name: Create EU k3s Cluster on Kubernetes ${{ matrix.kubernetes-version }}
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-eu"
-          args: -c terratest/deploy/k3d/k8gb-test-eu.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
+          args: -c make/deploy/k3d/k8gb-test-eu.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
 
       - name: Create US k3s Cluster on Kubernetes ${{ matrix.kubernetes-version }}
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-us"
-          args: -c terratest/deploy/k3d/k8gb-test-us.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
+          args: -c make/deploy/k3d/k8gb-test-us.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
 
       - name: Create ZA k3s Cluster on Kubernetes ${{ matrix.kubernetes-version }}
         uses: AbsaOSS/k3d-action@b176c2a6dcae72e3e64e3e4d61751904ec314002
         with:
           cluster-name: "k8gb-test-za"
-          args: -c terratest/deploy/k3d/k8gb-test-za.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
+          args: -c make/deploy/k3d/k8gb-test-za.yaml --image=docker.io/rancher/${{ matrix.kubernetes-version }}
 
       - name: K8GB deployment
         run: |
