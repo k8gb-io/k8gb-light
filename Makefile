@@ -18,6 +18,7 @@ KEY?=ing
 NS?=demo
 
 TERRATEST_DIR =$(CURDIR)/terratest
+DEPLOY_DIR =$(CURDIR)/make/deploy
 MAKEIN =make -C .
 
 

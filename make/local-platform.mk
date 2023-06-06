@@ -7,7 +7,7 @@
 # OPTIONAL_CLUSTER_ARGUMENTS = --volume $(CERT_PATH):/etc/ssl/certs/cert.crt
 OPTIONAL_CLUSTER_ARGUMENTS ?=
 
-NGINX_INGRESS_VALUES_PATH ?= $(TERRATEST_DIR)/deploy/ingress/nginx-ingress-values.yaml
+NGINX_INGRESS_VALUES_PATH ?= $(DEPLOY_DIR)/ingress/nginx-ingress-values.yaml
 CLUSTER_GSLB_NETWORK = k3d-action-bridge-network
 CLUSTER_GSLB_GATEWAY = docker network inspect $(CLUSTER_GSLB_NETWORK) -f '{{ (index .IPAM.Config 0).Gateway }}'
 
@@ -33,11 +33,11 @@ create-clusters:
 prepare-cluster-%:
 	@echo -e "\n$(YELLOW)Prepare cluster $(CYAN)$(*)$(NC)"
 	k3d cluster delete $(*)
-	k3d cluster create -c $(TERRATEST_DIR)/deploy/k3d/$(*).yaml $(*) $(OPTIONAL_CLUSTER_ARGUMENTS)
+	k3d cluster create -c $(DEPLOY_DIR)/k3d/$(*).yaml $(*) $(OPTIONAL_CLUSTER_ARGUMENTS)
 
 deploy-cluster-k8gb-edge-dns:
 	@echo -e "\n$(YELLOW)Deploying EdgeDNS $(NC)"
-	kubectl --context k3d-edge-dns apply -f $(TERRATEST_DIR)/deploy/edge/
+	kubectl --context k3d-edge-dns apply -f $(DEPLOY_DIR)/edge/
 
 deploy-cluster-%:
 	@echo -e "\n$(YELLOW)Import $(IMG):$(TAG) to $(CYAN)$(*)$(NC)"
@@ -56,7 +56,7 @@ deploy-cluster-%:
 
 	@echo -e "\n$(YELLOW)Deploy K8GB $(NC)"
 	kubectl -n k8gb --context=k3d-$(*) create secret generic rfc2136 --from-literal=secret=96Ah/a2g0/nLeFGK+d/0tzQcccf9hCEIy34PoXX2Qg8= || true
-	cd $(TERRATEST_DIR)/deploy/chart/k8gb && helm dependency update
+	cd $(DEPLOY_DIR)/chart/k8gb && helm dependency update
 	helm -n k8gb upgrade -i k8gb k8gb/k8gb \
 		--set k8gb.clusterGeoTag='$(CLUSTER_GEOTAG)' \
 		--set k8gb.extGslbClustersGeoTags='$(EXT_CLUSTER_GEOTAGS)' \
@@ -72,7 +72,7 @@ deploy-cluster-%:
 		--wait --timeout=2m0s --kube-context=k3d-$(*)
 
 	@echo -e "\n$(YELLOW)Deploy CoreDNS $(NC)"
-	kubectl apply -f $(TERRATEST_DIR)/deploy/coredns --context=k3d-$(*)
+	kubectl apply -f $(DEPLOY_DIR)/coredns --context=k3d-$(*)
 
 	@echo -e "\n$(YELLOW)Patch K8GB to local version $(NC)"
 	kubectl -n k8gb patch deployment k8gb -p '{"spec": {"template":{"spec":{"containers":[{"name":"k8gb","image":"$(IMG):$(TAG)"}]}}}}' --context=k3d-$(*)

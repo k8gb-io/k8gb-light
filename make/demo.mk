@@ -20,14 +20,14 @@ deploy-demo-%:
 		--namespace demo
 
 init-failover:
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/fo_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
 
 init-wrr:
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
-	kubectl apply -f $(TERRATEST_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-eu
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-us
+	kubectl apply -f $(DEPLOY_DIR)/deploy/demo/wrr_demo_ingress.yaml -n demo --context=k3d-k8gb-test-za
 
 kill-local-k8gb:
 	kubectl config use-context $(DEFAULT_CONTEXT)
